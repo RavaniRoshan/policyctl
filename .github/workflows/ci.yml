@@ -12,13 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with: { version: 9 }
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
-      - run: pnpm install
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
       - run: pnpm -r test
       - run: pnpm --filter @policyctl/core build
       - run: pnpm --filter @policyctl/cli build
       - run: pnpm --filter @policyctl/server build
-      - run: |
-          node /home/runner/work/policyctl/policyctl/packages/cli/dist/cli.js --help
+      - run: node packages/cli/dist/cli.js --help
