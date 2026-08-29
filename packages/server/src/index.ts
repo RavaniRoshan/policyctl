@@ -22,6 +22,7 @@ import {
 } from "./store.js";
 import { loginPage, renderDashboard } from "./dashboard.js";
 import { makeR2 } from "./s3.js";
+import { cacheGetPolicy, cacheGetUser, cacheInvalidatePolicy, cachePutPolicy, cachePutUser } from "./cache.js";
 
 const app = new Hono<{ Bindings: Env }>();
 const API = "/api";
@@ -37,7 +38,15 @@ app.options(`${API}/*`, (c) => c.body(null, 204));
 
 async function requireUser(c: { env: Env; req: { header: (k: string) => string | undefined; query: (k: string) => string | undefined } }): Promise<User | null> {
   const token = bearerToken(c as any);
-  return getUserByToken(c.env.DB, token);
+  // KV cache first (sub-ms), fall back to D1 on miss.
+  const cached = await cacheGetUser(c.env, token);
+  if (cached != null) {
+    const u = await getUserByToken(c.env.DB, token);
+    if (u) return u;
+  }
+  const u = await getUserByToken(c.env.DB, token);
+  if (u) await cachePutUser(c.env, token, u.id);
+  return u;
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────
@@ -57,6 +66,7 @@ app.post(`${API}/policy`, async (c) => {
   const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
   if (!org) return c.json({ error: "no org" }, 400);
   const v = await pushPolicy(c.env.DB, org.id, body.yaml, user.id, body.note);
+  await cacheInvalidatePolicy(c.env, org.id);
   return c.json({ ok: true, version: v.version, id: v.id });
 });
 
@@ -65,7 +75,11 @@ app.get(`${API}/policy`, async (c) => {
   if (!user) return c.json({ error: "unauthorized" }, 401);
   const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
   if (!org) return c.json({ error: "no org" }, 400);
+  // KV cache first, fall back to D1.
+  const cached = await cacheGetPolicy(c.env, org.id);
+  if (cached != null) return c.json({ yaml: cached });
   const yaml = await getPolicy(c.env.DB, org.id);
+  if (yaml) await cachePutPolicy(c.env, org.id, yaml);
   return c.json({ yaml });
 });
 
@@ -84,6 +98,7 @@ app.post(`${API}/policy/versions/:id/rollback`, async (c) => {
   if (!org) return c.json({ error: "no org" }, 400);
   const id = Number(c.req.param("id"));
   const res = await rollback(c.env.DB, org.id, id);
+  if (res.ok) await cacheInvalidatePolicy(c.env, org.id);
   return res.ok ? c.json({ ok: true }) : c.json({ error: res.error }, 400);
 });
 

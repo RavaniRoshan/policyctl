@@ -10,6 +10,11 @@ database_name = "policyctl"
 database_id = "ba944db8-7cd8-4082-ba96-6aefddc6f73a"
 migrations_dir = "migrations"
 
+# KV cache for parsed policies + session lookups (sub-ms reads)
+[[kv_namespaces]]
+binding = "POLICYCTL_CACHE"
+id = "12ac186b93734a7fa8431dc74ab26ef1"
+
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true

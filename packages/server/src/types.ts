@@ -1,5 +1,7 @@
 export interface Env {
   DB: D1Database;
+  /** KV cache for parsed policies + session lookups (sub-ms reads). */
+  POLICYCTL_CACHE: KVNamespace;
   /** Optional override for the canonical server URL (used in CLI hints). */
   SERVER_URL?: string;
 }

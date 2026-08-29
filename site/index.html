@@ -29,12 +29,11 @@
     /* WebGL gradient wave mount + readability scrim */
     .hero-gradient { position: absolute; inset: 0; z-index: 0; }
     .hero-scrim { position: absolute; inset: 0; z-index: 1; pointer-events: none;
-      /* Keeps headline/CTA readable over bright amber/emerald wave patches.
-         Minimum ~45% darkening guarantees WCAG AA contrast (>4.5:1) for the
-         light hero copy even where the gradient peaks at its brightest. */
+      /* Lets the vivid gradient show through while keeping text readable.
+         ~25-45% darkening: gradient visible, copy still WCAG-AA. */
       background:
-        linear-gradient(180deg, rgba(7,10,9,.62) 0%, rgba(7,10,9,.45) 35%, rgba(7,10,9,.50) 65%, rgba(7,10,9,.92) 100%),
-        radial-gradient(70% 50% at 50% 0%, rgba(13,147,115,.10), transparent 60%); }
+        linear-gradient(180deg, rgba(7,10,9,.30) 0%, rgba(7,10,9,.10) 40%, rgba(7,10,9,.15) 70%, rgba(7,10,9,.55) 100%),
+        radial-gradient(70% 50% at 50% 0%, rgba(13,147,115,.08), transparent 60%); }
     .hero-inner { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; }
     /* Contrast insurance over any remaining bright region. */
     .hero-h1, .hero-lede, .eyebrow { text-shadow: 0 1px 12px rgba(7,10,9,.55), 0 1px 3px rgba(7,10,9,.7); }
@@ -260,12 +259,14 @@ policyctl check --report</code></div>
       if (!el || !window.PolicyctlGradientWave) return;
       var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       window.PolicyctlGradientWave.mount(el, {
-        colors: ["#0D9373", "#02241e", "#F59E0B", "#043a2f", "#34d399", "#086651"],
+        // Vivid, high-contrast palette — bright enough to read against #0B0F0D
+        // even under the readability scrim. Emerald + amber + teal flow.
+        colors: ["#34d399", "#fbbf24", "#2dd4bf", "#f59e0b", "#a7f3d0", "#0ea5e9"],
         darkenTop: true,
         shadowPower: 6,
         noiseSpeed: 0.00001,
         noiseFrequency: [0.0001, 0.0009],
-        deform: { incline: 0.4, noiseAmp: 240, noiseFlow: 4 },
+        deform: { incline: 0.4, noiseAmp: 260, noiseFlow: 5 },
         isPlaying: !reduce,
       });
     })();
