@@ -29,6 +29,10 @@ bindings = [
 tag = "v1"
 new_sqlite_classes = ["PolicySession"]
 
+# Cron Triggers — daily compliance report at 9am UTC
+[triggers]
+crons = ["0 9 * * *"]
+
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true

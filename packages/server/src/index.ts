@@ -290,5 +290,51 @@ app.post(`${API}/session/:key/report`, async (c) => {
   return new Response(await res.text(), { headers: { "content-type": "application/json" } });
 });
 
+// ── Phase D: read daily compliance report ───────────────────────────
+app.get(`${API}/report/daily`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const cached = await c.env.POLICYCTL_CACHE.get(`report:daily:org:${org.id}`, "text");
+  if (!cached) return c.json({ report: null, message: "No report yet. Next daily report at 9am UTC." });
+  return c.json({ report: JSON.parse(cached) });
+});
+
+// ── Phase D: Cron Triggers — daily compliance report ────────────────
+async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+  // Daily at 9am UTC: scan all orgs, generate compliance summary
+  const d1 = env.DB;
+
+  // Get all orgs
+  const orgs = (await d1.prepare("SELECT id, name FROM orgs").all()) as unknown as { results: { id: number; name: string }[] };
+
+  for (const org of orgs.results) {
+    const since = Date.now() - 24 * 3600 * 1000; // last 24h
+    const totalRow = (await d1.prepare("SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?").bind(org.id, since).first()) as { c: number };
+    const total = totalRow?.c ?? 0;
+
+    const byActor = (await d1.prepare("SELECT COALESCE(actor,'agent') AS actor, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY COALESCE(actor,'agent')").bind(org.id, since).all()) as unknown as { results: { actor: string; count: number }[] };
+
+    const repeatOffenders = (await d1.prepare(
+      `SELECT COALESCE(rule_id,'(unknown)') AS rule_id, COALESCE(repo,'(unknown)') AS repo, COUNT(*) AS count
+       FROM violations WHERE org_id = ? AND created_at >= ?
+       GROUP BY rule_id, repo HAVING count > 1 ORDER BY count DESC LIMIT 5`,
+    ).bind(org.id, since).all()) as unknown as { results: { rule_id: string; repo: string; count: number }[] };
+
+    // Store the report in KV for the dashboard to read
+    const report = {
+      generatedAt: Date.now(),
+      period: "24h",
+      total,
+      byActor: byActor.results,
+      repeatOffenders: repeatOffenders.results,
+    };
+    await env.POLICYCTL_CACHE.put(`report:daily:org:${org.id}`, JSON.stringify(report), { expirationTtl: 86400 * 7 });
+
+    console.log(`[cron] Daily report for org ${org.id} (${org.name}): ${total} violations, ${repeatOffenders.results.length} repeat offenders`);
+  }
+}
+
 export { PolicySession };
-export default { fetch: app.fetch };
+export default { fetch: app.fetch, scheduled };

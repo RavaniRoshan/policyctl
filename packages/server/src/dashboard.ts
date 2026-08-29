@@ -265,7 +265,7 @@ export function renderDashboard(data: {
     <div class="term-body"><code class="c">policyctl</code> pull --token ${escapeHtml(token.slice(0, 10))}…</div>
   </div>`;
 
-  return shell(`${org.name} · policyctl`, nav + `<div class="bento">${chartCard}${repoCard}${ruleCard}${versionsHtml}${recent}${aiPanel(org.id, token)}${pull}</div>`);
+  return shell(`${org.name} · policyctl`, nav + `<div class="bento">${chartCard}${repoCard}${ruleCard}${versionsHtml}${recent}${aiPanel(org.id, token)}${complianceCard(org.id, token)}${pull}</div>`);
 }
 
 function badge(enforce?: string | null): string {
@@ -302,5 +302,29 @@ export function aiPanel(orgId: number, token: string): string {
     const r=await fetch('/api/ai/author?token=${tk}&org=${orgId}',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({intent})});
     const j=await r.json();out.textContent=(j.rule||'')+(j.explanation?'\\n\\n'+j.explanation:'');
     b.textContent='Write rule';b.disabled=false;};
+  </script>`;
+}
+
+export function complianceCard(orgId: number, token: string): string {
+  const tk = encodeURIComponent(token);
+  return `<div class="card col-12 reveal">
+    <div class="card-h"><div><div class="eyebrow">Compliance</div><div class="h2" style="font-size:1.05rem;margin-top:.3rem">Daily compliance report</div></div><span class="pc-badge">auto</span></div>
+    <div id="compliance-body" style="margin-top:1rem;font-size:.9rem;color:var(--n-300)">
+      <span class="muted">Loading…</span>
+    </div>
+  </div>
+  <script>
+  (async()=>{
+    const r=await fetch('/api/report/daily?token=${tk}&org=${orgId}');
+    const j=await r.json();
+    const el=document.getElementById('compliance-body');
+    if(!j.report){el.innerHTML='<span class="muted">'+j.message+'</span>';return;}
+    const p=j.report;
+    el.innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem">'+
+      '<div class="pc-stat"><div class="pc-stat-value">'+p.total+'</div><div class="pc-stat-label">violations (24h)</div></div>'+
+      '<div class="pc-stat"><div class="pc-stat-value">'+(p.byActor.find(a=>a.actor==='agent')?.count||0)+'</div><div class="pc-stat-label">by agents</div></div>'+
+      '<div class="pc-stat"><div class="pc-stat-value">'+(p.byActor.find(a=>a.actor==='human')?.count||0)+'</div><div class="pc-stat-label">by humans</div></div>'+
+      '</div>'+(p.repeatOffenders.length?'<div style="font-family:var(--font-mono);font-size:.72rem;color:var(--n-400);margin-bottom:.4rem">REPEAT OFFENDERS</div>'+p.repeatOffenders.map(o=>'<div class="bar-row"><span>'+o.rule_id+' · '+o.repo+'</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span>'+o.count+'</span></div>').join(''):'<span class="muted">No repeat offenders. Clean day.</span>');
+  })();
   </script>`;
 }
