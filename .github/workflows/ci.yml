@@ -15,8 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm -r test
       - run: pnpm --filter @policyctl/core build
       - run: pnpm --filter @policyctl/cli build
       - run: pnpm --filter @policyctl/server build
+      - run: pnpm -r test
       - run: node packages/cli/dist/cli.js --help
