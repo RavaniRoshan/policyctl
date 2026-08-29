@@ -1,0 +1,15 @@
+name = "policyctl-server"
+main = "src/index.ts"
+compatibility_date = "2024-12-05"
+workers_dev = true
+
+# D1 database (created with: wrangler d1 create policyctl)
+[[d1_databases]]
+binding = "DB"
+database_name = "policyctl"
+database_id = "ba944db8-7cd8-4082-ba96-6aefddc6f73a"
+migrations_dir = "migrations"
+
+# Structured logs to the Workers Observability platform.
+[observability]
+enabled = true

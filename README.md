@@ -96,35 +96,39 @@ policyctl pull --force                           # fetch the team policy into an
 policyctl check --report                         # CI gate that also reports violations to the feed
 ```
 
+> **Live instance:** `https://policyctl-server.shivamkumar10958.workers.dev` (Cloudflare Workers + D1).
+> Point the CLI at it with `policyctl login --server <url>`, or set `POLICYCTL_SERVER`.
+
 ### Architecture
 
 - **Runtime:** Cloudflare Workers (V8 isolates, no cold-start server) — `packages/server`.
 - **Database:** Cloudflare D1 (SQLite at the edge) for orgs, members, policy versions, and the violation feed.
-- **Object storage:** Cloudflare R2 for policy artifacts and dashboard exports.
-- **Global dashboard:** served as a static Worker front-end against the same API.
+- **Object storage:** Cloudflare R2 for policy artifacts and dashboard exports (wiring landing in Phase C).
+- **Dashboard:** server-rendered Worker route at `/dashboard`, styled with the shared design system.
 
 ### What's in Phase B
 
 | Capability | Status |
 | --- | --- |
-| Organizations — a team workspace owning one or more policies | planned |
-| Members & roles — `owner` / `admin` / `member` / `viewer` | planned |
-| Policy versioning — every `push` is an immutable version | planned |
-| Rollback — restore any prior version in one command | planned |
-| Violation feed — real-time feed across all repos/agents | planned |
-| Dashboard — per-repo and per-rule breakdowns + trend lines | planned |
+| Organizations — a team workspace owning one or more policies | shipped |
+| Members & roles — `owner` / `admin` / `member` / `viewer` | shipped |
+| Policy versioning — every `push` is an immutable version | shipped |
+| Rollback — restore any prior version in one command | shipped |
+| Violation feed — real-time feed across all repos/agents | shipped |
+| Dashboard — per-repo and per-rule breakdowns + trend lines | shipped |
 
 ### API surface
 
 - `POST /api/login` → issues a token
 - `POST /api/policy` / `GET /api/policy` → sync the org policy (creates a new version on write)
-- `POST /api/policy/:version/rollback` → restore a previous version
-- `POST /api/report` / `GET /api/violations` → the violation feed (also viewable at the dashboard `/?token=...`)
-- `GET /api/orgs` / `POST /api/orgs/:id/members` → org + member management
+- `GET /api/policy/versions` / `POST /api/policy/versions/:id/rollback` → history + restore
+- `POST /api/report` / `GET /api/violations` → the violation feed (also viewable at the dashboard `/dashboard?token=...`)
+- `GET /api/orgs` / `POST /api/orgs` / `POST /api/orgs/:id/members` → org + member management
 
 Set `POLICYCTL_SERVER` to point the CLI at your instance (default: `https://policyctl.dev`).
 
-> Self-hosting Phase B: deploy the Worker + D1 binding (`wrangler deploy`) — no container runtime required. Instructions land here once the Phase B build ships.
+> Self-hosting Phase B: deploy the Worker + D1 binding with `pnpm --filter @policyctl/server deploy`
+> (runs `wrangler deploy` after applying `migrations/0001_init.sql`). No container runtime required.
 
 ## Development
 
@@ -138,8 +142,8 @@ pnpm --filter @policyctl/server start  # control-plane API + dashboard
 ## Roadmap
 
 - **Phase A — local-first runtime (shipped):** provider-agnostic engine, generated hooks for Claude/Codex/Cursor, git-diff CI gate, published to npm (`@policyctl/cli`, `@policyctl/core`).
-- **Phase B — hosted control plane (in progress):** Cloudflare Workers + D1 backend, organizations, member roles, immutable policy versioning with rollback, real-time violation feed, and the per-repo/per-rule dashboard.
-- **Phase C — analytics & fleet:** cross-org trends, agent-vs-human violation attribution, and policy effectiveness scoring.
+- **Phase B — hosted control plane (shipped):** Cloudflare Workers + D1 backend, organizations, member roles, immutable policy versioning with rollback, real-time violation feed, and the per-repo/per-rule dashboard at `https://policyctl-server.shivamkumar10958.workers.dev`.
+- **Phase C — analytics & fleet:** cross-org trends, agent-vs-human violation attribution, policy effectiveness scoring, and R2-backed exports.
 
 ## Design system
 
