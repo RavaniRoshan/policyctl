@@ -26,11 +26,25 @@ jobs:
           done
           echo "pinned @policyctl/core to ^${VERSION} in cli package.json"
       - name: Publish @policyctl/core
-        run: cd packages/core && npm publish --access public
+        run: |
+          cd packages/core
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          if npm view "@policyctl/core@$VERSION" version >/dev/null 2>&1; then
+            echo "core@$VERSION already on registry — skipping publish"
+          else
+            npm publish --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish @policyctl/cli
-        run: cd packages/cli && npm publish --provenance --access public
+        run: |
+          cd packages/cli
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          if npm view "@policyctl/cli@$VERSION" version >/dev/null 2>&1; then
+            echo "cli@$VERSION already on registry — skipping publish"
+          else
+            npm publish --provenance --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Pack the CLI tarball (for the release asset)
