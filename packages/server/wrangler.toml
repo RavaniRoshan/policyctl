@@ -19,6 +19,16 @@ id = "12ac186b93734a7fa8431dc74ab26ef1"
 [ai]
 binding = "AI"
 
+# Durable Objects — live enforcement sessions + streaming dashboard
+[durable_objects]
+bindings = [
+  { name = "POLICY_SESSION", class_name = "PolicySession" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PolicySession"]
+
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true

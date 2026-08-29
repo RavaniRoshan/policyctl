@@ -24,6 +24,7 @@ import { loginPage, renderDashboard } from "./dashboard.js";
 import { makeR2 } from "./s3.js";
 import { cacheGetPolicy, cacheGetUser, cacheInvalidatePolicy, cachePutPolicy, cachePutUser } from "./cache.js";
 import { analyzeDiff, authorRule } from "./ai.js";
+import { PolicySession } from "./session.js";
 
 const app = new Hono<{ Bindings: Env }>();
 const API = "/api";
@@ -237,4 +238,57 @@ app.get("/", async (c) => {
   return c.redirect("/dashboard");
 });
 
+// ── Phase D: Durable Objects — live enforcement sessions ─────────────
+// Create/get a session DO stub keyed by orgId:sessionKey
+async function sessionStub(env: Env, orgId: number, sessionKey: string) {
+  const id = env.POLICY_SESSION.idFromName(`${orgId}:${sessionKey}`);
+  return env.POLICY_SESSION.get(id);
+}
+
+app.post(`${API}/session/init`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const body = (await c.req.json<{ sessionKey?: string; policy?: string }>().catch(() => ({}))) as { sessionKey?: string; policy?: string };
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const key = body.sessionKey ?? `s-${Date.now()}`;
+  const stub = await sessionStub(c.env, org.id, key);
+  const res = await stub.fetch(c.req.url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ type: "init", orgId: org.id, sessionKey: key, policy: body.policy ?? "" }),
+  });
+  return new Response(await res.text(), { headers: { "content-type": "application/json" } });
+});
+
+// WebSocket upgrade for live session stream
+app.get(`${API}/session/:key/stream`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const key = c.req.param("key");
+  const stub = await sessionStub(c.env, org.id, key);
+  // Forward the WebSocket upgrade to the DO
+  return stub.fetch(c.req.raw);
+});
+
+// Report a tool call / violation into the session
+app.post(`${API}/session/:key/report`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const key = c.req.param("key");
+  const stub = await sessionStub(c.env, org.id, key);
+  const body = await c.req.json();
+  const res = await stub.fetch(c.req.url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ ...body, actor: body.actor ?? "agent" }),
+  });
+  return new Response(await res.text(), { headers: { "content-type": "application/json" } });
+});
+
+export { PolicySession };
 export default { fetch: app.fetch };

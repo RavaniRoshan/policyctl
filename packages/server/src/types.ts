@@ -4,6 +4,8 @@ export interface Env {
   POLICYCTL_CACHE: KVNamespace;
   /** Workers AI — edge LLM inference for semantic policy intelligence. */
   AI: Ai;
+  /** Durable Objects — live enforcement sessions + streaming dashboard. */
+  POLICY_SESSION: DurableObjectNamespace;
   /** Optional override for the canonical server URL (used in CLI hints). */
   SERVER_URL?: string;
 }
