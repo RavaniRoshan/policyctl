@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>policyctl — make your coding agents obey the rules</title>
+  <meta name="description" content="Provider-agnostic policy runtime for coding agents. One .policyctl.yml, enforced across Claude Code, Codex, Cursor, and your CI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/design-system.css" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        <span class="logo-mark">◆</span>
+        <span class="logo-text">policyctl</span>
+      </a>
+      <div class="nav-links">
+        <a href="/docs.html">Docs</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#rules">Rules</a>
+        <a href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero pc-mesh">
+    <div class="hero-inner">
+      <span class="pc-badge">v0.1.6 · open source</span>
+      <h1>Make your coding agents <span class="highlight">obey the rules</span></h1>
+      <p class="lede">One <code>.policyctl.yml</code> file, enforced everywhere your code is written — Claude Code, Codex, Cursor, and your CI. No more hand-written migrations, no more secrets in commits, no more "the agent just did it."</p>
+      <div class="cta-row">
+        <a class="pc-btn pc-btn-primary" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm i -g @policyctl/cli</a>
+        <a class="pc-btn pc-btn-ghost" href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">View on GitHub</a>
+        <a class="pc-btn pc-btn-ghost" href="/docs.html">Read the docs</a>
+      </div>
+      <div class="hero-meta">Free · MIT · works in any repo</div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat-grid">
+      <div class="pc-stat">
+        <div class="pc-stat-value">12</div>
+        <div class="pc-stat-label">commands</div>
+      </div>
+      <div class="pc-stat">
+        <div class="pc-stat-value">3</div>
+        <div class="pc-stat-label">providers</div>
+      </div>
+      <div class="pc-stat">
+        <div class="pc-stat-value">8</div>
+        <div class="pc-stat-label">matchers</div>
+      </div>
+      <div class="pc-stat">
+        <div class="pc-stat-value">∞</div>
+        <div class="pc-stat-label">rules</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="how">
+    <h2>How it works</h2>
+    <p class="section-lede">Three commands, one file. No backend required for the CLI; a hosted control plane is optional.</p>
+    <div class="how-grid">
+      <div class="pc-card">
+        <div class="step-num">01</div>
+        <h3>Init</h3>
+        <p>Scaffold a starter policy from a template.</p>
+        <div class="pc-code"><code>policyctl init --template full</code></div>
+      </div>
+      <div class="pc-card">
+        <div class="step-num">02</div>
+        <h3>Wire</h3>
+        <p>Generate provider hook glue for Claude, Codex, or Cursor.</p>
+        <div class="pc-code"><code>policyctl gen claude
+policyctl gen codex
+policyctl gen cursor</code></div>
+      </div>
+      <div class="pc-card">
+        <div class="step-num">03</div>
+        <h3>Check</h3>
+        <p>Gate the diff in CI. Get a full violation feed in the dashboard.</p>
+        <div class="pc-code"><code>policyctl check
+policyctl check --report</code></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="terminal-demo pc-grain">
+    <h2>See it in action</h2>
+    <div class="pc-terminal">
+      <div class="pc-terminal-bar">
+        <span class="pc-terminal-dot" style="background:#ff5f57"></span>
+        <span class="pc-terminal-dot" style="background:#febc2e"></span>
+        <span class="pc-terminal-dot" style="background:#28c840"></span>
+        <span style="margin-left:auto;color:var(--n-500);font-size:0.75rem">policyctl check</span>
+      </div>
+      <div class="pc-terminal-body">
+        <code><span class="cm">$ policyctl check</span>
+<span class="kw">FAIL</span> migrations-via-generator  DB migrations must be produced by `make migrate`, never handwritten.
+<span class="kw">FAIL</span> no-secrets-in-commits       Reject commits that add obvious secret patterns.
+
+<span class="str">2 blocking · 0 warnings — build stopped</span></code>
+      </div>
+    </div>
+  </section>
+
+  <section id="rules" class="rules">
+    <h2>What you can enforce</h2>
+    <p class="section-lede">A rule is a matcher set, an enforce level, and a scope. Compose them. Allowlist reviewed exceptions. Tag them.</p>
+    <div class="rules-grid">
+      <div class="pc-rule">
+        <div class="pc-rule-icon">DB</div>
+        <div>
+          <div class="pc-rule-meta">block · both</div>
+          <h4>Migrations via generator</h4>
+          <p>Block any migration file that lacks the generator signature — at hook time and in CI.</p>
+        </div>
+      </div>
+      <div class="pc-rule">
+        <div class="pc-rule-icon">🔒</div>
+        <div>
+          <div class="pc-rule-meta">block · hook</div>
+          <h4>No protected edits</h4>
+          <p>Prevent agents from touching README, package.json, tsconfig.json, or any path you choose.</p>
+        </div>
+      </div>
+      <div class="pc-rule">
+        <div class="pc-rule-icon">⚠</div>
+        <div>
+          <div class="pc-rule-meta">fail · ci</div>
+          <h4>No secrets in commits</h4>
+          <p>Regex-detect AWS keys, GitHub tokens, OpenAI keys in the diff and fail the build.</p>
+        </div>
+      </div>
+      <div class="pc-rule">
+        <div class="pc-rule-icon">✓</div>
+        <div>
+          <div class="pc-rule-meta">warn · ci</div>
+          <h4>Tests for source</h4>
+          <p>Warn when a src/ change ships without a matching test file.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-final pc-mesh">
+    <h2>Stop shipping agent accidents.</h2>
+    <p>One file, every agent, every repo. Free forever for the CLI.</p>
+    <div class="cta-row">
+      <a class="pc-btn pc-btn-primary" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">Install policyctl</a>
+      <a class="pc-btn pc-btn-ghost" href="/docs.html">Read the docs</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <span>MIT · © 2026 policyctl contributors</span>
+      <span>Built for staff engineers running mixed-agent stacks.</span>
+    </div>
+  </footer>
+</body>
+</html>

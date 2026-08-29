@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>docs · policyctl</title>
+  <meta name="description" content="Install and use policyctl." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/design-system.css" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+<body>
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        <span class="logo-mark">◆</span>
+        <span class="logo-text">policyctl</span>
+      </a>
+      <div class="nav-links">
+        <a href="/docs.html">Docs</a>
+        <a href="/#how-it-works">How it works</a>
+        <a href="/#rules">Rules</a>
+        <a href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm</a>
+      </div>
+    </div>
+  </nav>
+
+  <article class="doc-page">
+    <aside class="doc-sidebar">
+      <div class="doc-nav">
+        <a href="#install">Install</a>
+        <a href="#quickstart">Quickstart</a>
+        <a href="#ci">CI</a>
+        <a href="#hosted">Hosted control plane</a>
+        <a href="#rules-ref">Rules reference</a>
+        <a href="#commands">Commands</a>
+      </div>
+    </aside>
+
+    <div class="doc-content">
+      <h1>policyctl docs</h1>
+      <p class="lede">Provider-agnostic policy runtime for coding agents.</p>
+
+      <h2 id="install">Install</h2>
+      <div class="pc-code"><code>npm install -g @policyctl/cli
+<span class="cm"># or, no install:</span>
+npx @policyctl/cli check</code></div>
+
+      <h2 id="quickstart">Quickstart</h2>
+      <div class="pc-code"><code>policyctl init --template full
+policyctl list
+policyctl gen claude     <span class="cm"># or codex / cursor</span>
+policyctl check          <span class="cm"># gate the diff in CI</span></code></div>
+
+      <h2 id="ci">CI</h2>
+      <div class="pc-code"><code><span class="cm"># .github/workflows/policy.yml</span>
+name: policyctl
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: <span class="str">'20'</span> }
+      - run: npx @policyctl/cli check</code></div>
+
+      <h2 id="hosted">Hosted control plane (optional)</h2>
+      <p>The CLI is free and local-first. The hosted control plane is what teams pay for: one policy, enforced across every agent and repo, with an audit trail.</p>
+      <div class="pc-code"><code>policyctl login --email you@company.com
+policyctl push             <span class="cm"># publish your policy</span>
+policyctl check --report   <span class="cm"># send violations to the feed</span></code></div>
+
+      <h2 id="rules-ref">Rules reference</h2>
+      <p>Match a rule against a tool call (hook) or a git diff (ci):</p>
+      <ul>
+        <li><code>path</code> — glob over the file the tool touches (hook) or changed files (ci)</li>
+        <li><code>command</code> — regex over a shell command (e.g. the Bash tool); hook only</li>
+        <li><code>tool</code> — tool name (exact, or <code>/regex/</code>); hook only</li>
+        <li><code>diff_contains</code> — substring that must be present in the diff; ci only</li>
+        <li><code>diff_not_contains</code> — substring that must be absent (e.g. a generator signature); ci only</li>
+        <li><code>diff_regex</code> — regex over the full diff text; ci only</li>
+        <li><code>diff_paths_glob</code> — glob that must match at least one changed file; ci only</li>
+        <li><code>diff_paths_not_glob</code> — glob that must match no changed file; ci only</li>
+      </ul>
+
+      <h2 id="commands">Commands</h2>
+      <div class="rules-grid">
+        <div class="pc-rule"><div class="pc-rule-icon">◆</div><div><h4>init</h4><p>Scaffold a .policyctl.yml from a template.</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">≡</div><div><h4>list</h4><p>Show loaded rules and their scope.</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">✓</div><div><h4>check</h4><p>Run the CI/diff gate. Non-zero on violation.</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">⚡</div><div><h4>eval</h4><p>Run the hook evaluator (reads JSON on stdin).</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">⚙</div><div><h4>gen</h4><p>Generate Claude / Codex / Cursor hook glue.</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">+</div><div><h4>doctor</h4><p>Verify hooks are wired correctly.</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">?</div><div><h4>trace</h4><p>Explain which matchers fire for a given input.</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">▦</div><div><h4>test</h4><p>Run the policy against a fixture suite.</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">☁</div><div><h4>login / push / pull</h4><p>Optional hosted control plane (org policy sync).</p></div></div>
+        <div class="pc-rule"><div class="pc-rule-icon">↑</div><div><h4>report</h4><p>Send a violation result to the hosted feed.</p></div></div>
+      </div>
+
+      <p class="text-slate-400">For the full schema and examples, see the <a href="https://github.com/RavaniRoshan/policyctl#readme" target="_blank" rel="noreferrer">README</a>.</p>
+    </div>
+  </article>
+
+  <footer>
+    <div class="footer-inner">
+      <span>MIT · © 2026 policyctl contributors</span>
+      <span>Built for staff engineers running mixed-agent stacks.</span>
+    </div>
+  </footer>
+</body>
+</html>

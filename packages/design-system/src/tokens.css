@@ -1,0 +1,80 @@
+/* policyctl design system — tokens */
+/* Palette: teal/emerald primary (safety, compliance) + warm amber accent (attention) */
+
+:root {
+  /* ── Primary (teal → emerald) ── */
+  --pc-50: #ecfdf5;
+  --pc-100: #d1fae5;
+  --pc-200: #a7f3d0;
+  --pc-300: #6ee7b7;
+  --pc-400: #34d399;
+  --pc-500: #0D9373;
+  --pc-600: #0a7d62;
+  --pc-700: #086651;
+  --pc-800: #065040;
+  --pc-900: #043a2f;
+  --pc-950: #02241e;
+
+  /* ── Accent (warm amber) ── */
+  --ac-50: #fffbeb;
+  --ac-100: #fef3c7;
+  --ac-200: #fde68a;
+  --ac-300: #fcd34d;
+  --ac-400: #fbbf24;
+  --ac-500: #F59E0B;
+  --ac-600: #d97706;
+  --ac-700: #b45309;
+
+  /* ── Neutrals (warm slate) ── */
+  --n-0: #ffffff;
+  --n-50: #f8fafb;
+  --n-100: #eef1f3;
+  --n-200: #dde3e6;
+  --n-300: #c2ccd1;
+  --n-400: #8a979e;
+  --n-500: #616e76;
+  --n-600: #48525a;
+  --n-700: #353d43;
+  --n-800: #1f2529;
+  --n-900: #121618;
+  --n-950: #0B0F0D;
+  --n-1000: #070a09;
+
+  /* ── Semantic ── */
+  --success: #0D9373;
+  --warn: #F59E0B;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  /* ── Typography ── */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* ── Spacing ── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* ── Radius ── */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* ── Shadows ── */
+  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --sh-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --sh-glow: 0 0 24px rgba(13, 147, 115, 0.35);
+
+  /* ── Motion ── */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur: 200ms;
+}

@@ -4,15 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "dependencies": {
-    "astro": "^4.16.18",
-    "@astrojs/tailwind": "^5.1.5",
-    "@astrojs/cloudflare": "^11.2.0",
-    "@tailwindcss/typography": "^0.5.15",
-    "tailwindcss": "^3.4.17"
+  "devDependencies": {
+    "vite": "^6.0.7"
   }
 }
