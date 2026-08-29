@@ -18,6 +18,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @policyctl/core build
       - run: pnpm --filter @policyctl/cli build
+      - name: Bundle @policyctl/core into the CLI tarball
+        run: |
+          mkdir -p packages/cli/node_modules/@policyctl/core
+          cp -r packages/core/dist/. packages/cli/node_modules/@policyctl/core/
+          node -e "const fs=require('fs');const p='packages/cli/node_modules/@policyctl/core/package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.files=['dist'];j.main=j.main||'./dist/index.js';j.engines={node:'>=20'};fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n')"
+      - name: Switch the workspace dep to a real version
+        run: |
+          node -e "const fs=require('fs');const p='packages/cli/package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));j.dependencies['@policyctl/core']='^0.1.0';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n')"
       - name: Pack the CLI tarball (for the release asset)
         run: cd packages/cli && npm pack
       - name: Publish to npm

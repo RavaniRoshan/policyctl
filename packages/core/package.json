@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Shared policy schema, matchers, and evaluation engine for policyctl.",
+  "files": ["dist"],
+  "engines": { "node": ">=20" },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
