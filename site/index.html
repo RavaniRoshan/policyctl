@@ -26,7 +26,18 @@
     .hero { position: relative; overflow: hidden; padding: clamp(3.5rem, 9vw, 7rem) 1.5rem clamp(2rem, 5vw, 3.5rem); }
     .hero::before { content: ""; position: absolute; inset: -20% 0 auto 0; height: 60%; z-index: 0;
       background: radial-gradient(60% 60% at 50% 0%, rgba(13,147,115,.20), transparent 70%); filter: blur(40px); pointer-events: none; }
-    .hero-inner { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; }
+    /* WebGL gradient wave mount + readability scrim */
+    .hero-gradient { position: absolute; inset: 0; z-index: 0; }
+    .hero-scrim { position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      /* Keeps headline/CTA readable over bright amber/emerald wave patches.
+         Minimum ~45% darkening guarantees WCAG AA contrast (>4.5:1) for the
+         light hero copy even where the gradient peaks at its brightest. */
+      background:
+        linear-gradient(180deg, rgba(7,10,9,.62) 0%, rgba(7,10,9,.45) 35%, rgba(7,10,9,.50) 65%, rgba(7,10,9,.92) 100%),
+        radial-gradient(70% 50% at 50% 0%, rgba(13,147,115,.10), transparent 60%); }
+    .hero-inner { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; }
+    /* Contrast insurance over any remaining bright region. */
+    .hero-h1, .hero-lede, .eyebrow { text-shadow: 0 1px 12px rgba(7,10,9,.55), 0 1px 3px rgba(7,10,9,.7); }
     .eyebrow { display: inline-flex; align-items: center; gap: .5rem; font-family: var(--font-mono); font-size: .72rem;
       letter-spacing: .16em; text-transform: uppercase; color: var(--pc-300);
       border: 1px solid rgba(13,147,115,.3); background: rgba(13,147,115,.08); border-radius: 999px; padding: .35rem .8rem; }
@@ -107,6 +118,8 @@
   </header>
 
   <section class="hero">
+    <div class="hero-gradient" id="hero-gradient" aria-hidden="true"></div>
+    <div class="hero-scrim" aria-hidden="true"></div>
     <div class="hero-inner">
       <div class="hero-split">
         <div>
@@ -236,9 +249,26 @@ policyctl check --report</code></div>
     </div>
   </footer>
 
+  <script src="/gradient-wave.js" defer></script>
   <script>
     const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }), { threshold: .08 });
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // Hero background WebGL gradient (color-adapted to policyctl tokens).
+    (function () {
+      var el = document.getElementById("hero-gradient");
+      if (!el || !window.PolicyctlGradientWave) return;
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.PolicyctlGradientWave.mount(el, {
+        colors: ["#0D9373", "#02241e", "#F59E0B", "#043a2f", "#34d399", "#086651"],
+        darkenTop: true,
+        shadowPower: 6,
+        noiseSpeed: 0.00001,
+        noiseFrequency: [0.0001, 0.0009],
+        deform: { incline: 0.4, noiseAmp: 240, noiseFlow: 4 },
+        isPlaying: !reduce,
+      });
+    })();
   </script>
 </body>
 </html>
