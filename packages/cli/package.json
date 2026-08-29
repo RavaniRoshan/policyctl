@@ -1,0 +1,50 @@
+{
+  "name": "@policyctl/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Provider-agnostic policy runtime for coding agents.",
+  "bin": {
+    "policyctl": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/policyctl/policyctl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/policyctl/policyctl/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agent",
+    "claude",
+    "cursor",
+    "codex",
+    "guardrails",
+    "policy",
+    "ci"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node ../../scripts/fix-perm.mjs",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@policyctl/core": "workspace:*",
+    "commander": "^12.1.0",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

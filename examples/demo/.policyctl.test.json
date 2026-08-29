@@ -1,0 +1,12 @@
+{
+  "hook": [
+    { "id": "blocks README edit",         "input": { "tool": "Edit", "file_path": "README.md" }, "expect": 2 },
+    { "id": "allows source edit",         "input": { "tool": "Edit", "file_path": "src/a.ts" },  "expect": 0 },
+    { "id": "blocks tsconfig edit",       "input": { "tool": "Edit", "file_path": "tsconfig.json" }, "expect": 2 },
+    { "id": "allows package.json (exception)", "input": { "tool": "Edit", "file_path": "package.json" }, "expect": 0 }
+  ],
+  "ci": [
+    { "id": "fails on a secret",  "files": [{ "path": "src/a.ts", "status": "modified" }], "text": "const t = 'ghp_abcdefghijklmnopqrstuvwxyz';", "expect": 2 },
+    { "id": "clean src + test",   "files": [{ "path": "src/a.ts", "status": "modified" }, { "path": "src/a.test.ts", "status": "added" }], "text": "x", "expect": 0 }
+  ]
+}
