@@ -1,0 +1,8 @@
+name = "policyctl"
+compatibility_date = "2024-09-01"
+
+[site]
+bucket = "./dist"
+
+[build]
+command = "pnpm --filter policyctl-site build"
