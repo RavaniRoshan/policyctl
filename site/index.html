@@ -3,166 +3,242 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>policyctl — make your coding agents obey the rules</title>
-  <meta name="description" content="Provider-agnostic policy runtime for coding agents. One .policyctl.yml, enforced across Claude Code, Codex, Cursor, and your CI." />
+  <title>policyctl — policy as code, enforced on every tool call</title>
+  <meta name="description" content="Provider-agnostic policy runtime for coding agents. One .policyctl.yml, enforced inside Claude Code, Codex, Cursor, and your CI. Not just prompt text." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/design-system.css" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style>
+    /* ── Landing premium layer (token-consistent) ── */
+    .lnav { position: sticky; top: 1rem; z-index: 50; margin: 1rem auto 0; width: min(1120px, calc(100% - 2rem)); }
+    .lnav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: .6rem .8rem .6rem 1.1rem; border-radius: 999px;
+      background: rgba(7,10,9,.6); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,.07); box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 14px 40px -18px rgba(0,0,0,.7); }
+    .nav-links { display: flex; align-items: center; gap: 1.4rem; }
+    .nav-links a { color: var(--n-300); font-size: .9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--n-100); }
+    .nav-cta { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 999px;
+      background: linear-gradient(180deg, var(--pc-400), var(--pc-600)); color: var(--n-950); font-weight: 600; font-size: .85rem; }
+
+    .hero { position: relative; overflow: hidden; padding: clamp(3.5rem, 9vw, 7rem) 1.5rem clamp(2rem, 5vw, 3.5rem); }
+    .hero::before { content: ""; position: absolute; inset: -20% 0 auto 0; height: 60%; z-index: 0;
+      background: radial-gradient(60% 60% at 50% 0%, rgba(13,147,115,.20), transparent 70%); filter: blur(40px); pointer-events: none; }
+    .hero-inner { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; }
+    .eyebrow { display: inline-flex; align-items: center; gap: .5rem; font-family: var(--font-mono); font-size: .72rem;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--pc-300);
+      border: 1px solid rgba(13,147,115,.3); background: rgba(13,147,115,.08); border-radius: 999px; padding: .35rem .8rem; }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pc-400); box-shadow: 0 0 10px var(--pc-400); }
+    h1.hero-h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.025em; line-height: 1.04;
+      font-size: clamp(2.6rem, 6.5vw, 4.6rem); margin: 1.4rem 0 0; text-wrap: balance; max-width: 16ch; }
+    h1.hero-h1 .hl { background: linear-gradient(120deg, var(--pc-300), var(--ac-400)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero-lede { color: var(--n-300); font-size: clamp(1rem, 1.6vw, 1.18rem); line-height: 1.6; max-width: 54ch; margin: 1.3rem 0 0; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.8rem; align-items: center; }
+    .install { display: inline-flex; align-items: center; gap: .6rem; font-family: var(--font-mono); font-size: .85rem;
+      color: var(--n-100); background: var(--n-1000); border: 1px solid rgba(255,255,255,.08); border-radius: var(--r-md); padding: .6rem .9rem; }
+    .install .pmt { color: var(--n-500); }
+    .install .cp { margin-left: auto; color: var(--pc-300); cursor: pointer; border: none; background: none; font-family: var(--font-mono); font-size: .8rem; }
+    .hero-meta { color: var(--n-500); font-size: .82rem; margin-top: 1.1rem; }
+
+    /* asymmetric hero + terminal */
+    .hero-split { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+    @media (max-width: 880px) { .hero-split { grid-template-columns: 1fr; } }
+
+    .showcase { position: relative; }
+    .showcase::before { content: ""; position: absolute; inset: -10% -5% auto -5%; height: 70%; z-index: 0;
+      background: radial-gradient(50% 60% at 70% 20%, rgba(245,158,11,.10), transparent 70%); filter: blur(40px); pointer-events: none; }
+    .showcase .pc-terminal { position: relative; z-index: 1; box-shadow: 0 30px 80px -30px rgba(0,0,0,.8); }
+    .t-pass { color: #34d399; } .t-warn { color: #fbbf24; } .t-fail { color: #f87171; } .t-dim { color: var(--n-500); }
+
+    /* section rhythm */
+    section.block { max-width: 1120px; margin: 0 auto; padding: clamp(3.5rem, 9vw, 7rem) 1.5rem; }
+    .sec-head { max-width: 60ch; }
+    .sec-eyebrow { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--pc-400); }
+    .sec-title { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: .6rem 0 0; }
+    .sec-lede { color: var(--n-300); font-size: 1.02rem; line-height: 1.6; margin: .9rem 0 0; }
+
+    .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem; margin-top: 2rem; }
+    .b-8 { grid-column: span 8; } .b-6 { grid-column: span 6; } .b-4 { grid-column: span 4; } .b-12 { grid-column: span 12; }
+    @media (max-width: 880px) { .b-8,.b-6,.b-4,.b-12 { grid-column: span 12; } }
+
+    .how-grid, .rules-grid { display: grid; gap: 1rem; }
+    .how-grid { grid-template-columns: repeat(3, 1fr); }
+    .rules-grid { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 720px) { .how-grid, .rules-grid { grid-template-columns: 1fr; } }
+    .step-num { font-family: var(--font-mono); font-size: .8rem; color: var(--pc-400); letter-spacing: .1em; }
+    .pc-card h3, .pc-rule h4 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.01em; margin: .6rem 0 .4rem; }
+
+    .rule-ico { width: 36px; height: 36px; border-radius: var(--r-sm); display: grid; place-items: center;
+      background: rgba(13,147,115,.12); color: var(--pc-300); }
+    .rule-ico svg { width: 20px; height: 20px; stroke-width: 1.4; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    @media (max-width: 720px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .cta-final { text-align: center; }
+    .cta-final .sec-title { max-width: 18ch; margin-inline: auto; }
+
+    footer { border-top: 1px solid rgba(255,255,255,.06); margin-top: 3rem; }
+    .footer-inner { max-width: 1120px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; color: var(--n-500); font-size: .85rem; }
+
+    .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s cubic-bezier(.32,.72,0,1), transform .7s cubic-bezier(.32,.72,0,1); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+  </style>
 </head>
-<body>
-  <nav>
-    <div class="nav-inner">
-      <a href="/" class="logo">
-        <span class="logo-mark">◆</span>
-        <span class="logo-text">policyctl</span>
+<body class="pc-mesh pc-grain">
+
+  <header class="lnav">
+    <div class="lnav-inner">
+      <a href="/" class="logo" style="display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--n-100)">
+        <span style="color:var(--pc-400);font-size:1.1rem">◆</span>
+        <span style="font-family:var(--font-display);font-weight:600;font-size:1.05rem">policyctl</span>
       </a>
-      <div class="nav-links">
+      <nav class="nav-links">
         <a href="/docs.html">Docs</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#rules">Rules</a>
+        <a href="#how">How it works</a>
+        <a href="#enforce">Enforce</a>
         <a href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">GitHub</a>
-        <a href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm</a>
-      </div>
+        <a class="nav-cta" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm i -g @policyctl/cli</a>
+      </nav>
     </div>
-  </nav>
+  </header>
 
-  <section class="hero pc-mesh">
+  <section class="hero">
     <div class="hero-inner">
-      <span class="pc-badge">v0.1.6 · open source</span>
-      <h1>Make your coding agents <span class="highlight">obey the rules</span></h1>
-      <p class="lede">One <code>.policyctl.yml</code> file, enforced everywhere your code is written — Claude Code, Codex, Cursor, and your CI. No more hand-written migrations, no more secrets in commits, no more "the agent just did it."</p>
-      <div class="cta-row">
-        <a class="pc-btn pc-btn-primary" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm i -g @policyctl/cli</a>
-        <a class="pc-btn pc-btn-ghost" href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">View on GitHub</a>
-        <a class="pc-btn pc-btn-ghost" href="/docs.html">Read the docs</a>
+      <div class="hero-split">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> Provider-agnostic policy runtime</span>
+          <h1 class="hero-h1">Make your coding agents <span class="hl">obey the rules.</span></h1>
+          <p class="hero-lede">One <code>.policyctl.yml</code>, enforced inside Claude Code, Codex, and Cursor at tool-call time — and again as a hard gate in CI. Not prompt text. Not a vendor denylist.</p>
+          <div class="cta-row">
+            <span class="install"><span class="pmt">$</span> npm i -g @policyctl/cli <button class="cp" onclick="navigator.clipboard.writeText('npm i -g @policyctl/cli');this.textContent='copied ✓'" aria-label="Copy install command">copy</button></span>
+            <a class="pc-btn pc-btn-ghost" href="/docs.html">Read the docs →</a>
+          </div>
+          <div class="hero-meta">Free · MIT · local-first · optional hosted control plane</div>
+        </div>
+
+        <div class="showcase">
+          <div class="pc-terminal">
+            <div class="pc-terminal-bar">
+              <span class="pc-terminal-dot" style="background:#ff5f57"></span>
+              <span class="pc-terminal-dot" style="background:#febc2e"></span>
+              <span class="pc-terminal-dot" style="background:#28c840"></span>
+              <span style="margin-left:auto;color:var(--n-500);font-size:.72rem">policyctl check</span>
+            </div>
+            <div class="pc-terminal-body">
+<code><span class="t-dim">$ policyctl check --from main</span>
+
+<span class="t-pass">✓ PASS</span>  no-secrets-in-commits      no secret patterns detected
+<span class="t-warn">⚠ WARN</span>  tests-for-source           src/auth.ts changed without a test
+<span class="t-fail">✗ FAIL</span>  migrations-via-generator   db/migrations/0004.sql lacks generator signature
+
+<span class="t-dim">2 blocking · 1 warning — build stopped</span></code>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="hero-meta">Free · MIT · works in any repo</div>
     </div>
   </section>
 
-  <section class="stats">
-    <div class="stat-grid">
-      <div class="pc-stat">
-        <div class="pc-stat-value">12</div>
-        <div class="pc-stat-label">commands</div>
-      </div>
-      <div class="pc-stat">
-        <div class="pc-stat-value">3</div>
-        <div class="pc-stat-label">providers</div>
-      </div>
-      <div class="pc-stat">
-        <div class="pc-stat-value">8</div>
-        <div class="pc-stat-label">matchers</div>
-      </div>
-      <div class="pc-stat">
-        <div class="pc-stat-value">∞</div>
-        <div class="pc-stat-label">rules</div>
-      </div>
+  <section class="block">
+    <div class="stat-grid reveal">
+      <div class="pc-stat"><div class="pc-stat-value">12</div><div class="pc-stat-label">CLI commands</div></div>
+      <div class="pc-stat"><div class="pc-stat-value">3</div><div class="pc-stat-label">agent providers</div></div>
+      <div class="pc-stat"><div class="pc-stat-value">8</div><div class="pc-stat-label">rule matchers</div></div>
+      <div class="pc-stat"><div class="pc-stat-value">∞</div><div class="pc-stat-label">custom rules</div></div>
     </div>
   </section>
 
-  <section id="how-it-works" class="how">
-    <h2>How it works</h2>
-    <p class="section-lede">Three commands, one file. No backend required for the CLI; a hosted control plane is optional.</p>
-    <div class="how-grid">
-      <div class="pc-card">
-        <div class="step-num">01</div>
-        <h3>Init</h3>
-        <p>Scaffold a starter policy from a template.</p>
+  <section id="how" class="block">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow">How it works</div>
+      <h2 class="sec-title">Three commands. One file. No backend required.</h2>
+      <p class="sec-lede">The CLI is local-first and offline. The hosted control plane (optional) adds cross-repo policy versioning and an audit trail.</p>
+    </div>
+    <div class="bento">
+      <div class="pc-card b-4 reveal">
+        <div class="step-num">01 · INIT</div>
+        <h3>Scaffold</h3>
+        <p>Start from a template that encodes procedural rules, not opinions.</p>
         <div class="pc-code"><code>policyctl init --template full</code></div>
       </div>
-      <div class="pc-card">
-        <div class="step-num">02</div>
-        <h3>Wire</h3>
-        <p>Generate provider hook glue for Claude, Codex, or Cursor.</p>
+      <div class="pc-card b-4 reveal">
+        <div class="step-num">02 · WIRE</div>
+        <h3>Generate hooks</h3>
+        <p>Write the exact glue for each provider — no hand-rolled per-model plugin.</p>
         <div class="pc-code"><code>policyctl gen claude
 policyctl gen codex
 policyctl gen cursor</code></div>
       </div>
-      <div class="pc-card">
-        <div class="step-num">03</div>
-        <h3>Check</h3>
-        <p>Gate the diff in CI. Get a full violation feed in the dashboard.</p>
+      <div class="pc-card b-4 reveal">
+        <div class="step-num">03 · CHECK</div>
+        <h3>Gate the diff</h3>
+        <p>Fail CI on violations and stream them to the dashboard feed.</p>
         <div class="pc-code"><code>policyctl check
 policyctl check --report</code></div>
       </div>
     </div>
   </section>
 
-  <section class="terminal-demo pc-grain">
-    <h2>See it in action</h2>
-    <div class="pc-terminal">
-      <div class="pc-terminal-bar">
-        <span class="pc-terminal-dot" style="background:#ff5f57"></span>
-        <span class="pc-terminal-dot" style="background:#febc2e"></span>
-        <span class="pc-terminal-dot" style="background:#28c840"></span>
-        <span style="margin-left:auto;color:var(--n-500);font-size:0.75rem">policyctl check</span>
+  <section id="enforce" class="block">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow">What you can enforce</div>
+      <h2 class="sec-title">Encode the rules prompts can't.</h2>
+      <p class="sec-lede">A rule is a matcher set + an enforce level + a scope. Compose them, allowlist reviewed exceptions, and tag them. Hook-time and CI-time share the same engine.</p>
+    </div>
+    <div class="rules-grid" style="margin-top:2rem">
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div>
+        <h4>Migrations via generator</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">block · both</p>
+        <p>Block any migration file that lacks the generator signature — at hook time and in CI.</p>
       </div>
-      <div class="pc-terminal-body">
-        <code><span class="cm">$ policyctl check</span>
-<span class="kw">FAIL</span> migrations-via-generator  DB migrations must be produced by `make migrate`, never handwritten.
-<span class="kw">FAIL</span> no-secrets-in-commits       Reject commits that add obvious secret patterns.
-
-<span class="str">2 blocking · 0 warnings — build stopped</span></code>
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+        <h4>No protected edits</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">block · hook</p>
+        <p>Prevent agents from touching README, package.json, or any path you choose.</p>
+      </div>
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg></div>
+        <h4>No secrets in commits</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">fail · ci</p>
+        <p>Regex-detect AWS keys, GitHub tokens, and OpenAI keys in the diff, then fail the build.</p>
+      </div>
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h4>Tests for source</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">warn · ci</p>
+        <p>Warn when a <code>src/</code> change ships without a matching test file.</p>
       </div>
     </div>
   </section>
 
-  <section id="rules" class="rules">
-    <h2>What you can enforce</h2>
-    <p class="section-lede">A rule is a matcher set, an enforce level, and a scope. Compose them. Allowlist reviewed exceptions. Tag them.</p>
-    <div class="rules-grid">
-      <div class="pc-rule">
-        <div class="pc-rule-icon">DB</div>
-        <div>
-          <div class="pc-rule-meta">block · both</div>
-          <h4>Migrations via generator</h4>
-          <p>Block any migration file that lacks the generator signature — at hook time and in CI.</p>
-        </div>
+  <section class="block cta-final">
+    <div class="reveal">
+      <div class="eyebrow" style="margin-bottom:1rem"><span class="dot"></span> Open source</div>
+      <h2 class="sec-title">Stop shipping agent accidents.</h2>
+      <p class="sec-lede" style="margin-inline:auto">One file, every agent, every repo. The CLI is free forever.</p>
+      <div class="cta-row" style="justify-content:center">
+        <a class="pc-btn pc-btn-primary" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">Install policyctl</a>
+        <a class="pc-btn pc-btn-ghost" href="/docs.html">Read the docs</a>
       </div>
-      <div class="pc-rule">
-        <div class="pc-rule-icon">🔒</div>
-        <div>
-          <div class="pc-rule-meta">block · hook</div>
-          <h4>No protected edits</h4>
-          <p>Prevent agents from touching README, package.json, tsconfig.json, or any path you choose.</p>
-        </div>
-      </div>
-      <div class="pc-rule">
-        <div class="pc-rule-icon">⚠</div>
-        <div>
-          <div class="pc-rule-meta">fail · ci</div>
-          <h4>No secrets in commits</h4>
-          <p>Regex-detect AWS keys, GitHub tokens, OpenAI keys in the diff and fail the build.</p>
-        </div>
-      </div>
-      <div class="pc-rule">
-        <div class="pc-rule-icon">✓</div>
-        <div>
-          <div class="pc-rule-meta">warn · ci</div>
-          <h4>Tests for source</h4>
-          <p>Warn when a src/ change ships without a matching test file.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="cta-final pc-mesh">
-    <h2>Stop shipping agent accidents.</h2>
-    <p>One file, every agent, every repo. Free forever for the CLI.</p>
-    <div class="cta-row">
-      <a class="pc-btn pc-btn-primary" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">Install policyctl</a>
-      <a class="pc-btn pc-btn-ghost" href="/docs.html">Read the docs</a>
     </div>
   </section>
 
   <footer>
     <div class="footer-inner">
-      <span>MIT · © 2026 policyctl contributors</span>
+      <span>MIT · © 2026 policyctl</span>
       <span>Built for staff engineers running mixed-agent stacks.</span>
     </div>
   </footer>
+
+  <script>
+    const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }), { threshold: .08 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
 </body>
 </html>

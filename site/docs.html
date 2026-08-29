@@ -1,63 +1,184 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>docs · policyctl</title>
-  <meta name="description" content="Install and use policyctl." />
+  <meta name="description" content="Install, configure, and operate policyctl — the provider-agnostic policy runtime for coding agents." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/design-system.css" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <script>
+    // No-FOUC theme: run before first paint.
+    (function () {
+      try {
+        var t = localStorage.getItem("pc-theme");
+        if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    :root[data-theme="light"] {
+      --n-1000: #f3f5f7; --n-950: #eaeef1; --n-900: #ffffff; --n-800: #f1f4f6;
+      --n-100: #1a2127; --n-200: #2c343b; --n-300: #48525a; --n-400: #616e76; --n-500: #8a979e;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--n-950); color: var(--n-200); -webkit-font-smoothing: antialiased; line-height: 1.65; }
+    a { color: var(--pc-300); text-decoration: none; } a:hover { color: var(--pc-200); }
+    code, pre { font-family: var(--font-mono); }
+    :focus-visible { outline: 2px solid var(--pc-400); outline-offset: 2px; border-radius: 4px; }
+    .skip { position: absolute; left: -999px; top: .5rem; background: var(--pc-500); color: var(--n-950); padding: .5rem .9rem; border-radius: 6px; z-index: 100; }
+    .skip:focus { left: .5rem; }
+
+    .topbar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 1rem;
+      height: 60px; padding: 0 1.25rem; background: rgba(7,10,9,.72); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,.06); }
+    :root[data-theme="light"] .topbar { background: rgba(255,255,255,.8); }
+    .brand { display: flex; align-items: center; gap: .5rem; font-family: var(--font-display); font-weight: 600; color: var(--n-100); }
+    .brand .mk { color: var(--pc-400); }
+    .search-btn { margin-left: auto; display: inline-flex; align-items: center; gap: .5rem; font-family: var(--font-mono); font-size: .8rem; color: var(--n-400);
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: .4rem .7rem; cursor: pointer; }
+    .theme-btn, .ai-btn { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: var(--n-200); border-radius: 8px; padding: .4rem .6rem; cursor: pointer; font-family: var(--font-sans); font-size: .8rem; }
+    .ai-wrap { position: relative; }
+    .ai-menu { position: absolute; right: 0; top: calc(100% + .4rem); min-width: 220px; background: var(--n-900); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: .4rem; display: none; box-shadow: 0 20px 50px -20px rgba(0,0,0,.7); z-index: 50; }
+    .ai-wrap.open .ai-menu { display: block; }
+    .ai-menu button { display: block; width: 100%; text-align: left; background: none; border: none; color: var(--n-200); padding: .55rem .7rem; border-radius: 7px; font-size: .85rem; cursor: pointer; }
+    .ai-menu button:hover { background: rgba(13,147,115,.12); color: var(--pc-200); }
+
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr) 230px; gap: 2rem; max-width: 1240px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+    @media (max-width: 1080px) { .layout { grid-template-columns: 240px minmax(0,1fr); } .toc { display: none; } }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+    .sidebar { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow: auto; }
+    .nav-group { margin-bottom: 1.4rem; }
+    .nav-group h4 { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--n-500); margin: 0 0 .5rem; }
+    .sidebar a { display: block; padding: .35rem .6rem; border-radius: 7px; color: var(--n-300); font-size: .9rem; border-left: 2px solid transparent; }
+    .sidebar a:hover { background: rgba(255,255,255,.04); color: var(--n-100); }
+    .sidebar a.active { background: rgba(13,147,115,.1); color: var(--pc-200); border-left-color: var(--pc-400); font-weight: 500; }
+
+    .content { min-width: 0; max-width: 760px; }
+    .content h1 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; font-size: clamp(2rem, 4vw, 2.6rem); margin: 0 0 .5rem; color: var(--n-50); }
+    .content .summary { font-size: 1.1rem; color: var(--n-300); margin: 0 0 2rem; max-width: 62ch; }
+    .content h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.5rem; margin: 3rem 0 1rem; color: var(--n-100); scroll-margin-top: 80px; }
+    .content h3 { font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; margin: 2rem 0 .6rem; color: var(--n-100); scroll-margin-top: 80px; }
+    .content p { margin: .6rem 0 1rem; max-width: 68ch; }
+    .content ul { max-width: 68ch; }
+    .content a.anchor { opacity: 0; margin-left: .4rem; color: var(--n-500); font-weight: 400; }
+    .content h2:hover a.anchor, .content h3:hover a.anchor { opacity: 1; }
+    .content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+    .content th, .content td { text-align: left; padding: .6rem .7rem; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: top; }
+    .content th { color: var(--n-400); font-weight: 500; font-family: var(--font-mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+    .badge-req { font-family: var(--font-mono); font-size: .68rem; padding: .1rem .45rem; border-radius: 99px; background: rgba(239,68,68,.12); color: #fca5a5; border: 1px solid rgba(239,68,68,.3); }
+    .badge-opt { font-family: var(--font-mono); font-size: .68rem; padding: .1rem .45rem; border-radius: 99px; background: rgba(255,255,255,.05); color: var(--n-400); border: 1px solid rgba(255,255,255,.1); }
+    .mono { font-family: var(--font-mono); }
+
+    /* callouts */
+    .callout { display: flex; gap: .8rem; padding: 1rem 1.1rem; border-radius: 10px; border-left: 3px solid; margin: 1.2rem 0; background: rgba(255,255,255,.02); }
+    .callout .ic { font-family: var(--font-mono); font-weight: 600; }
+    .callout.note { border-color: var(--pc-400); background: rgba(13,147,115,.07); }
+    .callout.tip { border-color: #22c55e; background: rgba(34,197,94,.07); }
+    .callout.warning { border-color: var(--ac-500); background: rgba(245,158,11,.08); }
+    .callout.danger { border-color: #ef4444; background: rgba(239,68,68,.08); }
+    .callout p { margin: 0; }
+    .callout .ttl { font-weight: 600; color: var(--n-100); margin-bottom: .2rem; }
+
+    /* code block chrome */
+    .codeblock { border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.07); margin: 1.2rem 0; background: var(--n-1000); }
+    .code-hd { display: flex; align-items: center; gap: .6rem; padding: .5rem .8rem; background: var(--n-900); border-bottom: 1px solid rgba(255,255,255,.06); }
+    .code-hd .fn { font-family: var(--font-mono); font-size: .76rem; color: var(--n-400); }
+    .code-hd .lang { margin-left: auto; font-family: var(--font-mono); font-size: .68rem; color: var(--n-500); text-transform: uppercase; letter-spacing: .06em; }
+    .copy { margin-left: .5rem; font-family: var(--font-mono); font-size: .72rem; color: var(--pc-300); background: none; border: 1px solid rgba(13,147,115,.3); border-radius: 6px; padding: .25rem .6rem; cursor: pointer; }
+    .copy:hover { background: rgba(13,147,115,.12); }
+    .code-bd { margin: 0; padding: 1rem 1.1rem; overflow-x: auto; font-size: .85rem; line-height: 1.7; color: var(--n-200); }
+    .code-bd .cm { color: var(--n-500); font-style: italic; }
+    .code-bd .kw { color: var(--pc-300); }
+    .code-bd .str { color: var(--ac-300); }
+
+    /* TOC */
+    .toc { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow: auto; font-size: .85rem; }
+    .toc h4 { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--n-500); margin: 0 0 .6rem; }
+    .toc a { display: block; padding: .25rem 0; color: var(--n-400); border-left: 2px solid transparent; padding-left: .7rem; }
+    .toc a.h3 { padding-left: 1.4rem; font-size: .8rem; }
+    .toc a.active { color: var(--pc-200); border-left-color: var(--pc-400); }
+    .toc .util { margin-top: 1.4rem; display: flex; flex-direction: column; gap: .4rem; }
+    .toc .util a { color: var(--n-400); border: none; padding-left: 0; }
+
+    /* Cmd+K dialog */
+    dialog.cmdk { border: none; border-radius: 14px; padding: 0; background: var(--n-900); color: var(--n-100); width: min(560px, 92vw); box-shadow: 0 30px 80px -20px rgba(0,0,0,.8); }
+    dialog.cmdk::backdrop { background: rgba(0,0,0,.55); backdrop-filter: blur(4px); }
+    .cmdk-in { width: 100%; padding: 1rem 1.1rem; font-size: 1rem; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,.08); color: var(--n-100); outline: none; }
+    .cmdk-list { max-height: 320px; overflow: auto; padding: .5rem; }
+    .cmdk-list a { display: block; padding: .6rem .8rem; border-radius: 8px; color: var(--n-200); }
+    .cmdk-list a.sel, .cmdk-list a:hover { background: rgba(13,147,115,.12); color: var(--pc-200); }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--pc-500); color: var(--n-950); padding: .6rem 1.1rem; border-radius: 8px; font-size: .85rem; opacity: 0; transition: opacity .25s; z-index: 200; }
+    .toast.show { opacity: 1; }
+  </style>
 </head>
 <body>
-  <nav>
-    <div class="nav-inner">
-      <a href="/" class="logo">
-        <span class="logo-mark">◆</span>
-        <span class="logo-text">policyctl</span>
-      </a>
-      <div class="nav-links">
-        <a href="/docs.html">Docs</a>
-        <a href="/#how-it-works">How it works</a>
-        <a href="/#rules">Rules</a>
-        <a href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">GitHub</a>
-        <a href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm</a>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="mk">◆</span> policyctl</a>
+    <button class="search-btn" id="searchOpen" aria-label="Search docs (Cmd+K)">⌘K Search docs</button>
+    <div class="ai-wrap" id="aiWrap">
+      <button class="ai-btn" id="aiToggle" aria-haspopup="true" aria-expanded="false">Ask AI ▾</button>
+      <div class="ai-menu" role="menu">
+        <button role="menuitem" data-ai="chatgpt">Open in ChatGPT</button>
+        <button role="menuitem" data-ai="claude">Open in Claude</button>
+        <button role="menuitem" data-ai="copy">Copy page for LLM prompt</button>
       </div>
     </div>
-  </nav>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle color theme">◐ Theme</button>
+  </header>
 
-  <article class="doc-page">
-    <aside class="doc-sidebar">
-      <div class="doc-nav">
+  <div class="layout">
+    <aside class="sidebar" aria-label="Documentation navigation">
+      <div class="nav-group">
+        <h4>Getting started</h4>
         <a href="#install">Install</a>
         <a href="#quickstart">Quickstart</a>
-        <a href="#ci">CI</a>
-        <a href="#hosted">Hosted control plane</a>
-        <a href="#rules-ref">Rules reference</a>
+        <a href="#ci">CI gate</a>
+      </div>
+      <div class="nav-group">
+        <h4>Core concepts</h4>
+        <a href="#how">How it works</a>
+        <a href="#rules">Rules reference</a>
+        <a href="#matchers">Matchers</a>
+      </div>
+      <div class="nav-group">
+        <h4>Reference</h4>
         <a href="#commands">Commands</a>
+        <a href="#api">Hosted API</a>
+        <a href="#phase-b">Phase B · control plane</a>
       </div>
     </aside>
 
-    <div class="doc-content">
-      <h1>policyctl docs</h1>
-      <p class="lede">Provider-agnostic policy runtime for coding agents.</p>
+    <main class="content" id="main">
+      <h1>policyctl</h1>
+      <p class="summary">A provider-agnostic policy runtime that enforces procedural rules across Claude Code, Codex, Cursor, and your CI — at tool-call time and in the diff. One <code>.policyctl.yml</code>.</p>
+
+      <div class="callout note"><span class="ic">i</span><div><div class="ttl">Why not just a prompt?</div><p>Prompt files (<code>CLAUDE.md</code>, <code>.cursorrules</code>) are advisory and get violated. Vendor denylists are per-model and coarse. policyctl is the missing layer: a local engine plus generated hook adapters, enforced in real time and again in CI.</p></div></div>
 
       <h2 id="install">Install</h2>
-      <div class="pc-code"><code>npm install -g @policyctl/cli
+      <p>Requires Node ≥ 20. Install the CLI globally, or run it on demand with <code>npx</code>.</p>
+      <div class="codeblock"><div class="code-hd"><span class="fn">terminal</span><span class="lang">bash</span><button class="copy" data-copy>Copy</button></div><pre class="code-bd"><code id="c-install">npm install -g @policyctl/cli
 <span class="cm"># or, no install:</span>
-npx @policyctl/cli check</code></div>
+npx @policyctl/cli check</code></pre></div>
 
       <h2 id="quickstart">Quickstart</h2>
-      <div class="pc-code"><code>policyctl init --template full
+      <p>Scaffold a policy, list its rules, wire provider hooks, then gate the diff.</p>
+      <div class="codeblock"><div class="code-hd"><span class="fn">terminal</span><span class="lang">bash</span><button class="copy" data-copy>Copy</button></div><pre class="code-bd"><code id="c-quick">policyctl init --template full
 policyctl list
-policyctl gen claude     <span class="cm"># or codex / cursor</span>
-policyctl check          <span class="cm"># gate the diff in CI</span></code></div>
+policyctl gen claude      <span class="cm"># or codex / cursor</span>
+policyctl check           <span class="cm"># gate the diff in CI</span></code></pre></div>
+      <div class="callout tip"><span class="ic">✓</span><div><div class="ttl">Start here</div><p><code>init --template full</code> ships working examples for migrations, secrets, and protected files. Edit, don't invent.</p></div></div>
 
-      <h2 id="ci">CI</h2>
-      <div class="pc-code"><code><span class="cm"># .github/workflows/policy.yml</span>
-name: policyctl
+      <h2 id="ci">CI gate</h2>
+      <p>Add the check as a required status. Non-zero exit blocks the merge on violation.</p>
+      <div class="codeblock"><div class="code-hd"><span class="fn">.github/workflows/policy.yml</span><span class="lang">yaml</span><button class="copy" data-copy>Copy</button></div><pre class="code-bd"><code id="c-ci">name: policyctl
 on: [push, pull_request]
 jobs:
   check:
@@ -66,50 +187,171 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: <span class="str">'20'</span> }
-      - run: npx @policyctl/cli check</code></div>
+      - run: npx @policyctl/cli check</code></pre></div>
 
-      <h2 id="hosted">Hosted control plane (optional)</h2>
-      <p>The CLI is free and local-first. The hosted control plane is what teams pay for: one policy, enforced across every agent and repo, with an audit trail.</p>
-      <div class="pc-code"><code>policyctl login --email you@company.com
-policyctl push             <span class="cm"># publish your policy</span>
-policyctl check --report   <span class="cm"># send violations to the feed</span></code></div>
-
-      <h2 id="rules-ref">Rules reference</h2>
-      <p>Match a rule against a tool call (hook) or a git diff (ci):</p>
+      <h2 id="how">How it works</h2>
+      <p>A rule has three parts: <code>when</code> (matchers), <code>enforce</code> (<code>block</code> | <code>fail</code> | <code>warn</code>), and <code>scope</code> (<code>hook</code> | <code>ci</code> | <code>both</code>).</p>
       <ul>
-        <li><code>path</code> — glob over the file the tool touches (hook) or changed files (ci)</li>
-        <li><code>command</code> — regex over a shell command (e.g. the Bash tool); hook only</li>
-        <li><code>tool</code> — tool name (exact, or <code>/regex/</code>); hook only</li>
-        <li><code>diff_contains</code> — substring that must be present in the diff; ci only</li>
-        <li><code>diff_not_contains</code> — substring that must be absent (e.g. a generator signature); ci only</li>
-        <li><code>diff_regex</code> — regex over the full diff text; ci only</li>
-        <li><code>diff_paths_glob</code> — glob that must match at least one changed file; ci only</li>
-        <li><code>diff_paths_not_glob</code> — glob that must match no changed file; ci only</li>
+        <li><strong>Hook surface</strong> — <code>policyctl eval --hook</code> is called by each agent's pre-tool hook on every tool call. Exits <code>2</code> to block, <code>1</code> to warn, <code>0</code> to allow. Fast and offline.</li>
+        <li><strong>CI surface</strong> — <code>policyctl check</code> parses the git diff (including untracked files) and applies the same rules. This is the source of truth for what the agent actually produced.</li>
       </ul>
+      <div class="callout warning"><span class="ic">!</span><div><div class="ttl">Hook vs CI</div><p>A <code>hook</code> rule stops the agent mid-action; a <code>ci</code> rule fails the build after the fact. Use <code>both</code> for the rules you never want to slip through either gate.</p></div></div>
+
+      <h2 id="rules">Rules reference</h2>
+      <h3 id="matchers">Matchers</h3>
+      <p>All matchers in a rule are ANDed. A <code>both</code> rule fires on whichever surface is active.</p>
+      <table>
+        <thead><tr><th>Matcher</th><th>Surface</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>path</code></td><td class="mono">hook + ci</td><td>Glob over the file the tool touches (hook) or changed files (ci).</td></tr>
+          <tr><td><code>command</code></td><td class="mono">hook</td><td>Regex over a shell command (e.g. the Bash tool).</td></tr>
+          <tr><td><code>tool</code></td><td class="mono">hook</td><td>Tool name (exact, or <code>/regex/</code>).</td></tr>
+          <tr><td><code>diff_contains</code></td><td class="mono">ci</td><td>Substring that must be present in the diff.</td></tr>
+          <tr><td><code>diff_not_contains</code></td><td class="mono">ci</td><td>Substring that must be absent (e.g. a generator signature).</td></tr>
+          <tr><td><code>diff_regex</code></td><td class="mono">ci</td><td>Regex over the full diff text.</td></tr>
+          <tr><td><code>diff_paths_glob</code></td><td class="mono">ci</td><td>Glob that must match ≥1 changed file.</td></tr>
+          <tr><td><code>diff_paths_not_glob</code></td><td class="mono">ci</td><td>Glob that must match <em>no</em> changed file.</td></tr>
+        </tbody>
+      </table>
+      <h3 id="example">Example: migrations only via the generator</h3>
+      <div class="codeblock"><div class="code-hd"><span class="fn">.policyctl.yml</span><span class="lang">yaml</span><button class="copy" data-copy>Copy</button></div><pre class="code-bd"><code id="c-ex">rules:
+  - id: migrations-via-generator
+    description: <span class="str">"DB migrations must come from `make migrate`, never handwritten."</span>
+    scope: both
+    when:
+      path: <span class="str">"db/migrations/**"</span>
+      diff_not_contains: <span class="str">"! Generated by make migrate -- do not edit by hand."</span>
+    enforce: block</code></pre></div>
 
       <h2 id="commands">Commands</h2>
-      <div class="rules-grid">
-        <div class="pc-rule"><div class="pc-rule-icon">◆</div><div><h4>init</h4><p>Scaffold a .policyctl.yml from a template.</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">≡</div><div><h4>list</h4><p>Show loaded rules and their scope.</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">✓</div><div><h4>check</h4><p>Run the CI/diff gate. Non-zero on violation.</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">⚡</div><div><h4>eval</h4><p>Run the hook evaluator (reads JSON on stdin).</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">⚙</div><div><h4>gen</h4><p>Generate Claude / Codex / Cursor hook glue.</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">+</div><div><h4>doctor</h4><p>Verify hooks are wired correctly.</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">?</div><div><h4>trace</h4><p>Explain which matchers fire for a given input.</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">▦</div><div><h4>test</h4><p>Run the policy against a fixture suite.</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">☁</div><div><h4>login / push / pull</h4><p>Optional hosted control plane (org policy sync).</p></div></div>
-        <div class="pc-rule"><div class="pc-rule-icon">↑</div><div><h4>report</h4><p>Send a violation result to the hosted feed.</p></div></div>
+      <table>
+        <thead><tr><th>Command</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>policyctl init [--template &lt;name&gt;]</code></td><td>Scaffold <code>.policyctl.yml</code>.</td></tr>
+          <tr><td><code>policyctl list</code></td><td>List rules and their scope.</td></tr>
+          <tr><td><code>policyctl check [--from &lt;ref&gt; --to &lt;ref&gt;]</code></td><td>CI/diff gate (non-zero on violation).</td></tr>
+          <tr><td><code>policyctl eval --hook</code></td><td>Hook evaluator (reads JSON on stdin).</td></tr>
+          <tr><td><code>policyctl gen &lt;claude|codex|cursor&gt; [--print]</code></td><td>Generate provider hook glue.</td></tr>
+          <tr><td><code>policyctl trace</code></td><td>Explain which matchers fire for a given input.</td></tr>
+          <tr><td><code>policyctl test</code></td><td>Run the policy against a fixture suite.</td></tr>
+          <tr><td><code>policyctl login / push / pull</code></td><td>Optional hosted control plane (org policy sync).</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="api">Hosted API</h2>
+      <p>The CLI talks to the control plane over a small REST surface. Auth is a bearer token saved to <code>~/.policyctl/config.json</code>.</p>
+      <table>
+        <thead><tr><th>Method &amp; path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /api/login</code></td><td>Issue a token for an email.</td></tr>
+          <tr><td><code>POST /api/policy</code></td><td>Push policy as a new immutable version.</td></tr>
+          <tr><td><code>GET /api/policy</code></td><td>Fetch the current policy version.</td></tr>
+          <tr><td><code>GET /api/policy/versions</code></td><td>List policy versions.</td></tr>
+          <tr><td><code>POST /api/policy/versions/:id/rollback</code></td><td>Restore a previous version.</td></tr>
+          <tr><td><code>POST /api/report</code></td><td>Send a violation result to the feed.</td></tr>
+          <tr><td><code>GET /api/violations</code></td><td>Read the violation feed.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="phase-b">Phase B · control plane</h2>
+      <p>The control plane is a Cloudflare Worker + D1: organizations, member roles, immutable policy versioning with rollback, and a live violation feed. Live instance: <code>https://policyctl-server.shivamkumar10958.workers.dev</code>.</p>
+      <div class="callout danger"><span class="ic">×</span><div><div class="ttl">Self-hosting</div><p>Deploy with <code>pnpm --filter @policyctl/server deploy</code> after applying <code>migrations/0001_init.sql</code> to a D1 database. No container runtime required.</p></div></div>
+      <p class="mono" style="color:var(--n-500);font-size:.85rem">Full schema and examples: <a href="https://github.com/RavaniRoshan/policyctl#readme" target="_blank" rel="noreferrer">README</a></p>
+    </main>
+
+    <aside class="toc" aria-label="On this page">
+      <h4>On this page</h4>
+      <nav id="toc-nav"></nav>
+      <div class="util">
+        <a href="https://github.com/RavaniRoshan/policyctl/edit/main/site/docs.html" target="_blank" rel="noreferrer">Edit this page on GitHub</a>
+        <a href="https://github.com/RavaniRoshan/policyctl/issues/new" target="_blank" rel="noreferrer">Report an issue</a>
       </div>
+    </aside>
+  </div>
 
-      <p class="text-slate-400">For the full schema and examples, see the <a href="https://github.com/RavaniRoshan/policyctl#readme" target="_blank" rel="noreferrer">README</a>.</p>
-    </div>
-  </article>
+  <dialog class="cmdk" id="cmdk" aria-label="Search documentation">
+    <input class="cmdk-in" id="cmdkIn" placeholder="Filter docs…" aria-label="Filter documentation" />
+    <div class="cmdk-list" id="cmdkList"></div>
+  </dialog>
 
-  <footer>
-    <div class="footer-inner">
-      <span>MIT · © 2026 policyctl contributors</span>
-      <span>Built for staff engineers running mixed-agent stacks.</span>
-    </div>
-  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // ── Copy buttons (clean code only) ──
+    const toast = document.getElementById('toast');
+    function showToast(msg){ toast.textContent = msg; toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 1800); }
+    document.querySelectorAll('[data-copy]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = btn.closest('.codeblock').querySelector('code').innerText;
+        navigator.clipboard.writeText(code).then(() => { btn.textContent = 'Copied ✓'; showToast('Code copied to clipboard'); setTimeout(()=>btn.textContent='Copy', 1600); });
+      });
+    });
+
+    // ── TOC + scroll-spy ──
+    const tocNav = document.getElementById('toc-nav');
+    const heads = [...document.querySelectorAll('.content h2, .content h3')].filter(h => h.id);
+    heads.forEach(h => {
+      const a = document.createElement('a');
+      a.href = '#' + h.id; a.textContent = h.textContent.replace(/#$/, '');
+      a.className = h.tagName === 'H3' ? 'h3' : 'h2';
+      tocNav.appendChild(a);
+    });
+    const tocLinks = [...tocNav.querySelectorAll('a')];
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.id;
+          tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+        }
+      });
+    }, { rootMargin: '-80px 0px -70% 0px' });
+    heads.forEach(h => spy.observe(h));
+
+    // ── Sidebar active link ──
+    const sideLinks = [...document.querySelectorAll('.sidebar a')];
+    const sideSpy = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { const id = e.target.id; sideLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id)); } });
+    }, { rootMargin: '-80px 0px -70% 0px' });
+    heads.forEach(h => sideSpy.observe(h));
+
+    // ── Theme toggle ──
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('pc-theme', next);
+    });
+
+    // ── AI menu ──
+    const aiWrap = document.getElementById('aiWrap'), aiToggle = document.getElementById('aiToggle');
+    aiToggle.addEventListener('click', (e) => { e.stopPropagation(); const open = aiWrap.classList.toggle('open'); aiToggle.setAttribute('aria-expanded', open); });
+    document.addEventListener('click', () => aiWrap.classList.remove('open'));
+    document.querySelectorAll('[data-ai]').forEach(b => b.addEventListener('click', () => {
+      const kind = b.dataset.ai, url = location.href;
+      if (kind === 'chatgpt') window.open('https://chat.openai.com/?prompt=' + encodeURIComponent('Read and explain this documentation: ' + url), '_blank');
+      else if (kind === 'claude') window.open('https://claude.ai/new?q=' + encodeURIComponent('Summarize and help me apply: ' + url), '_blank');
+      else if (kind === 'copy') {
+        const md = document.querySelector('.content').innerText;
+        navigator.clipboard.writeText('<context url="' + url + '">\n' + md + '\n</context>').then(() => showToast('Page copied for LLM prompt'));
+      }
+      aiWrap.classList.remove('open');
+    }));
+
+    // ── Cmd+K search modal ──
+    const links = [...document.querySelectorAll('.sidebar a')].map(a => ({ label: a.textContent, href: a.getAttribute('href') }));
+    const dlg = document.getElementById('cmdk'), cmdkIn = document.getElementById('cmdkIn'), cmdkList = document.getElementById('cmdkList');
+    function renderList(q){ const f = links.filter(l => l.label.toLowerCase().includes(q.toLowerCase())); cmdkList.innerHTML = f.map((l,i)=>`<a href="${l.href}" class="${i===0?'sel':''}">${l.label}</a>`).join('') || '<a class="sel">No matches</a>'; }
+    function openCmdk(){ dlg.showModal(); cmdkIn.value=''; renderList(''); cmdkIn.focus(); }
+    document.getElementById('searchOpen').addEventListener('click', openCmdk);
+    document.addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCmdk(); } });
+    cmdkIn.addEventListener('input', () => renderList(cmdkIn.value));
+    cmdkList.addEventListener('click', (e) => { if (e.target.tagName === 'A') { dlg.close(); } });
+    cmdkIn.addEventListener('keydown', (e) => {
+      const items = [...cmdkList.querySelectorAll('a')]; const sel = items.findIndex(a => a.classList.contains('sel'));
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (items[sel+1]) { items[sel].classList.remove('sel'); items[sel+1].classList.add('sel'); } }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (items[sel-1]) { items[sel].classList.remove('sel'); items[sel-1].classList.add('sel'); } }
+      else if (e.key === 'Enter') { e.preventDefault(); items[sel]?.click(); }
+    });
+  </script>
 </body>
 </html>
