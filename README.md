@@ -171,6 +171,7 @@ policyctl check --report                         # CI gate that also reports to 
 - **Object storage:** Cloudflare R2 for dashboard CSV exports (S3-compatible credentials set; bucket enable is a dashboard click).
 - **AI:** Workers AI binding for semantic policy intelligence (Phase D, paid tier).
 - **Dashboard:** React + Tailwind SPA (`web/`) consuming the Worker API via session cookies + Bearer token.
+- **Security:** Cloudflare Turnstile on all auth endpoints, HttpOnly/Secure/SameSite=Lax session cookies, PBKDF2-SHA256 password hashing (100k iterations), KV-cached sessions.
 
 ### Phase roadmap
 
