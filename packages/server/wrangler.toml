@@ -33,6 +33,23 @@ new_sqlite_classes = ["PolicySession"]
 [triggers]
 crons = ["0 9 * * *"]
 
+# ── Turnstile (anti-bot for auth forms) ──
+# Public site key — safe to expose. Secret set via: wrangler secret put TURNSTILE_SECRET_SITE
+# For local dev, use Cloudflare's test keys (always pass):
+#   site:  1x00000000000000000000AA
+#   secret: 1x0000000000000000000000000000000AA
+[vars]
+TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+# OAuth redirect URI (must match the Cloudflare Access / Google Cloud OAuth consent screen).
+OAUTH_REDIRECT_URI = "https://policyctl-server.shivamkumar10958.workers.dev/api/auth/oauth/callback"
+# R2 bucket name for CSV exports
+R2_BUCKET = "policyctl"
+
+# R2 object storage (for CSV exports, presigned via S3-compatible API)
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "policyctl"
+
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true

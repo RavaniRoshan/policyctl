@@ -1,13 +1,23 @@
 import { Hono } from "hono";
 import type { Env, ReportResult, Role, User } from "./types.js";
-import { bearerToken, orgQuery } from "./auth.js";
+import {
+  bearerToken,
+  getSessionToken,
+  orgQuery,
+  setSessionCookie,
+  clearSessionCookie,
+  verifyPassword,
+  verifyTurnstile,
+} from "./auth.js";
 import {
   addMember,
   aggByRepo,
   aggByRule,
   analytics,
   createOrg,
+  createUser,
   getPolicy,
+  getUserByEmail,
   getUserByToken,
   listOrgs,
   listVersions,
@@ -38,11 +48,24 @@ app.use(`${API}/*`, async (c, next) => {
 });
 app.options(`${API}/*`, (c) => c.body(null, 204));
 
+// Map a server-side User row to the web app's User shape (string id, camelCase).
+function toWebUser(u: User) {
+  return { id: String(u.id), email: u.email, displayName: u.display_name, provider: u.provider };
+}
+
+// Resolve the session token from Authorization header, ?token=, or the pc_session cookie.
+function sessionToken(c: { env: Env; req: { header: (k: string) => string | undefined; query: (k: string) => string | undefined } }): string | null {
+  const bearer = bearerToken(c as any);
+  if (bearer) return bearer;
+  return getSessionToken(c as any);
+}
+
 async function requireUser(c: { env: Env; req: { header: (k: string) => string | undefined; query: (k: string) => string | undefined } }): Promise<User | null> {
-  const token = bearerToken(c as any);
-  // KV cache first (sub-ms), fall back to D1 on miss.
-  const cached = await cacheGetUser(c.env, token);
-  if (cached != null) {
+  const token = sessionToken(c);
+  if (!token) return null;
+  // KV cache first (sub-ms) — quick reject of unknown tokens.
+  const cachedUid = await cacheGetUser(c.env, token);
+  if (cachedUid != null) {
     const u = await getUserByToken(c.env.DB, token);
     if (u) return u;
   }
@@ -57,6 +80,125 @@ app.post(`${API}/login`, async (c) => {
   if (!body.email) return c.json({ error: "email required" }, 400);
   const user = await upsertUser(c.env.DB, body.email);
   return c.json({ token: user.token, email: user.email, id: user.id });
+});
+
+// ── Auth (Phase B+: full session-based auth for the web app) ─────────
+
+/** GET /api/me — returns the authenticated session user, or null. */
+app.get(`${API}/me`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ user: null });
+  return c.json({ user: toWebUser(user) });
+});
+
+/** POST /api/auth/logout — clears the session cookie. */
+app.post(`${API}/auth/logout`, async (c) => {
+  clearSessionCookie(c);
+  return c.json({ ok: true });
+});
+
+/** POST /api/auth/signup — email/password signup with Turnstile. */
+app.post(`${API}/auth/signup`, async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as {
+    email?: string; password?: string; displayName?: string; turnstile?: string;
+  };
+  if (!body.email || !body.password) {
+    return c.json({ error: "email and password required" }, 400);
+  }
+  // Verify Turnstile if configured.
+  if (c.env.TURNSTILE_SECRET_SITE) {
+    const ok = await verifyTurnstile(body.turnstile, c.env.TURNSTILE_SECRET_SITE);
+    if (!ok) return c.json({ error: "turnstile verification failed" }, 403);
+  }
+  // Check for existing user.
+  const existing = await getUserByEmail(c.env.DB, body.email);
+  if (existing) return c.json({ error: "email already registered" }, 409);
+  // Create user with hashed password + auto-provisioned org.
+  const user = await createUser(c.env.DB, body.email, body.password, body.displayName ?? null, "email");
+  setSessionCookie(c, user.token);
+  return c.json({ user: toWebUser(user) });
+});
+
+/** POST /api/auth/login — email/password login with Turnstile + session cookie. */
+app.post(`${API}/auth/login`, async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as {
+    email?: string; password?: string; turnstile?: string;
+  };
+  if (!body.email || !body.password) {
+    return c.json({ error: "email and password required" }, 400);
+  }
+  // Verify Turnstile if configured.
+  if (c.env.TURNSTILE_SECRET_SITE) {
+    const ok = await verifyTurnstile(body.turnstile, c.env.TURNSTILE_SECRET_SITE);
+    if (!ok) return c.json({ error: "turnstile verification failed" }, 403);
+  }
+  const user = await getUserByEmail(c.env.DB, body.email);
+  if (!user || !user.password_hash || !(await verifyPassword(body.password, user.password_hash))) {
+    return c.json({ error: "invalid credentials" }, 401);
+  }
+  setSessionCookie(c, user.token);
+  await cachePutUser(c.env, user.token, user.id);
+  return c.json({ user: toWebUser(user) });
+});
+
+/** GET /api/auth/oauth/google — redirect to Google OAuth consent screen. */
+app.get(`${API}/auth/oauth/google`, (c) => {
+  const clientId = c.env.OAUTH_GOOGLE_CLIENT_ID;
+  const redirectUri = c.env.OAUTH_REDIRECT_URI ?? "https://policyctl-server.shivamkumar10958.workers.dev/api/auth/oauth/callback";
+  if (!clientId) return c.json({ error: "OAuth not configured" }, 501);
+  const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  url.searchParams.set("client_id", clientId);
+  url.searchParams.set("redirect_uri", redirectUri);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("access_type", "offline");
+  url.searchParams.set("scope", "openid email profile");
+  return c.redirect(url.toString(), 302);
+});
+
+/** GET /api/auth/oauth/callback — Google OAuth callback handler. */
+app.get(`${API}/auth/oauth/callback`, async (c) => {
+  const code = c.req.query("code");
+  const error = c.req.query("error");
+  if (error) return c.redirect("/login?error=" + encodeURIComponent(error));
+  if (!code) return c.redirect("/login?error=no_code");
+
+  const clientId = c.env.OAUTH_GOOGLE_CLIENT_ID;
+  const clientSecret = c.env.OAUTH_GOOGLE_CLIENT_SECRET;
+  const redirectUri = c.env.OAUTH_REDIRECT_URI ?? "https://policyctl-server.shivamkumar10958.workers.dev/api/auth/oauth/callback";
+
+  if (!clientId || !clientSecret) {
+    return c.json({ error: "OAuth not configured" }, 501);
+  }
+
+  // Exchange code for access token.
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri,
+    }),
+  });
+  const tokenData = (await tokenRes.json()) as { access_token?: string };
+  if (!tokenData.access_token) return c.redirect("/login?error=token_exchange_failed");
+
+  // Fetch user info.
+  const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+    headers: { Authorization: `Bearer ${tokenData.access_token}` },
+  });
+  const googleUser = (await userRes.json()) as { email?: string; name?: string; verified_email?: boolean };
+  if (!googleUser.email || googleUser.verified_email !== true) {
+    return c.redirect("/login?error=email_unavailable");
+  }
+
+  // Find or create the user (OAuth flow — no password).
+  const user = await upsertUser(c.env.DB, googleUser.email);
+  setSessionCookie(c, user.token);
+  await cachePutUser(c.env, user.token, user.id);
+  return c.redirect("/dashboard", 302);
 });
 
 // ── Policy (org-scoped; defaults to the user's primary org) ──────────

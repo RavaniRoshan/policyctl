@@ -7,6 +7,7 @@ import type {
   User,
   Violation,
 } from "./types.js";
+import { hashPassword, newToken } from "./auth.js";
 
 const now = () => Date.now();
 
@@ -15,26 +16,96 @@ const now = () => Date.now();
 export async function getUserByToken(db: D1Database, token: string): Promise<User | null> {
   if (!token) return null;
   const row = (await db
-    .prepare("SELECT id, email, token FROM users WHERE token = ?")
+    .prepare(
+      `SELECT id, email, token, display_name, provider, password_hash
+       FROM users WHERE token = ?`,
+    )
     .bind(token)
     .first()) as User | null;
   return row ?? null;
 }
 
+export async function getUserByEmail(db: D1Database, email: string): Promise<User | null> {
+  const row = (await db
+    .prepare(
+      `SELECT id, email, token, display_name, provider, password_hash
+       FROM users WHERE email = ?`,
+    )
+    .bind(email)
+    .first()) as User | null;
+  return row ?? null;
+}
+
+export async function getUserById(db: D1Database, id: number): Promise<User | null> {
+  const row = (await db
+    .prepare(
+      `SELECT id, email, token, display_name, provider, password_hash
+       FROM users WHERE id = ?`,
+    )
+    .bind(id)
+    .first()) as User | null;
+  return row ?? null;
+}
+
+/** Insert a user with a hashed password. Returns the full user row. */
+export async function createUser(
+  db: D1Database,
+  email: string,
+  password: string,
+  displayName: string | null,
+  provider: string = "email",
+): Promise<User> {
+  const passwordHash = await hashPassword(password);
+  const token = newToken();
+  const ts = now();
+  const r = await db
+    .prepare(
+      `INSERT INTO users (email, token, password_hash, display_name, provider, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(email, token, passwordHash, displayName, provider, ts)
+    .run();
+  const userId = Number(r.meta.last_row_id);
+  await db
+    .prepare(
+      `INSERT INTO orgs (name, current_version, created_at) VALUES (?, ?, ?)`,
+    )
+    .bind(`${displayName ?? email.split("@")[0] ?? "user"}'s org`, null, ts)
+    .run();
+  const orgRow = (await db
+    .prepare("SELECT id FROM orgs WHERE name = ?")
+    .bind(`${displayName ?? email.split("@")[0] ?? "user"}'s org`)
+    .first()) as { id: number } | null;
+  if (!orgRow) throw new Error("Failed to resolve org id");
+  const orgId: number = orgRow.id;
+  await db
+    .prepare("INSERT INTO org_members (org_id, user_id, role, created_at) VALUES (?, ?, ?, ?)")
+    .bind(orgId, userId, "owner", ts)
+    .run();
+  return { id: userId, email, token, display_name: displayName, provider, password_hash: passwordHash };
+}
+
+/** Legacy upsert for OAuth / quick-login flows (no password). */
 export async function upsertUser(db: D1Database, email: string): Promise<User> {
   const existing = (await db
-    .prepare("SELECT id, email, token FROM users WHERE email = ?")
+    .prepare(
+      `SELECT id, email, token, display_name, provider
+       FROM users WHERE email = ?`,
+    )
     .bind(email)
     .first()) as User | null;
   if (existing) return existing;
 
-  const token = (await import("./auth.js")).newToken();
+  const token = newToken();
   const local = email.split("@")[0] || "personal";
   const ts = now();
 
   const u = await db
-    .prepare("INSERT INTO users (email, token, created_at) VALUES (?, ?, ?)")
-    .bind(email, token, ts)
+    .prepare(
+      `INSERT INTO users (email, token, password_hash, display_name, provider, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(email, token, null, null, "oauth", ts)
     .run();
   const userId = Number(u.meta.last_row_id);
 
@@ -49,7 +120,7 @@ export async function upsertUser(db: D1Database, email: string): Promise<User> {
     .bind(orgId, userId, "owner", ts)
     .run();
 
-  return { id: userId, email, token };
+  return { id: userId, email, token, display_name: null, provider: "oauth", password_hash: null };
 }
 
 // ── Orgs & membership ──────────────────────────────────────────────────
@@ -131,16 +202,22 @@ export async function addMember(
   }
 
   let user = (await db
-    .prepare("SELECT id, email, token FROM users WHERE email = ?")
+    .prepare(
+      `SELECT id, email, token, display_name, provider, password_hash
+       FROM users WHERE email = ?`,
+    )
     .bind(email)
     .first()) as User | null;
   if (!user) {
-    const token = (await import("./auth.js")).newToken();
+    const token = newToken();
     const r = await db
-      .prepare("INSERT INTO users (email, token, created_at) VALUES (?, ?, ?)")
-      .bind(email, token, now())
+      .prepare(
+        `INSERT INTO users (email, token, password_hash, display_name, provider, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(email, token, null, null, "invited", now())
       .run();
-    user = { id: Number(r.meta.last_row_id), email, token };
+    user = { id: Number(r.meta.last_row_id), email, token, display_name: null, provider: "invited", password_hash: null };
   }
 
   await db
@@ -153,7 +230,7 @@ export async function addMember(
   return { ok: true };
 }
 
-// ── Policy versions ───────────────────────────────────────────────────
+// ── Policy versions ────────────────────────────────────────────────────
 
 export async function pushPolicy(
   db: D1Database,

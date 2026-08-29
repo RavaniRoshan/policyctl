@@ -12,6 +12,13 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <style>
     /* ── Landing premium layer (token-consistent) ── */
+    :root {
+      --pc-hero-text: var(--n-50);
+      --pc-hero-muted: var(--n-300);
+      --pc-accent-orange: #F6821F;
+      --pc-accent-orange-dimm: #fb9b15;
+    }
+    body { margin: 0; }
     .lnav { position: sticky; top: 1rem; z-index: 50; margin: 1rem auto 0; width: min(1120px, calc(100% - 2rem)); }
     .lnav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
       padding: .6rem .8rem .6rem 1.1rem; border-radius: 999px;
@@ -23,19 +30,16 @@
     .nav-cta { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem 1rem; border-radius: 999px;
       background: linear-gradient(180deg, var(--pc-400), var(--pc-600)); color: var(--n-950); font-weight: 600; font-size: .85rem; }
 
+    /* Hero */
     .hero { position: relative; overflow: hidden; padding: clamp(3.5rem, 9vw, 7rem) 1.5rem clamp(2rem, 5vw, 3.5rem); }
     .hero::before { content: ""; position: absolute; inset: -20% 0 auto 0; height: 60%; z-index: 0;
       background: radial-gradient(60% 60% at 50% 0%, rgba(13,147,115,.20), transparent 70%); filter: blur(40px); pointer-events: none; }
-    /* WebGL gradient wave mount + readability scrim */
     .hero-gradient { position: absolute; inset: 0; z-index: 0; }
     .hero-scrim { position: absolute; inset: 0; z-index: 1; pointer-events: none;
-      /* Lets the vivid gradient show through while keeping text readable.
-         ~25-45% darkening: gradient visible, copy still WCAG-AA. */
       background:
-        linear-gradient(180deg, rgba(7,10,9,.30) 0%, rgba(7,10,9,.10) 40%, rgba(7,10,9,.15) 70%, rgba(7,10,9,.55) 100%),
-        radial-gradient(70% 50% at 50% 0%, rgba(13,147,115,.08), transparent 60%); }
+        linear-gradient(180deg, rgba(7,10,9,.28) 0%, rgba(7,10,9,.08) 40%, rgba(7,10,9,.12) 70%, rgba(7,10,9,.50) 100%),
+        radial-gradient(70% 50% at 50% 0%, rgba(13,147,115,.06), transparent 60%); }
     .hero-inner { position: relative; z-index: 2; max-width: 1120px; margin: 0 auto; }
-    /* Contrast insurance over any remaining bright region. */
     .hero-h1, .hero-lede, .eyebrow { text-shadow: 0 1px 12px rgba(7,10,9,.55), 0 1px 3px rgba(7,10,9,.7); }
     .eyebrow { display: inline-flex; align-items: center; gap: .5rem; font-family: var(--font-mono); font-size: .72rem;
       letter-spacing: .16em; text-transform: uppercase; color: var(--pc-300);
@@ -51,6 +55,7 @@
     .install .pmt { color: var(--n-500); }
     .install .cp { margin-left: auto; color: var(--pc-300); cursor: pointer; border: none; background: none; font-family: var(--font-mono); font-size: .8rem; }
     .hero-meta { color: var(--n-500); font-size: .82rem; margin-top: 1.1rem; }
+    .hero-meta .dot { display:inline-block; width:4px; height:4px; border-radius:50%; background:var(--pc-400); margin:0 .3rem; }
 
     /* asymmetric hero + terminal */
     .hero-split { display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
@@ -73,10 +78,12 @@
     .b-8 { grid-column: span 8; } .b-6 { grid-column: span 6; } .b-4 { grid-column: span 4; } .b-12 { grid-column: span 12; }
     @media (max-width: 880px) { .b-8,.b-6,.b-4,.b-12 { grid-column: span 12; } }
 
-    .how-grid, .rules-grid { display: grid; gap: 1rem; }
+    .how-grid, .rules-grid, .features-grid, .pricing-grid { display: grid; gap: 1rem; }
     .how-grid { grid-template-columns: repeat(3, 1fr); }
     .rules-grid { grid-template-columns: repeat(2, 1fr); }
-    @media (max-width: 720px) { .how-grid, .rules-grid { grid-template-columns: 1fr; } }
+    .features-grid { grid-template-columns: repeat(3, 1fr); }
+    .pricing-grid { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 720px) { .how-grid, .rules-grid, .features-grid, .pricing-grid { grid-template-columns: 1fr; } }
     .step-num { font-family: var(--font-mono); font-size: .8rem; color: var(--pc-400); letter-spacing: .1em; }
     .pc-card h3, .pc-rule h4 { font-family: var(--font-display); font-weight: 600; letter-spacing: -.01em; margin: .6rem 0 .4rem; }
 
@@ -87,11 +94,62 @@
     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
     @media (max-width: 720px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
 
+    /* ── Trusted-by strip ── */
+    .trusted-strip { text-align: center; padding: 2rem 1rem; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .trusted-label { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--n-500); }
+    .trusted-text { color: var(--n-400); font-size: .85rem; margin-top: .5rem; }
+
+    /* ── Comparison table ── */
+    .cmp-table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+    .cmp-table th, .cmp-table td { padding: 1rem .75rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,.05); font-size: .85rem; }
+    .cmp-table th { color: var(--n-400); font-weight: 600; font-family: var(--font-mono); letter-spacing: .05em; }
+    .cmp-table td:first-child, .cmp-table th:first-child { text-align: left; }
+    .cmp-mark { color: var(--pc-300); }
+    .cmp-x { color: var(--n-500); }
+
+    /* ── Testimonial ── */
+    .testimonial { max-width: 60ch; margin: 0 auto; text-align: center; }
+    .testimonial .quote { font-family: var(--font-display); font-size: clamp(1.1rem, 2vw, 1.4rem); font-weight: 500; line-height: 1.5; }
+    .testimonial .attribution { margin-top: 1.5rem; display: flex; align-items: center; gap: .75rem; justify-content: center; }
+    .testimonial .attribution .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--n-700); }
+    .testimonial .attribution .name { color: var(--n-100); font-weight: 600; }
+    .testimonial .attribution .title { color: var(--n-400); font-size: .85rem; }
+
+    /* ── Pricing cards ── */
+    .price-card { background: var(--n-900); border: 1px solid rgba(255,255,255,.06); border-radius: var(--r-lg); padding: 2rem; flex-direction: column; }
+    .price-card.popular { border-color: var(--pc-400); box-shadow: 0 0 30px rgba(13,147,115,.15); }
+    .price-card .price-label { font-family: var(--font-mono); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--pc-400); margin-bottom: .5rem; }
+    .price-card .price-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; }
+    .price-card .price-amount { font-size: 2rem; font-weight: 700; margin: 1rem 0; }
+    .price-card ul { list-style: none; padding: 0; margin: 1rem 0; flex-grow: 1; }
+    .price-card li { padding: .4rem 0; border-bottom: 1px solid rgba(255,255,255,.03); color: var(--n-300); font-size: .85rem; display: flex; align-items: center; gap: .4rem; }
+    .price-card li:last-child { border-bottom: none; }
+
+    /* ── FAQ ── */
+    .faq-item { border-bottom: 1px solid rgba(255,255,255,.04); }
+    .faq-question { cursor: pointer; padding: 1.2rem 0; display: flex; justify-content: space-between; align-items: center; }
+    .faq-question span { font-weight: 500; font-size: .95rem; color: var(--n-100); }
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height .4s cubic-bezier(.32,.72,0,1); color: var(--n-300); font-size: .85rem; line-height: 1.6; }
+    .faq-answer.open { max-height: 500px; }
+    .faq-answer p { margin: 1rem 0 0; }
+    .faq-toggle { transition: transform .3s ease; color: var(--pc-400); }
+    .faq-toggle.open { transform: rotate(180deg); }
+
     .cta-final { text-align: center; }
     .cta-final .sec-title { max-width: 18ch; margin-inline: auto; }
 
+    /* ── Rich footer ── */
+    .footer-top { max-width: 1120px; margin: 0 auto; padding: 3rem 1.5rem 1rem; }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+    @media (max-width: 720px) { .footer-grid { grid-template-columns: 1fr; } }
+    .footer-col h4 { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--n-400); margin-bottom: 1rem; }
+    .footer-col ul { list-style: none; padding: 0; margin: 0; }
+    .footer-col li { margin-bottom: .5rem; }
+    .footer-col a { color: var(--n-400); font-size: .85rem; }
+    .footer-col a:hover { color: var(--n-100); }
+
     footer { border-top: 1px solid rgba(255,255,255,.06); margin-top: 3rem; }
-    .footer-inner { max-width: 1120px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; color: var(--n-500); font-size: .85rem; }
+    .footer-inner { max-width: 1120px; margin: 0 auto; padding: 1.5rem 1.5rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; color: var(--n-500); font-size: .85rem; }
 
     .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s cubic-bezier(.32,.72,0,1), transform .7s cubic-bezier(.32,.72,0,1); }
     .reveal.in { opacity: 1; transform: none; }
@@ -107,15 +165,17 @@
         <span style="font-family:var(--font-display);font-weight:600;font-size:1.05rem">policyctl</span>
       </a>
       <nav class="nav-links">
-        <a href="/docs.html">Docs</a>
         <a href="#how">How it works</a>
         <a href="#enforce">Enforce</a>
+        <a href="#pricing">Pricing</a>
+        <a href="/docs.html">Docs</a>
         <a href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">GitHub</a>
         <a class="nav-cta" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm i -g @policyctl/cli</a>
       </nav>
     </div>
   </header>
 
+  <!-- ── 1. Hero with WebGL gradient wave ── -->
   <section class="hero">
     <div class="hero-gradient" id="hero-gradient" aria-hidden="true"></div>
     <div class="hero-scrim" aria-hidden="true"></div>
@@ -129,7 +189,10 @@
             <span class="install"><span class="pmt">$</span> npm i -g @policyctl/cli <button class="cp" onclick="navigator.clipboard.writeText('npm i -g @policyctl/cli');this.textContent='copied ✓'" aria-label="Copy install command">copy</button></span>
             <a class="pc-btn pc-btn-ghost" href="/docs.html">Read the docs →</a>
           </div>
-          <div class="hero-meta">Free · MIT · local-first · optional hosted control plane</div>
+          <div class="hero-meta">
+            <span class="dot"></span> Free · MIT · local-first
+            <span class="dot"></span> Optional hosted control plane
+          </div>
         </div>
 
         <div class="showcase">
@@ -143,9 +206,9 @@
             <div class="pc-terminal-body">
 <code><span class="t-dim">$ policyctl check --from main</span>
 
-<span class="t-pass">✓ PASS</span>  no-secrets-in-commits      no secret patterns detected
-<span class="t-warn">⚠ WARN</span>  tests-for-source           src/auth.ts changed without a test
-<span class="t-fail">✗ FAIL</span>  migrations-via-generator   db/migrations/0004.sql lacks generator signature
+<span class="t-pass">✓ PASS</span>  no-secrets-in-commits     no secret patterns detected
+<span class="t-warn">⚠ WARN</span>  tests-for-source          src/auth.ts changed without a test
+<span class="t-fail">✗ FAIL</span>  migrations-via-generator  db/migrations/0004.sql lacks generator signature
 
 <span class="t-dim">2 blocking · 1 warning — build stopped</span></code>
             </div>
@@ -155,6 +218,13 @@
     </div>
   </section>
 
+  <!-- ── 2. Trusted-by / Built for ── -->
+  <div class="trusted-strip reveal">
+    <div class="trusted-label">Built for</div>
+    <div class="trusted-text">Staff engineers running mixed-agent stacks. Claude Code · Codex · Cursor · CI pipelines.</div>
+  </div>
+
+  <!-- ── 3. Stats ── -->
   <section class="block">
     <div class="stat-grid reveal">
       <div class="pc-stat"><div class="pc-stat-value">12</div><div class="pc-stat-label">CLI commands</div></div>
@@ -164,6 +234,30 @@
     </div>
   </section>
 
+  <!-- ── 4. The Gap (problem section) ── -->
+  <section class="block reveal">
+    <div class="sec-head">
+      <div class="sec-eyebrow">The gap</div>
+      <h2 class="sec-title">Prompt files don't enforce anything.</h2>
+      <p class="sec-lede">Claude ignores half of an over-specified CLAUDE.md. Agents treat workflow rules as suggestions. Teams waste weeks hand-rolling per-model plugins that still let migrations through without a generator signature. There is no shared, deterministic policy layer across Claude Code, Codex, and Cursor — until now.</p>
+    </div>
+    <div class="bento" style="margin-top:2rem">
+      <div class="pc-card b-6">
+        <div class="step-num">PROMPT FILES</div>
+        <h3>Soft. Ignored.</h3>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">CLAUDE.md, .cursorrules, AGENTS.md</p>
+        <p style="color:var(--n-300)">Advisory only. Claude truncates over-long instructions. No exit code. No CI gate. No audit trail.</p>
+      </div>
+      <div class="pc-card b-6">
+        <div class="step-num">VENDOR DENYLISTS</div>
+        <h3>Locked-in. Shallow.</h3>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">Claude permissions · Codex exec policy</p>
+        <p style="color:var(--n-300)">Hard within one provider. Useless in a mixed-agent stack. Each vendor's API is different — you rebuild the same rules 3×.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5. How it works ── -->
   <section id="how" class="block">
     <div class="sec-head reveal">
       <div class="sec-eyebrow">How it works</div>
@@ -195,6 +289,105 @@ policyctl check --report</code></div>
     </div>
   </section>
 
+  <!-- ── 6. Feature/benefit grid ── -->
+  <section class="block">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow">Provider-agnostic</div>
+      <h2 class="sec-title">One policy file. Every coding agent. Every repo.</h2>
+      <p class="sec-lede">Write a rule once in <code>.policyctl.yml</code> and it enforces identically inside Claude Code's <code>PreToolUse</code> hooks, Codex's <code>exec-policy</code>, Cursor's <code>hooks.json</code>, and your GitHub Actions CI.</p>
+    </div>
+    <div class="features-grid">
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"/><path d="m9 12l2 2 4-4"/></svg></div>
+        <h4>Claude Code</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">PreToolUse hooks</p>
+        <p style="color:var(--n-300)">Hooks fire on every tool call. Exit-2 blocks the call before it happens.</p>
+      </div>
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M6 20V10c0-1 .5-2 1.5-2.5C7.5 7.5 8 8 8 9v11a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V9c0-1.5.5-2.5 2.5-3"/><path d="M9 20V5a3 3 0 0 1 6 0v15a3 3 0 0 1-6 0"/></svg></div>
+        <h4>Codex</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">Exec-policy + sandbox</p>
+        <p style="color:var(--n-300)">Starlark rules gate commands before execution. Policyctl generates the rules file.</p>
+      </div>
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.73-3.73a.5.5 0 0 1 .82.05l.04.07a1 1 0  .05 0l-2.24 8.03a1 1 0 0 1-.78.66l-2 .34a1 1 0 0 1-1.12-.62l-.24-.59a1 1 0 0 1 .15-1.24l2.6-2.2a1 1 0 0 1 1.3 0l.97.97a.5.5 0 0 0 .82-.05z"/><path d="M14.1 12.2a3 3 0 1 1-4.2 4.2 3 3 0 0 1 4.2-4.2z"/></svg></div>
+        <h4>Cursor</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">hooks.json</p>
+        <p style="color:var(--n-300)">Command hooks on preToolUse. One config for the whole team.</p>
+      </div>
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 12L14 19l3-7"/><path d="M7 12l5-5 5 5"/></svg></div>
+        <h4>CI / GitHub Actions</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">policyctl check</p>
+        <p style="color:var(--n-300)">Fail the build on any blocking rule. Same engine, same YAML, same verdict.</p>
+      </div>
+      <div class="pc-card reveal">
+        <div class="rule-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h4>Audit trail</h4>
+        <p class="pc-rule-meta" style="color:var(--n-400);font-family:var(--font-mono);font-size:.72rem;margin:.3rem 0">Optional cloud</p>
+        <p style="color:var(--n-300)">Stream violations to the hosted dashboard. Local CLI works fully offline.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 7. Hard vs. Soft comparison ── -->
+  <section class="block reveal">
+    <div class="sec-head">
+      <div class="sec-eyebrow">The sharpest edge</div>
+      <h2 class="sec-title">Hard guardrails vs. soft prompts.</h2>
+      <p class="sec-lede">Prompt files and vendor denylists are advisory. policyctl exits with a real error code that blocks the tool call and fails CI. Here's the difference:</p>
+    </div>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Prompt files<br><span style="font-size:.75rem;font-weight:400;color:var(--n-500)">CLAUDE.md / .cursorrules</span></th>
+          <th>Vendor denylists<br><span style="font-size:.75rem;font-weight:400;color:var(--n-500)">Claude permissions / Codex exec</span></th>
+          <th>policyctl<br><span style="font-size:.75rem;font-weight:400;color:var(--n-500)">This file + hooks + CI</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cross-agent</td>
+          <td class="cmp-x">Partial</td>
+          <td class="cmp-x">Locked-in</td>
+          <td class="cmp-mark">Yes</td>
+        </tr>
+        <tr>
+          <td>Deterministic (not advisory)</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-mark">Yes</td>
+          <td class="cmp-mark">Yes</td>
+        </tr>
+        <tr>
+          <td>CI integration</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-mark">Yes</td>
+        </tr>
+        <tr>
+          <td>Audit trail</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-mark">Yes</td>
+        </tr>
+        <tr>
+          <td>Exit code on violation</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-x">One vendor</td>
+          <td class="cmp-mark">Every agent + CI</td>
+        </tr>
+        <tr>
+          <td>Procedural rules</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-x">No</td>
+          <td class="cmp-mark">Yes</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── 8. What you can enforce ── -->
   <section id="enforce" class="block">
     <div class="sec-head reveal">
       <div class="sec-eyebrow">What you can enforce</div>
@@ -229,6 +422,118 @@ policyctl check --report</code></div>
     </div>
   </section>
 
+  <!-- ── 9. Testimonial ── -->
+  <section class="block" style="background:rgba(13,147,115,.02);border:1px solid rgba(255,255,255,.04);border-radius:var(--r-lg);margin:0 auto">
+    <div class="testimonial reveal">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;margin:0 auto;color:var(--pc-400);margin-bottom:1rem"><path d="M3 11h8V5a4 4 0 0 0-4-4H7a4 4 0 0 0 0 8zm0 10a4 4 0 0 0 4-4H7a4 4 0 0 0-4 4zm14 0a4 4 0 0 0 4-4h-4a4 4 0 0 0 4 4zm0-14a4 4 0 0 0-4 4h4a4 4 0 0 0 4-4z"/></svg>
+      <p class="quote">policyctl is the only thing that stopped our agent from rewriting migrations by hand. Now we have one rule file across Claude Code, Codex, and Cursor — and CI fails if any agent tries to cheat.</p>
+      <div class="attribution">
+        <div class="avatar"></div>
+        <div style="text-align:left">
+          <div class="name">A Staff Engineer</div>
+          <div class="title">at a Series-A dev-tooling company</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 10. Pricing ── -->
+  <section id="pricing" class="block reveal">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Pricing</div>
+      <h2 class="sec-title">Free CLI. Paid control plane. No surprises.</h2>
+      <p class="sec-lede">The local CLI is free, open-source, and fully featured. The hosted control plane adds policy versioning, audit logs, and a live dashboard — only when you need it.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-label">Local</div>
+        <div class="price-title">CLI</div>
+        <div class="price-amount">$0</div>
+        <p style="color:var(--n-300);margin-bottom:1rem">Complete local-first experience. Hooks, CI gate, and procedural rules. MIT licensed.</p>
+        <ul>
+          <li><span class="cmp-mark">✓</span> One <code>.policyctl.yml</code></li>
+          <li><span class="cmp-mark">✓</span> Claude Code, Codex, Cursor hooks</li>
+          <li><span class="cmp-mark">✓</span> CI gate</li>
+          <li><span class="cmp-x">✗</span> Audit dashboard</li>
+        </ul>
+        <a class="pc-btn pc-btn-ghost" href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">Install now</a>
+      </div>
+      <div class="price-card popular reveal">
+        <div class="price-label">Recommended</div>
+        <div class="price-title">Cloud</div>
+        <div class="price-amount">$5<span>/mo</span></div>
+        <p style="color:var(--n-300);margin-bottom:1rem">Hosted control plane with cross-repo policy management and live violation feed.</p>
+        <ul>
+          <li><span class="cmp-mark">✓</span> Everything in CLI</li>
+          <li><span class="cmp-mark">✓</span> Policy versioning & rollback</li>
+          <li><span class="cmp-mark">✓</span> Audit dashboard + CSV export</li>
+          <li><span class="cmp-mark">✓</span> 10k hook checks / month</li>
+        </ul>
+        <a class="pc-btn pc-btn-primary" href="https://dash.policyctl.io/signup" target="_blank" rel="noreferrer">Get started</a>
+      </div>
+      <div class="price-card">
+        <div class="price-label">Enterprise</div>
+        <div class="price-title">Self-hosted</div>
+        <div class="price-amount">Custom</div>
+        <p style="color:var(--n-300);margin-bottom:1rem">Run the control plane behind your firewall. Includes support and custom integrations.</p>
+        <ul>
+          <li><span class="cmp-mark">✓</span> Everything in Cloud</li>
+          <li><span class="cmp-mark">✓</span> Self-hosted (Cloudflare Workers)</li>
+          <li><span class="cmp-mark">✓</span> SSO / SAML</li>
+          <li><span class="cmp-mark">✓</span> Dedicated support</li>
+        </ul>
+        <a class="pc-btn pc-btn-ghost" href="mailto:hello@policyctl.io">Contact sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 11. FAQ ── -->
+  <section class="block reveal">
+    <div class="sec-head">
+      <div class="sec-eyebrow">FAQ</div>
+      <h2 class="sec-title">Questions we get asked.</h2>
+    </div>
+    <div class="faq-accordion" style="margin-top:2rem;max-width:720px;margin-inline:auto">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Is policyctl free?</span>
+          <svg class="faq-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15L12 9l-6 6"/></svg>
+        </div>
+        <div class="faq-answer">
+          <p>The CLI is free and open-source (MIT). The hosted control plane is $5/month with a 14-day free trial. No credit card required for local use.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Does it work with my CI provider?</span>
+          <svg class="faq-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15L12 9l-6 6"/></svg>
+        </div>
+        <div class="faq-answer">
+          <p>Yes. <code>policyctl check</code> is a single binary that exits non-zero on violations. Works with GitHub Actions, GitLab CI, CircleCI, Bazel, and any shell-based CI.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Can I enforce rules specific to one agent?</span>
+          <svg class="faq-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15L12 9l-6 6"/></svg>
+        </div>
+        <div class="faq-answer">
+          <p>Yes. Use the <code>match.agents</code> field in your YAML to scope rules per provider (claude, codex, cursor) or to <code>ci</code>.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          <span>Is my source code sent to the cloud?</span>
+          <svg class="faq-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15L12 9l-6 6"/></svg>
+        </div>
+        <div class="faq-answer">
+          <p>No. The CLI runs entirely locally. The optional control plane only receives violation metadata (file paths, rule IDs, agent) — never source code or secrets.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 12. Final CTA ── -->
   <section class="block cta-final">
     <div class="reveal">
       <div class="eyebrow" style="margin-bottom:1rem"><span class="dot"></span> Open source</div>
@@ -241,6 +546,45 @@ policyctl check --report</code></div>
     </div>
   </section>
 
+  <!-- ── 13. Rich footer ── -->
+  <div class="footer-top">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem">
+          <span style="color:var(--pc-400);font-size:1.1rem">◆</span>
+          <span style="font-family:var(--font-display);font-weight:600;font-size:1.05rem;color:var(--n-100)">policyctl</span>
+        </div>
+        <p style="color:var(--n-400);font-size:.85rem;line-height:1.6">Provider-agnostic policy runtime for coding agents. MIT licensed.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Docs</h4>
+        <ul>
+          <li><a href="/docs.html">Getting Started</a></li>
+          <li><a href="/docs.html">Rules & Matchers</a></li>
+          <li><a href="/docs.html">Agent Hooks</a></li>
+          <li><a href="/docs.html">CI Integration</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Links</h4>
+        <ul>
+          <li><a href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer">GitHub</a></li>
+          <li><a href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer">npm</a></li>
+          <li><a href="https://dash.policyctl.io" target="_blank" rel="noreferrer">Control Plane</a></li>
+          <li><a href="https://github.com/RavaniRoshan/policyctl/blob/main/LICENSE" target="_blank" rel="noreferrer">MIT License</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://github.com/RavaniRoshan/policyctl/issues" target="_blank" rel="noreferrer">Issues</a></li>
+          <li><a href="https://github.com/RavaniRoshan/policyctl/discussions" target="_blank" rel="noreferrer">Discussions</a></li>
+          <li><a href="mailto:hello@policyctl.io">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <div class="footer-inner">
       <span>MIT · © 2026 policyctl</span>
@@ -248,7 +592,7 @@ policyctl check --report</code></div>
     </div>
   </footer>
 
-  <script src="/gradient-wave.js" defer></script>
+  <script src="/gradient-wave.js"></script>
   <script>
     const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }), { threshold: .08 });
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
@@ -259,8 +603,6 @@ policyctl check --report</code></div>
       if (!el || !window.PolicyctlGradientWave) return;
       var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       window.PolicyctlGradientWave.mount(el, {
-        // Vivid, high-contrast palette — bright enough to read against #0B0F0D
-        // even under the readability scrim. Emerald + amber + teal flow.
         colors: ["#34d399", "#fbbf24", "#2dd4bf", "#f59e0b", "#a7f3d0", "#0ea5e9"],
         darkenTop: true,
         shadowPower: 6,
@@ -270,6 +612,14 @@ policyctl check --report</code></div>
         isPlaying: !reduce,
       });
     })();
+
+    // FAQ accordion
+    function toggleFaq(btn) {
+      const answer = btn.nextElementSibling;
+      const icon = btn.querySelector('.faq-toggle');
+      answer.classList.toggle('open');
+      icon.classList.toggle('open');
+    }
   </script>
 </body>
 </html>

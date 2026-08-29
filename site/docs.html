@@ -152,6 +152,8 @@
         <h4>Reference</h4>
         <a href="#commands">Commands</a>
         <a href="#api">Hosted API</a>
+        <a href="#auth-endpoints">Auth</a>
+        <a href="#analytics-endpoints">Analytics</a>
         <a href="#phase-b">Phase B · control plane</a>
       </div>
     </aside>
@@ -239,24 +241,49 @@ jobs:
       </table>
 
       <h2 id="api">Hosted API</h2>
-      <p>The CLI talks to the control plane over a small REST surface. Auth is a bearer token saved to <code>~/.policyctl/config.json</code>.</p>
+      <p>The CLI talks to the control plane over a small REST surface. Auth is a bearer token saved to <code>~/.policyctl/config.json</code>, or a session cookie when using the web dashboard. <kbd>Cmd</kbd> + <kbd>K</kbd> then type "API" to jump to this section.</p>
+
+      <h3 id="auth-endpoints">Auth</h3>
+      <table>
+        <thead><tr><th>Method &amp; path</th><th>Description</th><th>Auth</th></tr></thead>
+        <tbody>
+          <tr><td><code>POST /api/auth/signup</code></td><td>Register with email/password + Turnstile.</td><td>Turnstile</td></tr>
+          <tr><td><code>POST /api/auth/login</code></td><td>Login with email/password + Turnstile, sets cookie.</td><td>Turnstile</td></tr>
+          <tr><td><code>GET /api/auth/oauth/google</code></td><td>Redirect to Google OAuth consent.</td><td>None</td></tr>
+          <tr><td><code>GET /api/auth/oauth/callback</code></td><td>Google OAuth callback handler.</td><td>None</td></tr>
+          <tr><td><code>POST /api/auth/logout</code></td><td>Clear session cookie.</td><td>Cookie</td></tr>
+          <tr><td><code>GET /api/me</code></td><td>Returns current user from session cookie.</td><td>Cookie</td></tr>
+        </tbody>
+      </table>
+      <div class="callout note"><span class="ic">i</span><div><div class="ttl">Turnstile protection</div><p>All auth endpoints are protected by <a href="https://developers.cloudflare.com/turnstile/" target="_blank" rel="noreferrer">Cloudflare Turnstile</a>. The site key is <code>VITE_TURNSTILE_SITE_KEY</code> in the web app; the secret is set as a Worker secret via <code>wrangler secret put TURNSTILE_SECRET_SITE</code>.</p></div></div>
+
+      <h3 id="policy-endpoints">Policy &amp; control plane</h3>
       <table>
         <thead><tr><th>Method &amp; path</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>POST /api/login</code></td><td>Issue a token for an email.</td></tr>
           <tr><td><code>POST /api/policy</code></td><td>Push policy as a new immutable version.</td></tr>
           <tr><td><code>GET /api/policy</code></td><td>Fetch the current policy version.</td></tr>
-          <tr><td><code>GET /api/policy/versions</code></td><td>List policy versions.</td></tr>
+          <tr><td><code>GET /api/policy/versions</code></td><td>List all policy versions with rollback support.</td></tr>
           <tr><td><code>POST /api/policy/versions/:id/rollback</code></td><td>Restore a previous version.</td></tr>
           <tr><td><code>POST /api/report</code></td><td>Send a violation result to the feed.</td></tr>
-          <tr><td><code>GET /api/violations</code></td><td>Read the violation feed.</td></tr>
+          <tr><td><code>GET /api/violations</code></td><td>Read the violation feed (paginated).</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="analytics-endpoints">Analytics &amp; exports (Phase C)</h3>
+      <table>
+        <thead><tr><th>Method &amp; path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>GET /api/analytics?days=N</code></td><td>Compliance score, active sessions, violations trend.</td></tr>
+          <tr><td><code>GET /api/export/violations.csv</code></td><td>Presigned R2 URL or inline CSV for violation export.</td></tr>
         </tbody>
       </table>
 
       <h2 id="phase-b">Phase B · control plane</h2>
-      <p>The control plane is a Cloudflare Worker + D1: organizations, member roles, immutable policy versioning with rollback, and a live violation feed. Live instance: <code>https://policyctl-server.shivamkumar10958.workers.dev</code>.</p>
-      <div class="callout danger"><span class="ic">×</span><div><div class="ttl">Self-hosting</div><p>Deploy with <code>pnpm --filter @policyctl/server deploy</code> after applying <code>migrations/0001_init.sql</code> to a D1 database. No container runtime required.</p></div></div>
-      <p class="mono" style="color:var(--n-500);font-size:.85rem">Full schema and examples: <a href="https://github.com/RavaniRoshan/policyctl#readme" target="_blank" rel="noreferrer">README</a></p>
+      <p>The control plane is a <strong>Cloudflare Worker</strong> + <strong>D1 </strong>(SQLite) + <strong>KV</strong> (sub-ms cache) + <strong>R2</strong> (CSV exports): organizations, member roles, immutable policy versioning with rollback, and a live violation feed. <strong>Turnstile</strong> guards all auth endpoints. Live instance: <code>https://policyctl-server.shivamkumar10958.workers.dev</code>.</p>
+      <div class="callout danger"><span class="ic">×</span><div><div class="ttl">Self-hosting</div><p>Deploy with <code>pnpm --filter @policyctl/server deploy</code> after applying migrations (<code>migrations/0001_init.sql</code>, <code>0002_versions.sql</code>, <code>0003_auth.sql</code>) to a D1 database. No container runtime required.</p></div></div>
+      <div class="callout tip"><span class="ic">✓</span><div><div class="ttl">AI-powered docs</div><p>Press <kbd>Cmd</kbd> + <kbd>K</kbd> for the command palette, or use the "Ask AI" dropdown in the header to send this page to ChatGPT or Claude.</p></div></div>
+      <p class="mono" style="color:var(--n-500);font-size:.85rem">Full schema and examples: <a href="https://github.com/RavaniRoshan/policyctl#readme" target="_blank" rel="noreferrer">README</a> · <a href="/llms.txt" target="_blank" rel="noreferrer">llms.txt (raw markdown)</a></p>
     </main>
 
     <aside class="toc" aria-label="On this page">

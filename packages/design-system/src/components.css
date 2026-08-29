@@ -1,23 +1,5 @@
-/* ── policyctl design system — base ── */
-@import "./tokens.css";
-
-@layer base {
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    font-family: var(--font-sans);
-    background: var(--n-950);
-    color: var(--n-100);
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.6;
-  }
-  ::selection { background: var(--pc-500); color: var(--n-950); }
-  h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
-  a { color: var(--pc-300); text-decoration: none; transition: color var(--dur) var(--ease); }
-  a:hover { color: var(--pc-200); }
-  code, pre { font-family: var(--font-mono); }
-}
+/* ── policyctl design system — component primitives ── */
+/* Base reset lives in the consuming app's CSS (@tailwind base + @layer base). */
 
 /* ── Signature background mesh ── */
 .pc-mesh {

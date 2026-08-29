@@ -9,10 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@policyctl/design-system": "workspace:^0.1.0",
+    "@paper-design/shaders-react": "^0.0.80",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^1.37.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.3",
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
