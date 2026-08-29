@@ -20,9 +20,11 @@ jobs:
       - run: pnpm --filter @policyctl/cli build
       - name: Switch workspace deps to real versions
         run: |
+          VERSION=$(node -e "console.log(require('./packages/cli/package.json').version)")
           for pkg in packages/cli packages/core packages/server; do
-            node -e "const fs=require('fs');const p='$pkg/package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));if(j.dependencies)for(const k of Object.keys(j.dependencies))if(typeof j.dependencies[k]==='string'&&j.dependencies[k].startsWith('workspace:'))j.dependencies[k]='^0.1.1';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n')"
+            node -e "const fs=require('fs');const p='$pkg/package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));if(j.dependencies)for(const k of Object.keys(j.dependencies))if(typeof j.dependencies[k]==='string'&&j.dependencies[k].startsWith('workspace:'))j.dependencies[k]='^${VERSION}';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n')"
           done
+          echo "pinned @policyctl/core to ^${VERSION} in cli package.json"
       - name: Publish @policyctl/core
         run: cd packages/core && npm publish --access public
         env:
