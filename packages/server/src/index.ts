@@ -23,6 +23,7 @@ import {
 import { loginPage, renderDashboard } from "./dashboard.js";
 import { makeR2 } from "./s3.js";
 import { cacheGetPolicy, cacheGetUser, cacheInvalidatePolicy, cachePutPolicy, cachePutUser } from "./cache.js";
+import { analyzeDiff, authorRule } from "./ai.js";
 
 const app = new Hono<{ Bindings: Env }>();
 const API = "/api";
@@ -135,6 +136,29 @@ app.get(`${API}/analytics`, async (c) => {
   if (!org) return c.json({ error: "no org" }, 400);
   const days = Number(c.req.query("days") ?? 30);
   return c.json({ analytics: await analytics(c.env.DB, org.id, days) });
+});
+
+// ── Phase D: Workers AI — semantic policy intelligence (paid-only) ──
+// TODO: gate behind paid-plan check once billing is wired
+app.post(`${API}/ai/analyze`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const body = (await c.req.json<{ diff?: string; policy?: string; repo?: string }>().catch(() => ({}))) as { diff?: string; policy?: string; repo?: string };
+  if (typeof body.diff !== "string") return c.json({ error: "diff required" }, 400);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const currentPolicy = body.policy ?? (await getPolicy(c.env.DB, org.id));
+  const result = await analyzeDiff(c.env, body.diff, currentPolicy, body.repo ?? "");
+  return c.json(result);
+});
+
+app.post(`${API}/ai/author`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const body = (await c.req.json<{ intent?: string }>().catch(() => ({}))) as { intent?: string };
+  if (typeof body.intent !== "string") return c.json({ error: "intent required" }, 400);
+  const result = await authorRule(c.env, body.intent);
+  return c.json(result);
 });
 
 // ── Phase C: export violations (R2-backed) ───────────────────────────

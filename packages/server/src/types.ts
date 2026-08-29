@@ -2,6 +2,8 @@ export interface Env {
   DB: D1Database;
   /** KV cache for parsed policies + session lookups (sub-ms reads). */
   POLICYCTL_CACHE: KVNamespace;
+  /** Workers AI — edge LLM inference for semantic policy intelligence. */
+  AI: Ai;
   /** Optional override for the canonical server URL (used in CLI hints). */
   SERVER_URL?: string;
 }

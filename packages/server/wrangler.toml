@@ -15,6 +15,10 @@ migrations_dir = "migrations"
 binding = "POLICYCTL_CACHE"
 id = "12ac186b93734a7fa8431dc74ab26ef1"
 
+# Workers AI — edge LLM inference for semantic policy intelligence
+[ai]
+binding = "AI"
+
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true
