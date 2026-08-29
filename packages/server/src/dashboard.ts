@@ -265,11 +265,42 @@ export function renderDashboard(data: {
     <div class="term-body"><code class="c">policyctl</code> pull --token ${escapeHtml(token.slice(0, 10))}…</div>
   </div>`;
 
-  return shell(`${org.name} · policyctl`, nav + `<div class="bento">${chartCard}${repoCard}${ruleCard}${versionsHtml}${recent}${pull}</div>`);
+  return shell(`${org.name} · policyctl`, nav + `<div class="bento">${chartCard}${repoCard}${ruleCard}${versionsHtml}${recent}${aiPanel(org.id, token)}${pull}</div>`);
 }
 
 function badge(enforce?: string | null): string {
   if (!enforce) return `<span class="muted">—</span>`;
   const cls = enforce === "block" ? "pc-badge-danger" : enforce === "fail" ? "pc-badge-warn" : "pc-badge";
   return `<span class="${cls}">${escapeHtml(enforce)}</span>`;
+}
+
+export function aiPanel(orgId: number, token: string): string {
+  const tk = encodeURIComponent(token);
+  return `<div class="card col-12 reveal">
+    <div class="card-h"><div><div class="eyebrow">AI · policy intelligence</div><div class="h2" style="font-size:1.05rem;margin-top:.3rem">Analyze diffs & author rules with AI</div></div><span class="pc-badge">paid</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--n-400);margin-bottom:.4rem">ANALYZE A DIFF</div>
+        <textarea id="ai-diff" rows="4" placeholder="Paste a git diff…" style="width:100%;background:var(--n-1000);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-md);padding:.7rem;font-family:var(--font-mono);font-size:.8rem;color:var(--n-200);resize:vertical"></textarea>
+        <button class="btn" style="margin-top:.5rem;background:linear-gradient(180deg,var(--pc-400),var(--pc-600));color:var(--n-950);font-weight:600" id="ai-analyze-btn">Analyze</button>
+        <div id="ai-analyze-out" style="margin-top:.7rem;font-size:.85rem;color:var(--n-300);white-space:pre-wrap"></div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:.72rem;color:var(--n-400);margin-bottom:.4rem">AUTHOR A RULE FROM INTENT</div>
+        <textarea id="ai-intent" rows="4" placeholder="e.g. Never allow handwritten database migrations" style="width:100%;background:var(--n-1000);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-md);padding:.7rem;font-family:var(--font-mono);font-size:.8rem;color:var(--n-200);resize:vertical"></textarea>
+        <button class="btn" style="margin-top:.5rem;background:linear-gradient(180deg,var(--pc-400),var(--pc-600));color:var(--n-950);font-weight:600" id="ai-author-btn">Write rule</button>
+        <div id="ai-author-out" style="margin-top:.7rem;font-size:.85rem;color:var(--n-300);white-space:pre-wrap"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+  document.getElementById('ai-analyze-btn').onclick=async()=>{const b=document.getElementById('ai-analyze-btn'),out=document.getElementById('ai-analyze-out'),diff=document.getElementById('ai-diff').value;if(!diff){out.textContent='Paste a diff first.';return;}b.textContent='Analyzing…';b.disabled=true;out.textContent='';
+    const r=await fetch('/api/ai/analyze?token=${tk}&org=${orgId}',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({diff,repo:'dashboard'})});
+    const j=await r.json();out.textContent=(j.summary||'')+(j.violations&&j.violations.length?'\\n\\nViolations:\\n'+j.violations.map(v=>'• '+(v.ruleId?v.ruleId+': ':'')+v.explanation).join('\\n'):'')+(j.suggestedRules&&j.suggestedRules.length?'\\n\\nSuggested rules:\\n'+j.suggestedRules.map(s=>'• '+s).join('\\n'):'');
+    b.textContent='Analyze';b.disabled=false;};
+  document.getElementById('ai-author-btn').onclick=async()=>{const b=document.getElementById('ai-author-btn'),out=document.getElementById('ai-author-out'),intent=document.getElementById('ai-intent').value;if(!intent){out.textContent='Describe your intent first.';return;}b.textContent='Writing…';b.disabled=true;out.textContent='';
+    const r=await fetch('/api/ai/author?token=${tk}&org=${orgId}',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({intent})});
+    const j=await r.json();out.textContent=(j.rule||'')+(j.explanation?'\\n\\n'+j.explanation:'');
+    b.textContent='Write rule';b.disabled=false;};
+  </script>`;
 }
