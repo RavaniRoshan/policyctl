@@ -1,5 +1,9 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 import { Command } from "commander";
+const pkg = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8"));
 import { checkCommand } from "./commands/check.js";
 import { evalCommand } from "./commands/eval.js";
 import { listCommand } from "./commands/list.js";
@@ -19,7 +23,7 @@ const program = new Command();
 program
   .name("policyctl")
   .description("Provider-agnostic policy runtime for coding agents.")
-  .version("0.1.0");
+  .version(pkg.version);
 
 program
   .command("init")
