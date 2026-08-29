@@ -8,7 +8,7 @@ jobs:
   publish-cli:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -18,12 +18,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @policyctl/core build
       - run: pnpm --filter @policyctl/cli build
-      - run: cd packages/cli && npm publish --provenance --access public
+      - name: Pack the CLI tarball (for the release asset)
+        run: cd packages/cli && npm pack
+      - name: Publish to npm
+        run: cd packages/cli && npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create a GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            packages/cli/*.tgz
+          files: packages/cli/policyctl-cli-*.tgz
           generate_release_notes: true
