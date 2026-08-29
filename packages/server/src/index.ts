@@ -5,6 +5,7 @@ import {
   addMember,
   aggByRepo,
   aggByRule,
+  analytics,
   createOrg,
   getPolicy,
   getUserByToken,
@@ -15,10 +16,12 @@ import {
   reportViolations,
   resolveOrg,
   rollback,
+  toCsv,
   trend,
   upsertUser,
 } from "./store.js";
 import { loginPage, renderDashboard } from "./dashboard.js";
+import { makeR2 } from "./s3.js";
 
 const app = new Hono<{ Bindings: Env }>();
 const API = "/api";
@@ -89,14 +92,15 @@ app.post(`${API}/report`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
   const body = (await c.req
-    .json<{ repo?: string; agent?: string; results?: ReportResult[] }>()
-    .catch(() => ({}))) as { repo?: string; agent?: string; results?: ReportResult[] };
+    .json<{ repo?: string; agent?: string; results?: ReportResult[]; actor?: "agent" | "human" }>()
+    .catch(() => ({}))) as { repo?: string; agent?: string; results?: ReportResult[]; actor?: "agent" | "human" };
   const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
   if (!org) return c.json({ error: "no org" }, 400);
   const results = Array.isArray(body.results) ? body.results : [];
   const repo = String(body.repo ?? "");
   const agent = String(body.agent ?? "ci");
-  const count = await reportViolations(c.env.DB, org.id, repo, agent, results);
+  const actor = body.actor === "human" ? "human" : "agent";
+  const count = await reportViolations(c.env.DB, org.id, repo, agent, results, actor);
   return c.json({ ok: true, count });
 });
 
@@ -106,6 +110,41 @@ app.get(`${API}/violations`, async (c) => {
   const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
   if (!org) return c.json({ error: "no org" }, 400);
   return c.json({ violations: await listViolations(c.env.DB, org.id) });
+});
+
+// ── Phase C: analytics ───────────────────────────────────────────────
+app.get(`${API}/analytics`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const days = Number(c.req.query("days") ?? 30);
+  return c.json({ analytics: await analytics(c.env.DB, org.id, days) });
+});
+
+// ── Phase C: export violations (R2-backed) ───────────────────────────
+app.get(`${API}/export/violations.csv`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const rows = await listViolations(c.env.DB, org.id, 5000);
+  const csv = toCsv(rows);
+  try {
+    const r2 = makeR2(c.env);
+    const key = `exports/org-${org.id}/violations-${Date.now()}.csv`;
+    await r2.putObject(key, csv, "text/csv");
+    const url = r2.presignedGet(key, 900);
+    return c.json({ ok: true, url, key });
+  } catch (e) {
+    // R2 not configured yet — return the CSV inline so the feature still works.
+    return new Response(csv, {
+      headers: {
+        "content-type": "text/csv",
+        "content-disposition": `attachment; filename="policyctl-violations-org-${org.id}.csv"`,
+      },
+    });
+  }
 });
 
 // ── Orgs & members ───────────────────────────────────────────────────

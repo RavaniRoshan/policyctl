@@ -120,7 +120,7 @@ policyctl check --report                         # CI gate that also reports vio
 
 - **Runtime:** Cloudflare Workers (V8 isolates, no cold-start server) — `packages/server`.
 - **Database:** Cloudflare D1 (SQLite at the edge) for orgs, members, policy versions, and the violation feed.
-- **Object storage:** Cloudflare R2 for policy artifacts and dashboard exports (wiring landing in Phase C).
+- **Object storage:** Cloudflare R2 for dashboard exports (secrets set; bucket enable is a dashboard click).
 - **Dashboard:** server-rendered Worker route at `/dashboard`, styled with the shared design system.
 
 ### What's in Phase B
@@ -141,11 +141,28 @@ policyctl check --report                         # CI gate that also reports vio
 - `GET /api/policy/versions` / `POST /api/policy/versions/:id/rollback` → history + restore
 - `POST /api/report` / `GET /api/violations` → the violation feed (also viewable at the dashboard `/dashboard?token=...`)
 - `GET /api/orgs` / `POST /api/orgs` / `POST /api/orgs/:id/members` → org + member management
+- `GET /api/analytics?days=30` → agent-vs-human breakdown, repeat offenders, trend
+- `GET /api/export/violations.csv` → CSV export (R2-backed once enabled, inline fallback otherwise)
 
 Set `POLICYCTL_SERVER` to point the CLI at your instance (default: `https://policyctl.dev`).
 
 > Self-hosting Phase B: deploy the Worker + D1 binding with `pnpm --filter @policyctl/server deploy`
 > (runs `wrangler deploy` after applying `migrations/0001_init.sql`). No container runtime required.
+
+## Phase C — analytics & fleet (shipped)
+
+- **Agent-vs-human attribution** — `POST /api/report` accepts `"actor": "agent" | "human"`; analytics groups by it.
+- **Repeat-offender detection** — `GET /api/analytics` surfaces `(rule, repo)` pairs that fire more than once.
+- **CSV export** — `GET /api/export/violations.csv` streams the feed. With R2 secrets set it uploads to a
+  presigned URL; without them it falls back to an inline download so the feature always works.
+- **R2 setup** — enable R2 in the Cloudflare Dashboard (billing step the API can't do), create a `policyctl`
+  bucket, then set the secrets:
+  ```bash
+  wrangler secret put R2_ACCESS_KEY_ID
+  wrangler secret put R2_SECRET_ACCESS_KEY
+  wrangler secret put R2_ENDPOINT        # https://<account>.r2.cloudflarestorage.com
+  wrangler secret put R2_BUCKET          # policyctl
+  ```
 
 ## Development
 
@@ -153,14 +170,19 @@ Set `POLICYCTL_SERVER` to point the CLI at your instance (default: `https://poli
 pnpm install
 pnpm --filter @policyctl/core test     # engine unit tests
 pnpm --filter @policyctl/cli test      # check/eval regression tests
-pnpm --filter @policyctl/server start  # control-plane API + dashboard
+pnpm --filter @policyctl/server build  # control-plane API + dashboard (type-check + inline CSS)
+pnpm --filter policyctl-web dev        # React+Tailwind preview of the GradientWave component
 ```
+
+The landing page (`site/index.html`) is static HTML — no React. The WebGL `GradientWave` is ported to
+vanilla JS at `site/public/gradient-wave.js` and mounted into the hero. The original React component
+lives in `web/src/components/ui/gradient-wave.tsx` (shadcn-compatible) for iteration.
 
 ## Roadmap
 
 - **Phase A — local-first runtime (shipped):** provider-agnostic engine, generated hooks for Claude/Codex/Cursor, git-diff CI gate, published to npm (`@policyctl/cli`, `@policyctl/core`).
 - **Phase B — hosted control plane (shipped):** Cloudflare Workers + D1 backend, organizations, member roles, immutable policy versioning with rollback, real-time violation feed, and the per-repo/per-rule dashboard at `https://policyctl-server.shivamkumar10958.workers.dev`.
-- **Phase C — analytics & fleet:** cross-org trends, agent-vs-human violation attribution, policy effectiveness scoring, and R2-backed exports.
+- **Phase C — analytics & fleet (shipped):** agent-vs-human attribution, repeat-offender detection, `GET /api/analytics`, and R2-backed CSV export with inline fallback.
 
 ## Design system
 

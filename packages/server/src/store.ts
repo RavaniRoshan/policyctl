@@ -241,15 +241,15 @@ export async function reportViolations(
   repo: string,
   agent: string,
   results: ReportResult[],
+  actor: "agent" | "human" = "agent",
 ): Promise<number> {
   const ts = now();
+  // The `actor` column is added by migration 0002_actor.sql.
   const stmt = db.prepare(
-    "INSERT INTO violations (org_id, repo, rule_id, enforce, message, agent, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO violations (org_id, repo, rule_id, enforce, message, agent, created_at, actor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
   );
   for (const r of results) {
-    await stmt
-      .bind(orgId, repo, r.ruleId ?? "", r.enforce ?? "", r.message ?? "", agent, ts)
-      .run();
+    await stmt.bind(orgId, repo, r.ruleId ?? "", r.enforce ?? "", r.message ?? "", agent, ts, actor).run();
   }
   return results.length;
 }
@@ -311,6 +311,60 @@ export async function trend(
     if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
   }
   return [...buckets.entries()].map(([day, count]) => ({ day, count }));
+}
+
+export interface Analytics {
+  total: number;
+  byActor: { actor: string; count: number }[];
+  byRepo: { repo: string; count: number }[];
+  byRule: { rule_id: string; count: number }[];
+  trend: { day: string; count: number }[];
+  repeatOffenders: { rule_id: string; repo: string; count: number }[];
+}
+
+export async function analytics(db: D1Database, orgId: number, days = 30): Promise<Analytics> {
+  const since = now() - days * 86400000;
+  const all = (sql: string) => db.prepare(sql).bind(orgId, since).all() as Promise<{ results: any[] }>;
+
+  const totalRow = (await db.prepare("SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?").bind(orgId, since).first()) as { c: number };
+  const total = totalRow?.c ?? 0;
+
+  const byActor = (await all("SELECT COALESCE(actor, 'agent') AS actor, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY COALESCE(actor, 'agent') ORDER BY count DESC")).results as { actor: string; count: number }[];
+  const byRepo = (await all("SELECT COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY repo ORDER BY count DESC LIMIT 15")).results as { repo: string; count: number }[];
+  const byRule = (await all("SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY rule_id ORDER BY count DESC LIMIT 15")).results as { rule_id: string; count: number }[];
+
+  const trendRows = (await db.prepare("SELECT created_at FROM violations WHERE org_id = ? AND created_at >= ?").bind(orgId, since).all()) as unknown as { results: { created_at: number }[] };
+  const buckets = new Map<string, number>();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now() - i * 86400000);
+    buckets.set(d.toISOString().slice(0, 10), 0);
+  }
+  for (const r of trendRows.results) {
+    const key = new Date(r.created_at).toISOString().slice(0, 10);
+    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  const trend = [...buckets.entries()].map(([day, count]) => ({ day, count }));
+
+  const repeatOffenders = (await (db
+    .prepare(
+      `SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count
+       FROM violations WHERE org_id = ? AND created_at >= ?
+       GROUP BY rule_id, repo HAVING count > 1 ORDER BY count DESC LIMIT 20`,
+    )
+    .bind(orgId, since)
+    .all() as Promise<{ results: { rule_id: string; repo: string; count: number }[] }>)).results;
+
+  return { total, byActor, byRepo, byRule, trend, repeatOffenders };
+}
+
+export function toCsv(violations: Violation[]): string {
+  const header = ["id", "repo", "rule_id", "enforce", "message", "agent", "actor", "created_at"];
+  const rows = violations.map((v) =>
+    [v.id, v.repo ?? "", v.rule_id ?? "", v.enforce ?? "", (v.message ?? "").replace(/[\r\n]+/g, " "), v.agent ?? "", (v as any).actor ?? "agent", new Date(v.created_at).toISOString()]
+      .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+      .join(","),
+  );
+  return [header.join(","), ...rows].join("\n");
 }
 
 export type { Env };

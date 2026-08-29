@@ -173,10 +173,20 @@ export function renderDashboard(data: {
       <select id="org" class="orgselect" aria-label="Switch organization">${orgs
         .map((o) => `<option value="${o.id}" ${o.id === org.id ? "selected" : ""}>${escapeHtml(o.name)}</option>`)
         .join("")}</select>
+      <button class="btn btn-ghost" id="export-btn" type="button">Export CSV</button>
       <a class="btn btn-ghost" href="/?token=${tk}">Sign out</a>
     </div>
   </div>
-  <script>document.getElementById('org').onchange=e=>location.href='/dashboard?token=${tk}&org='+e.target.value;</script>
+  <script>
+  document.getElementById('org').onchange=e=>location.href='/dashboard?token=${tk}&org='+e.target.value;
+  document.getElementById('export-btn').onclick=async()=>{const b=document.getElementById('export-btn');b.textContent='Exporting…';b.disabled=true;
+    try{
+      const r=await fetch('/api/export/violations.csv?token=${tk}&org=${org.id}');
+      const ct=r.headers.get('content-type')||'';
+      if(ct.includes('application/json')){const j=await r.json();if(j.url){window.open(j.url,'_blank');b.textContent='Export CSV';b.disabled=false;return;}}
+      const blob=await r.blob();const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='policyctl-violations-org-${org.id}.csv';a.click();URL.revokeObjectURL(u);
+    }finally{b.textContent='Export CSV';b.disabled=false;}};
+  </script>
 
   <div class="reveal">
     <div class="eyebrow">Control plane</div>
