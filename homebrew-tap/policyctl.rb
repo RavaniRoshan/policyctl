@@ -6,7 +6,7 @@
 # Tap: https://github.com/policyctl/homebrew-tap
 class Policyctl < Formula
   desc "Provider-agnostic policy runtime for coding agents"
-  homepage "https://github.com/policyctl/policyctl"
+  homepage "https://github.com/RavaniRoshan/policyctl"
   url "https://registry.npmjs.org/@policyctl/cli/-/cli-0.1.0.tgz"
   sha256 "REPLACE_AT_RELEASE"
   license "MIT"

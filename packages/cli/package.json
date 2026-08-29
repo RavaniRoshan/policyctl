@@ -16,10 +16,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/policyctl/policyctl.git"
+    "url": "https://github.com/RavaniRoshan/policyctl.git"
   },
   "bugs": {
-    "url": "https://github.com/policyctl/policyctl/issues"
+    "url": "https://github.com/RavaniRoshan/policyctl/issues"
   },
   "license": "MIT",
   "keywords": [
