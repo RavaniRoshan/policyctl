@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Callout } from "@/components/ui/callout";
+import { api } from "@/lib/api";
 import {
-  Activity, ShieldCheck, Sparkles, FileBarChart, Cpu, Database, GitBranch, Terminal,
+  Activity, ShieldCheck, Sparkles, FileBarChart, AlertTriangle, CheckCircle2,
+  RefreshCw, Loader2,
 } from "lucide-react";
-import { api, API_BASE } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 const titles: Record<string, string> = {
   "/dashboard": "Overview",
@@ -26,7 +28,7 @@ export function DashboardShell() {
   const { pathname } = useLocation();
   const title = titles[pathname] ?? "Overview";
   return (
-    <div className="flex min-h-screen bg-n-950">
+    <div className="flex min-h-screen bg-bg-primary">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <DashboardHeader title={title} />
@@ -38,56 +40,117 @@ export function DashboardShell() {
   );
 }
 
-function StatCard({ label, value, tone = "pc" }: { label: string; value: string; tone?: "pc" | "ac" | "danger" }) {
-  const color = tone === "danger" ? "text-danger" : tone === "ac" ? "text-ac-300" : "text-pc-300";
+function StatCard({ label, value, tone = "brand", icon: Icon }: { label: string; value: string; tone?: "brand" | "accent" | "danger" | "success"; icon?: any }) {
+  const colors = {
+    brand: "text-brand",
+    accent: "text-accent",
+    danger: "text-danger",
+    success: "text-success",
+  };
   return (
     <Card>
-      <div className="font-mono text-xs uppercase tracking-wider text-n-500">{label}</div>
-      <div className={`mt-2 font-display text-3xl font-bold ${color}`}>{value}</div>
+      <div className="flex items-center justify-between">
+        <div className="font-mono text-xs uppercase tracking-wider text-fg-muted">{label}</div>
+        {Icon && <Icon className={cn("size-5", colors[tone])} />}
+      </div>
+      <div className={cn("mt-2 font-display text-3xl font-bold", colors[tone])}>{value}</div>
     </Card>
   );
 }
 
 export function Overview() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [analytics, violations] = await Promise.all([
+        api.analytics().catch(() => null),
+        api.violations().catch(() => []),
+      ]);
+      setData({ analytics, violations });
+    } catch (e: any) {
+      setError(e?.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-8 text-brand animate-spin" />
+        <span className="ml-3 text-fg-secondary">Loading dashboard...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <Callout type="warning" title="Dashboard data unavailable">
+          {error}. This is expected if the Worker API is not reachable. Showing placeholder data.
+        </Callout>
+        <OverviewFallback />
+      </div>
+    );
+  }
+
+  const score = data?.analytics?.compliance_score ?? 94;
+  const sessions = data?.analytics?.active_sessions ?? 0;
+  const violations = data?.analytics?.violations_24h ?? 0;
+  const insights = data?.analytics?.ai_insights ?? 0;
+
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-end">
+        <Button variant="ghost" size="sm" onClick={load}><RefreshCw className="size-3.5" /> Refresh</Button>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Compliance score" value="94%" />
-        <StatCard label="Active sessions" value="3" />
-        <StatCard label="Violations (24h)" value="2" tone="danger" />
-        <StatCard label="AI insights" value="5" tone="ac" />
+        <StatCard label="Compliance score" value={`${score}%`} tone="success" icon={ShieldCheck} />
+        <StatCard label="Active sessions" value={String(sessions)} tone="brand" icon={Activity} />
+        <StatCard label="Violations (24h)" value={String(violations)} tone={violations > 0 ? "danger" : "success"} icon={AlertTriangle} />
+        <StatCard label="AI insights" value={String(insights)} tone="accent" icon={Sparkles} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardTitle>Recent enforcement sessions</CardTitle>
-          <CardBody>Live agent runs streaming tool calls and blocked violations.</CardBody>
+          <CardTitle>Recent violations</CardTitle>
+          <CardBody>Latest enforcement events across your repos.</CardBody>
           <div className="mt-4 space-y-2">
-            {[
-              { id: "sess_8f2a", repo: "platform-api", status: "ACTIVE", blocked: 0 },
-              { id: "sess_1c9d", repo: "shared-types", status: "KILLED", blocked: 2 },
-              { id: "sess_4b70", repo: "billing-svc", status: "IDLE", blocked: 0 },
-            ].map((s) => (
-              <div key={s.id} className="flex items-center justify-between rounded-md border border-n-800 bg-n-900 px-3 py-2.5">
-                <div className="flex items-center gap-3">
-                  <StatusPill status={s.status} />
-                  <span className="font-mono text-sm text-n-100">{s.id}</span>
-                  <span className="text-sm text-n-400">{s.repo}</span>
+            {data?.violations?.length > 0 ? (
+              data.violations.slice(0, 5).map((v: any) => (
+                <div key={v.id} className="flex items-center justify-between rounded-lg border border-border bg-bg-surface px-3 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <Badge tone="danger">{v.enforce}</Badge>
+                    <span className="font-mono text-sm text-fg-primary">{v.rule_id}</span>
+                    <span className="text-sm text-fg-secondary">{v.repo}</span>
+                  </div>
+                  <span className="font-mono text-xs text-fg-muted">{v.created_at}</span>
                 </div>
-                <span className="font-mono text-xs text-n-500">{s.blocked} blocked</span>
+              ))
+            ) : (
+              <div className="rounded-lg border border-border bg-bg-surface p-6 text-center">
+                <CheckCircle2 className="mx-auto size-8 text-success" />
+                <p className="mt-2 text-sm text-fg-secondary">No violations recorded yet</p>
               </div>
-            ))}
+            )}
           </div>
-          <Link to="/dashboard/sessions" className="mt-3 inline-block text-sm text-pc-300 hover:underline">View all sessions →</Link>
+          <Link to="/dashboard/sessions" className="mt-3 inline-block text-sm text-brand hover:underline">View all sessions →</Link>
         </Card>
 
         <Card>
-          <CardTitle className="flex items-center gap-2"><Sparkles className="size-4 text-ac-300" /> AI insight</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Sparkles className="size-4 text-accent" /> AI insight</CardTitle>
           <CardBody>Today's semantic analysis flagged a pattern worth a rule.</CardBody>
-          <div className="mt-3 rounded-md border border-n-800 bg-n-1000 p-3 text-sm text-n-200">
+          <div className="mt-3 rounded-lg border border-border bg-bg-elevated p-3 text-sm text-fg-secondary">
             "Migrations edited by hand in <code className="font-mono">db/migrations</code> 3× this week — consider a <code className="font-mono">migrations-via-generator</code> rule."
           </div>
-          <Link to="/dashboard/ai" className="mt-3 inline-block text-sm text-pc-300 hover:underline">Open AI →</Link>
+          <Link to="/dashboard/ai" className="mt-3 inline-block text-sm text-brand hover:underline">Open AI →</Link>
         </Card>
       </div>
 
@@ -98,70 +161,106 @@ export function Overview() {
   );
 }
 
+function OverviewFallback() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <StatCard label="Compliance score" value="—" tone="brand" />
+      <StatCard label="Active sessions" value="—" tone="brand" />
+      <StatCard label="Violations (24h)" value="—" tone="brand" />
+      <StatCard label="AI insights" value="—" tone="brand" />
+    </div>
+  );
+}
+
 export function Sessions() {
-  const [open, setOpen] = useState<string | null>("sess_1c9d");
-  const rows = [
-    { id: "sess_8f2a", repo: "platform-api", status: "ACTIVE", blocked: 0, calls: ["Edit src/auth.ts", "Bash pnpm test"] },
-    { id: "sess_1c9d", repo: "shared-types", status: "KILLED", blocked: 2, calls: ["Edit README.md ❌ protected", "Write db/migrations/0005.sql ❌ no generator sig", "Bash git commit"] },
-    { id: "sess_4b70", repo: "billing-svc", status: "IDLE", blocked: 0, calls: ["Read package.json"] },
-  ];
+  const [violations, setViolations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.violations().then(setViolations).catch(() => setViolations([])).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-8 text-brand animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
-      {rows.map((s) => (
-        <Card key={s.id} className="cursor-pointer" onClick={() => setOpen(open === s.id ? null : s.id)}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <StatusPill status={s.status} />
-              <span className="font-mono text-sm text-n-100">{s.id}</span>
-              <span className="text-sm text-n-400">{s.repo}</span>
+      {violations.length > 0 ? (
+        violations.map((v) => (
+          <Card key={v.id}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Badge tone={v.enforce === "block" ? "danger" : v.enforce === "fail" ? "accent" : "muted"}>{v.enforce}</Badge>
+                <span className="font-mono text-sm text-fg-primary">{v.rule_id}</span>
+                <span className="text-sm text-fg-secondary">{v.repo}</span>
+              </div>
+              <span className="font-mono text-xs text-fg-muted">{v.created_at}</span>
             </div>
-            <span className="font-mono text-xs text-n-500">{s.blocked} blocked</span>
-          </div>
-          {open === s.id && (
-            <div className="mt-3 space-y-1 border-t border-n-800 pt-3">
-              {s.calls.map((c, i) => (
-                <div key={i} className="font-mono text-xs text-n-300">
-                  <span className="text-n-600">$ </span>
-                  {c}
-                </div>
-              ))}
-            </div>
-          )}
+            {v.message && <p className="mt-2 text-sm text-fg-secondary">{v.message}</p>}
+          </Card>
+        ))
+      ) : (
+        <Card className="p-8 text-center">
+          <CheckCircle2 className="mx-auto size-10 text-success" />
+          <p className="mt-3 text-fg-primary font-medium">No sessions recorded</p>
+          <p className="mt-1 text-sm text-fg-secondary">Enforcement sessions will appear here once you link a repo.</p>
         </Card>
-      ))}
+      )}
     </div>
   );
 }
 
 export function Policies() {
-  const rows = [
-    { name: "migrations-via-generator", level: "block", scope: "both", tag: "required" },
-    { name: "no-protected-edits", level: "block", scope: "hook", tag: "required" },
-    { name: "no-secrets-in-commits", level: "fail", scope: "ci", tag: "required" },
-    { name: "tests-for-source", level: "warn", scope: "ci", tag: "optional" },
-  ];
+  const [versions, setVersions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.policyVersions().then(setVersions).catch(() => setVersions([])).finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-8 text-brand animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <Card className="p-0">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-n-800 text-left text-n-500 font-mono text-xs uppercase">
-            <th className="p-4">Property</th>
-            <th className="p-4">Level</th>
-            <th className="p-4">Scope</th>
-            <th className="p-4">Tag</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.name} className="border-b border-n-800/60">
-              <td className="p-4 font-mono text-n-100">{r.name}</td>
-              <td className="p-4"><Badge tone={r.level === "block" ? "danger" : r.level === "fail" ? "ac" : "muted"}>{r.level}</Badge></td>
-              <td className="p-4 text-n-300">{r.scope}</td>
-              <td className="p-4"><Badge tone={r.tag === "required" ? "pc" : "muted"}>{r.tag}</Badge></td>
+      {versions.length > 0 ? (
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-fg-muted font-mono text-xs uppercase">
+              <th className="p-4">Version</th>
+              <th className="p-4">Note</th>
+              <th className="p-4">Author</th>
+              <th className="p-4">Date</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {versions.map((v) => (
+              <tr key={v.id} className="border-b border-border/60">
+                <td className="p-4 font-mono text-fg-primary">v{v.version}</td>
+                <td className="p-4 text-fg-secondary">{v.note || "—"}</td>
+                <td className="p-4 text-fg-secondary">{v.author_id}</td>
+                <td className="p-4 font-mono text-fg-muted">{v.created_at}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="p-8 text-center">
+          <ShieldCheck className="mx-auto size-10 text-fg-muted" />
+          <p className="mt-3 text-fg-primary font-medium">No policy versions</p>
+          <p className="mt-1 text-sm text-fg-secondary">Push a policy from the CLI to see versions here.</p>
+        </div>
+      )}
     </Card>
   );
 }
@@ -176,14 +275,8 @@ export function Ai() {
     setBusy(true);
     setErr(null);
     try {
-      const r = await fetch(`${API_BASE}/api/ai/${mode}`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: prompt }),
-      });
-      const data = await r.json();
-      setResult(JSON.stringify(data, null, 2));
+      const r = await (mode === "author" ? api.aiAuthor(prompt) : api.aiAnalyze(prompt));
+      setResult(JSON.stringify(r, null, 2));
     } catch (e: any) {
       setErr(e?.message || "AI request failed");
     } finally {
@@ -194,13 +287,13 @@ export function Ai() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
-        <CardTitle className="flex items-center gap-2"><Sparkles className="size-4 text-ac-300" /> Rule author</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Sparkles className="size-4 text-accent" /> Rule author</CardTitle>
         <CardBody>Describe a rule in plain English; get a typed policy back.</CardBody>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="e.g. Block any commit that touches migrations/ unless it was generated by the CLI"
-          className="mt-3 h-28 w-full rounded-md border border-n-700 bg-n-1000 p-3 text-sm text-n-100 outline-none focus-visible:border-pc-400"
+          className="mt-3 h-28 w-full rounded-lg border border-border bg-bg-elevated p-3 text-sm text-fg-primary outline-none focus:border-brand placeholder:text-fg-muted"
         />
         <div className="mt-3 flex gap-2">
           <Button size="sm" onClick={() => analyze("author")} disabled={busy || !prompt}>Author rule</Button>
@@ -226,9 +319,9 @@ export function Reports() {
         Delivered to your inbox at 09:00 UTC. The next report runs on the cron trigger and aggregates posture across all linked repos.
       </Callout>
       <Card>
-        <CardTitle className="flex items-center gap-2"><FileBarChart className="size-4 text-pc-300" /> Latest report</CardTitle>
+        <CardTitle className="flex items-center gap-2"><FileBarChart className="size-4 text-brand" /> Latest report</CardTitle>
         <CardBody>No report yet — the first run happens at 09:00 UTC after you link a repo.</CardBody>
-        <div className="mt-3 font-mono text-xs text-n-500">subject: policyctl compliance · 2026-08-29 · 3 repos · 2 violations</div>
+        <div className="mt-3 font-mono text-xs text-fg-muted">subject: policyctl compliance · 2026-08-29 · 3 repos · 2 violations</div>
       </Card>
     </div>
   );
@@ -242,8 +335,8 @@ export function Settings() {
       <Card>
         <CardTitle>Account</CardTitle>
         <div className="mt-3 space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-n-400">Email</span><span className="font-mono text-n-100">{user?.email}</span></div>
-          <div className="flex justify-between"><span className="text-n-400">Provider</span><span className="font-mono text-n-100">{user?.provider}</span></div>
+          <div className="flex justify-between"><span className="text-fg-secondary">Email</span><span className="font-mono text-fg-primary">{user?.email}</span></div>
+          <div className="flex justify-between"><span className="text-fg-secondary">Provider</span><span className="font-mono text-fg-primary">{user?.provider}</span></div>
         </div>
       </Card>
       <Card>
@@ -253,20 +346,5 @@ export function Settings() {
       </Card>
       <Button variant="danger" onClick={() => logout().then(() => navigate("/"))}>Log out</Button>
     </div>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { cls: string; dot: string }> = {
-    ACTIVE: { cls: "bg-pc-500/15 text-pc-300 border-pc-700/50", dot: "bg-pc-400" },
-    IDLE: { cls: "bg-n-800 text-n-300 border-n-700", dot: "bg-n-400" },
-    KILLED: { cls: "bg-danger/15 text-danger border-danger/40", dot: "bg-danger" },
-  };
-  const m = map[status] ?? map.IDLE;
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-0.5 font-mono text-xs ${m.cls}`}>
-      <span className={`size-1.5 rounded-full ${m.dot}`} />
-      {status}
-    </span>
   );
 }

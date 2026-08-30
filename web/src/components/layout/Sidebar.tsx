@@ -13,10 +13,10 @@ const items = [
 
 export function Sidebar() {
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-n-800 bg-n-1000">
-      <div className="flex items-center gap-2 px-5 h-12 border-b border-n-800">
-        <span className="text-pc-400">◆</span>
-        <span className="font-display font-semibold">policyctl</span>
+    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-bg-elevated">
+      <div className="flex items-center gap-2 px-5 h-14 border-b border-border">
+        <span className="text-brand text-lg">◆</span>
+        <span className="font-display font-semibold text-fg-primary">policyctl</span>
       </div>
       <nav className="flex-1 p-3 space-y-1">
         {items.map(({ to, label, icon: Icon, end }) => (
@@ -26,10 +26,10 @@ export function Sidebar() {
             end={end}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 isActive
-                  ? "bg-pc-500/10 text-pc-200"
-                  : "text-n-300 hover:bg-n-800 hover:text-n-100",
+                  ? "bg-brand/10 text-brand"
+                  : "text-fg-secondary hover:bg-bg-surface hover:text-fg-primary",
               )
             }
           >
@@ -38,12 +38,12 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="p-3 border-t border-n-800">
+      <div className="p-3 border-t border-border">
         <a
           href="https://www.npmjs.com/package/@policyctl/cli"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-n-400 hover:text-pc-300"
+          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-brand"
         >
           <Box className="size-4" />
           <span className="font-mono text-xs">npm i -g @policyctl/cli</span>
