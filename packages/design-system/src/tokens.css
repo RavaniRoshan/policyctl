@@ -25,12 +25,12 @@
   --ac-600: #d97706;
   --ac-700: #b45309;
 
-  /* ── Action (Cloudflare-style blue) — primary CTA hue ── */
+  /* ── Action (indigo-blue) — primary CTA hue ── */
   --ab-300: #93b4ff;
   --ab-400: #5b85fd;
-  --ab-500: #2160FD;
-  --ab-600: #1a4fd6;
-  --ab-700: #153db0;
+  --ab-500: #4F6EF7;
+  --ab-600: #3d5ce5;
+  --ab-700: #3249c4;
 
   /* ── Neutrals (warm slate) ── */
   --n-0: #ffffff;

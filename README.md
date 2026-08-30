@@ -13,6 +13,9 @@
   <a href="https://www.npmjs.com/package/@policyctl/cli">
     <img alt="npm" src="https://img.shields.io/npm/v/@policyctl/cli?style=for-the-badge" />
   </a>
+  <a href="https://dash.policyctl.io">
+    <img alt="dashboard" src="https://img.shields.io/badge/dashboard-4F6EF7?style=for-the-badge" />
+  </a>
 </div>
 
 ---

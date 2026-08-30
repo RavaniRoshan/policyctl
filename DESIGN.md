@@ -20,7 +20,7 @@ everywhere.
 |---|---|---|---|
 | Brand (pc) | emerald/teal | `pc-400 #34d399`, `pc-500 #0D9373`, `pc-600 #0a7d62` | brand, links, success, "allowed" |
 | Accent (ac) | amber | `ac-400 #fbbf24`, `ac-500 #F59E0B` | attention, warnings, highlights |
-| Action (ab) | blue | `ab-500 #2160FD`, `ab-600 #1a4fd6` | **primary CTA buttons** (Cloudflare-style) |
+| Action (ab) | indigo-blue | `ab-500 #4F6EF7`, `ab-600 #3d5ce5` | **primary CTA buttons** (unique indigo-blue) |
 | Neutral (n) | warm slate | `n-100 #eef1f3` text, `n-800 #1f2529` card, `n-900 #121618` panel, `n-950 #0B0F0D` bg, `n-1000 #070a09` inset | surfaces, text, borders |
 | Semantic | — | `success #0D9373`, `warn #F59E0B`, `danger #ef4444`, `info #3b82f6` | status pills |
 

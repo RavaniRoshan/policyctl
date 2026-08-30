@@ -63,7 +63,7 @@ export function Landing() {
           className="absolute inset-0 z-[1] pointer-events-none"
           style={{
             background:
-              "linear-gradient(180deg, rgba(7,10,9,.25) 0%, rgba(7,10,9,.10) 40%, rgba(7,10,9,.15) 70%, rgba(7,10,9,.55) 100%)",
+              "linear-gradient(180deg, rgba(7,10,9,.15) 0%, rgba(7,10,9,.05) 40%, rgba(7,10,9,.08) 70%, rgba(7,10,9,.35) 100%)",
           }}
         />
         <div className="relative z-10 mx-auto max-w-content px-6 pt-20 pb-16 sm:pt-28">
