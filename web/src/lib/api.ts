@@ -35,6 +35,32 @@ export interface Session {
   user: User;
 }
 
+export interface Analytics {
+  compliance_score: number;
+  active_sessions: number;
+  violations_24h: number;
+  ai_insights: number;
+}
+
+export interface Violation {
+  id: string;
+  repo: string;
+  rule_id: string;
+  enforce: string;
+  message: string;
+  agent: string;
+  created_at: string;
+}
+
+export interface PolicyVersion {
+  id: string;
+  version: number;
+  yaml: string;
+  author_id: string;
+  note: string;
+  created_at: string;
+}
+
 export const api = {
   me: () => request<Session | null>("/api/me"),
   signup: (body: { email: string; password: string; displayName?: string; turnstile?: string }) =>
@@ -44,4 +70,9 @@ export const api = {
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
   oauthUrl: (provider: "google" | "apple") =>
     request<{ url: string }>(`/api/auth/oauth/${provider}`),
+  analytics: () => request<Analytics>("/api/analytics"),
+  violations: () => request<Violation[]>("/api/violations"),
+  policyVersions: () => request<PolicyVersion[]>("/api/policy/versions"),
+  aiAnalyze: (text: string) => request<{ analysis: string }>("/api/ai/analyze", { method: "POST", body: JSON.stringify({ text }) }),
+  aiAuthor: (text: string) => request<{ yaml: string }>("/api/ai/author", { method: "POST", body: JSON.stringify({ text }) }),
 };

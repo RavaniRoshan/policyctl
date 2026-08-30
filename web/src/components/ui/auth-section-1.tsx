@@ -43,25 +43,18 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      email,
-      password,
-      displayName: mode === "signup" ? `${firstName} ${lastName}`.trim() || undefined : undefined,
-      turnstile: turnstileToken ?? undefined,
-    });
+    onSubmit({ email, password, displayName: mode === "signup" ? `${firstName} ${lastName}`.trim() || undefined : undefined, turnstile: turnstileToken ?? undefined });
   };
 
   return (
-    <section className="grid min-h-screen bg-n-950 text-n-100 antialiased lg:grid-cols-[0.94fr_1.06fr]">
-      <div className="flex min-h-[760px] items-start border-n-800 px-6 py-12 sm:px-10 lg:min-h-0 lg:px-14 lg:py-20 xl:px-20">
+    <section className="grid min-h-screen bg-bg-primary text-fg-primary antialiased lg:grid-cols-[0.94fr_1.06fr]">
+      <div className="flex min-h-[760px] items-start border-border px-6 py-12 sm:px-10 lg:min-h-0 lg:px-14 lg:py-20 xl:px-20">
         <div className="mx-auto w-full max-w-[560px]">
-          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[42px] lg:leading-[1.05]">
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-[42px] lg:leading-[1.05]">
             {mode === "signup" ? "Create an account" : "Welcome back"}
           </h1>
-          <p className="mt-3 text-lg text-n-400 sm:text-xl">
-            {mode === "signup"
-              ? "Encode the rules your agents must obey."
-              : "Sign in to your control plane."}
+          <p className="mt-3 text-lg text-fg-secondary sm:text-xl">
+            {mode === "signup" ? "Encode the rules your agents must obey." : "Sign in to your control plane."}
           </p>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -69,7 +62,7 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
             <SocialButton icon={<AppleIcon />} label="Apple" onClick={() => onOAuth("apple")} />
           </div>
 
-            <div className="my-8 text-center font-medium text-n-500">or</div>
+          <div className="my-8 text-center font-medium text-fg-muted">or</div>
 
           <form className="space-y-4" onSubmit={submit}>
             {mode === "signup" && (
@@ -78,27 +71,11 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
                 <FieldBox label="Last name" value={lastName} onChange={setLastName} editing={editing} setEditing={setEditing} />
               </div>
             )}
-            <Input
-              type="email"
-              required
-              placeholder="Email"
-              aria-label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Input
-              type="password"
-              required
-              placeholder="Password"
-              aria-label="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <Input type="email" required placeholder="Email" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input type="password" required placeholder="Password" aria-label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
             {error && (
-              <div className="rounded-md border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
-                {error}
-              </div>
+              <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">{error}</div>
             )}
 
             <div className="flex justify-center py-2">
@@ -106,48 +83,34 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
             </div>
 
             <Button type="submit" size="lg" className="w-full" disabled={loading || !turnstileToken}>
-              {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+              {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-n-500">
+          <p className="mt-6 text-center text-sm text-fg-muted">
             {mode === "signup" ? (
-              <>
-                Already have an account?{" "}
-                <a href="/login" className="text-pc-300 hover:underline">Sign in</a>
-              </>
+              <>Already have an account? <a href="/login" className="text-brand hover:underline">Sign in</a></>
             ) : (
-              <>
-                New to policyctl?{" "}
-                <a href="/signup" className="text-pc-300 hover:underline">Create an account</a>
-              </>
+              <>New to policyctl? <a href="/signup" className="text-brand hover:underline">Create an account</a></>
             )}
           </p>
         </div>
       </div>
 
-      <div className="relative flex min-h-[640px] overflow-hidden bg-n-1000 p-8 sm:p-12 lg:min-h-0">
+      <div className="relative flex min-h-[640px] overflow-hidden bg-bg-surface p-8 sm:p-12 lg:min-h-0">
         <GrainGradient
-          speed={1}
-          scale={1}
-          rotation={0}
-          offsetX={0}
-          offsetY={0}
-          softness={0.5}
-          intensity={0.5}
-          noise={0.25}
-          shape="corners"
-          frame={2854.5}
-          colors={["#34d399", "#0D9373", "#F59E0B", "#0a7d62", "#34d399", "#F59E0B"]}
+          speed={1} scale={1} rotation={0} offsetX={0} offsetY={0}
+          softness={0.5} intensity={0.5} noise={0.25} shape="corners" frame={2854.5}
+          colors={["#2383E2", "#1A6BC0", "#0070F3", "#2383E2", "#1A6BC0", "#0070F3"]}
           colorBack="#00000000"
-          className="absolute inset-0 bg-n-1000"
+          className="absolute inset-0 bg-bg-surface"
         />
         <div className="relative z-10 flex h-full w-full flex-col justify-between">
-          <h2 className="max-w-[620px] pt-0 font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl lg:pt-12 lg:text-[64px] lg:leading-[0.98]">
+          <h2 className="max-w-[620px] pt-0 font-display text-5xl font-bold tracking-tight text-fg-primary sm:text-6xl lg:pt-12 lg:text-[64px] lg:leading-[0.98]">
             One file.<br />Every agent.<br />No exceptions.
           </h2>
-          <p className="mb-0 max-w-md text-lg text-white/70 xl:mb-24">
-            Deterministic guardrails for Claude, Codex, and Cursor — enforced at tool-call time and again in CI.
+          <p className="mb-0 max-w-md text-lg text-fg-secondary/70 xl:mb-24">
+            Deterministic guardrails for Claude, Codex, and Cursor, enforced at tool-call time and again in CI.
           </p>
         </div>
       </div>
@@ -157,44 +120,17 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
 
 function SocialButton({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-11 items-center justify-center gap-2 rounded-md border border-n-700 bg-n-900 px-3 text-sm text-n-100 transition-colors hover:border-pc-500 hover:bg-n-800"
-    >
+    <button type="button" onClick={onClick} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-bg-elevated px-3 text-sm text-fg-primary transition-colors hover:border-brand hover:bg-bg-surface">
       <span className="shrink-0">{icon}</span>
       <span>Continue with {label}</span>
     </button>
   );
 }
 
-function FieldBox({
-  label,
-  value,
-  onChange,
-  editing,
-  setEditing,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  editing: boolean;
-  setEditing: (b: boolean) => void;
-}) {
+function FieldBox({ label, value, onChange, editing, setEditing }: { label: string; value: string; onChange: (v: string) => void; editing: boolean; setEditing: (b: boolean) => void }) {
   return (
-    <label className="flex h-12 items-center gap-3 rounded-md border border-n-700 bg-n-1000 px-4">
-      <input
-        type="text"
-        value={value}
-        aria-label={label}
-        onFocus={() => !editing && setEditing(true)}
-        onChange={(e) => {
-          onChange(e.target.value);
-          setEditing(true);
-        }}
-        placeholder={label}
-        className="min-w-0 flex-1 bg-transparent text-n-100 outline-none placeholder:text-n-500"
-      />
+    <label className="flex h-12 items-center gap-3 rounded-lg border border-border bg-bg-elevated px-4">
+      <input type="text" value={value} aria-label={label} onFocus={() => !editing && setEditing(true)} onChange={(e) => { onChange(e.target.value); setEditing(true); }} placeholder={label} className="min-w-0 flex-1 bg-transparent text-fg-primary outline-none placeholder:text-fg-muted" />
     </label>
   );
 }

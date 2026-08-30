@@ -1,33 +1,43 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class"],
+  darkMode: ["class", '[data-theme="dark"]'],
   content: ["./src/**/*.{ts,tsx}", "./index.html"],
   theme: {
     extend: {
       colors: {
-        pc: {
-          50: "var(--pc-50)", 100: "var(--pc-100)", 200: "var(--pc-200)",
-          300: "var(--pc-300)", 400: "var(--pc-400)", 500: "var(--pc-500)",
-          600: "var(--pc-600)", 700: "var(--pc-700)", 800: "var(--pc-800)",
-          900: "var(--pc-900)", 950: "var(--pc-950)",
+        bg: {
+          primary: "var(--bg-primary)",
+          surface: "var(--bg-surface)",
+          elevated: "var(--bg-elevated)",
+          subtle: "var(--bg-subtle)",
+          overlay: "var(--bg-overlay)",
         },
-        ac: {
-          50: "var(--ac-50)", 100: "var(--ac-100)", 200: "var(--ac-200)",
-          300: "var(--ac-300)", 400: "var(--ac-400)", 500: "var(--ac-500)",
-          600: "var(--ac-600)", 700: "var(--ac-700)",
+        fg: {
+          primary: "var(--fg-primary)",
+          secondary: "var(--fg-secondary)",
+          muted: "var(--fg-muted)",
+          inverse: "var(--fg-inverse)",
         },
-        ab: {
-          300: "var(--ab-300)", 400: "var(--ab-400)", 500: "var(--ab-500)",
-          600: "var(--ab-600)", 700: "var(--ab-700)",
+        border: {
+          DEFAULT: "var(--border)",
+          hover: "var(--border-hover)",
+          strong: "var(--border-strong)",
         },
-        n: {
-          0: "var(--n-0)", 50: "var(--n-50)", 100: "var(--n-100)", 200: "var(--n-200)",
-          300: "var(--n-300)", 400: "var(--n-400)", 500: "var(--n-500)", 600: "var(--n-600)",
-          700: "var(--n-700)", 800: "var(--n-800)", 900: "var(--n-900)", 950: "var(--n-950)",
-          1000: "var(--n-1000)",
+        brand: {
+          DEFAULT: "var(--brand)",
+          hover: "var(--brand-hover)",
+          muted: "var(--brand-muted)",
+          subtle: "var(--brand-subtle)",
         },
-        success: "var(--success)", warn: "var(--warn)", danger: "var(--danger)", info: "var(--info)",
+        accent: {
+          DEFAULT: "var(--accent)",
+          muted: "var(--accent-muted)",
+        },
+        success: { DEFAULT: "var(--success)", muted: "var(--success-muted)" },
+        danger: { DEFAULT: "var(--danger)", muted: "var(--danger-muted)" },
+        warning: { DEFAULT: "var(--warning)", muted: "var(--warning-muted)" },
+        info: { DEFAULT: "var(--info)", muted: "var(--info-muted)" },
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
@@ -35,12 +45,27 @@ export default {
         mono: ["var(--font-mono)"],
       },
       borderRadius: {
-        sm: "var(--r-sm)", md: "var(--r-md)", lg: "var(--r-lg)", xl: "var(--r-xl)",
+        sm: "var(--r-sm)",
+        md: "var(--r-md)",
+        lg: "var(--r-lg)",
+        xl: "var(--r-xl)",
+        pill: "var(--r-pill)",
       },
       boxShadow: {
-        glow: "var(--sh-glow)", sm: "var(--sh-sm)", md: "var(--sh-md)", lg: "var(--sh-lg)",
+        sm: "var(--sh-sm)",
+        md: "var(--sh-md)",
+        lg: "var(--sh-lg)",
+        brand: "var(--sh-brand)",
       },
-      transitionTimingFunction: { pc: "var(--ease)" },
+      transitionTimingFunction: {
+        pc: "var(--ease-smooth)",
+        out: "var(--ease-out)",
+      },
+      transitionDuration: {
+        fast: "var(--dur-fast)",
+        base: "var(--dur-base)",
+        slow: "var(--dur-slow)",
+      },
       maxWidth: { prose: "42rem", content: "1120px" },
     },
   },

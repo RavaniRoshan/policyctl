@@ -1,64 +1,21 @@
-/* policyctl design system — tokens */
-/* Palette: teal/emerald primary (safety, compliance) + warm amber accent (attention) */
+/* policyctl design system — tokens v3 */
+/* Light mode: Notion-style (clean white, blue accents, airy) */
+/* Dark mode: Vercel-style (near-black, electric blue, white text) */
 
 :root {
-  /* ── Primary (teal → emerald) ── */
-  --pc-50: #ecfdf5;
-  --pc-100: #d1fae5;
-  --pc-200: #a7f3d0;
-  --pc-300: #6ee7b7;
-  --pc-400: #34d399;
-  --pc-500: #0D9373;
-  --pc-600: #0a7d62;
-  --pc-700: #086651;
-  --pc-800: #065040;
-  --pc-900: #043a2f;
-  --pc-950: #02241e;
-
-  /* ── Accent (warm amber) ── */
-  --ac-50: #fffbeb;
-  --ac-100: #fef3c7;
-  --ac-200: #fde68a;
-  --ac-300: #fcd34d;
-  --ac-400: #fbbf24;
-  --ac-500: #F59E0B;
-  --ac-600: #d97706;
-  --ac-700: #b45309;
-
-  /* ── Action (indigo-blue) — primary CTA hue ── */
-  --ab-300: #93b4ff;
-  --ab-400: #5b85fd;
-  --ab-500: #4F6EF7;
-  --ab-600: #3d5ce5;
-  --ab-700: #3249c4;
-
-  /* ── Neutrals (warm slate) ── */
-  --n-0: #ffffff;
-  --n-50: #f8fafb;
-  --n-100: #eef1f3;
-  --n-200: #dde3e6;
-  --n-300: #c2ccd1;
-  --n-400: #8a979e;
-  --n-500: #616e76;
-  --n-600: #48525a;
-  --n-700: #353d43;
-  --n-800: #1f2529;
-  --n-900: #121618;
-  --n-950: #0B0F0D;
-  --n-1000: #070a09;
-
-  /* ── Semantic ── */
-  --success: #0D9373;
-  --warn: #F59E0B;
-  --danger: #ef4444;
-  --info: #3b82f6;
-
-  /* ── Typography ── */
+  /* ── Typography (shared) ── */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* ── Spacing ── */
+  /* ── Radius (shared) ── */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 999px;
+
+  /* ── Spacing (shared) ── */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -67,21 +24,112 @@
   --space-6: 2rem;
   --space-7: 3rem;
   --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
 
-  /* ── Radius ── */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 16px;
-  --r-xl: 24px;
-  --r-pill: 999px;
+  /* ── Motion (shared) ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 300ms;
+}
 
-  /* ── Shadows ── */
+/* ══════════════════════════════════════════════════════════════
+   LIGHT MODE — Notion style
+   ══════════════════════════════════════════════════════════════ */
+:root,
+[data-theme="light"] {
+  /* Backgrounds */
+  --bg-primary: #FFFFFF;
+  --bg-surface: #F7F6F3;
+  --bg-elevated: #FFFFFF;
+  --bg-subtle: #F1F0ED;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  /* Foregrounds */
+  --fg-primary: #1F2937;
+  --fg-secondary: #6B7280;
+  --fg-muted: #9CA3AF;
+  --fg-inverse: #FFFFFF;
+
+  /* Borders */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.16);
+
+  /* Brand (Notion blue) */
+  --brand: #2383E2;
+  --brand-hover: #1A6BC0;
+  --brand-muted: rgba(35, 131, 226, 0.08);
+  --brand-subtle: rgba(35, 131, 226, 0.04);
+
+  /* Accent (warm, for highlights) */
+  --accent: #D97706;
+  --accent-muted: rgba(217, 119, 6, 0.08);
+
+  /* Semantic */
+  --success: #059669;
+  --success-muted: rgba(5, 150, 105, 0.08);
+  --danger: #DC2626;
+  --danger-muted: rgba(220, 38, 38, 0.08);
+  --warning: #D97706;
+  --warning-muted: rgba(217, 119, 6, 0.08);
+  --info: #2383E2;
+  --info-muted: rgba(35, 131, 226, 0.08);
+
+  /* Shadows */
+  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sh-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --sh-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --sh-brand: 0 1px 2px rgba(35, 131, 226, 0.2);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DARK MODE — Vercel style
+   ══════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-primary: #0A0A0A;
+  --bg-surface: #111111;
+  --bg-elevated: #1A1A1A;
+  --bg-subtle: #202020;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Foregrounds */
+  --fg-primary: #FAFAFA;
+  --fg-secondary: #A1A1AA;
+  --fg-muted: #71717A;
+  --fg-inverse: #0A0A0A;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  /* Brand (Vercel electric blue) */
+  --brand: #0070F3;
+  --brand-hover: #3291FF;
+  --brand-muted: rgba(0, 112, 243, 0.1);
+  --brand-subtle: rgba(0, 112, 243, 0.05);
+
+  /* Accent */
+  --accent: #F59E0B;
+  --accent-muted: rgba(245, 158, 11, 0.1);
+
+  /* Semantic */
+  --success: #22C55E;
+  --success-muted: rgba(34, 197, 94, 0.1);
+  --danger: #EF4444;
+  --danger-muted: rgba(239, 68, 68, 0.1);
+  --warning: #F59E0B;
+  --warning-muted: rgba(245, 158, 11, 0.1);
+  --info: #0070F3;
+  --info-muted: rgba(0, 112, 243, 0.1);
+
+  /* Shadows */
   --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --sh-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
-  --sh-glow: 0 0 24px rgba(13, 147, 115, 0.35);
-
-  /* ── Motion ── */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur: 200ms;
+  --sh-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --sh-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --sh-brand: 0 1px 2px rgba(0, 112, 243, 0.3);
 }

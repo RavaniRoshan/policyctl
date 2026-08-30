@@ -21,29 +21,29 @@ export function DashboardHeader({ title }: { title: string }) {
   ];
 
   return (
-    <header className="flex h-12 items-center justify-between border-b border-n-800 bg-n-1000 px-4">
+    <header className="flex h-14 items-center justify-between border-b border-border bg-bg-elevated px-4">
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-n-500">policyctl</span>
-        <span className="text-n-700">/</span>
-        <span className="text-n-100 font-medium">{title}</span>
+        <span className="text-fg-muted">policyctl</span>
+        <span className="text-fg-muted">/</span>
+        <span className="text-fg-primary font-medium">{title}</span>
       </div>
       <div className="flex items-center gap-2">
         <button
           onClick={() => setPalette(true)}
           aria-label="Open command menu"
-          className="inline-flex items-center gap-1.5 rounded-md border border-n-700 bg-n-800 px-2.5 py-1 text-n-400 hover:text-pc-300"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-2.5 py-1 text-fg-muted hover:text-brand"
         >
           <CommandIcon className="size-3.5" />
           <span className="font-mono text-[0.7rem]">K</span>
         </button>
-        <div className="flex items-center gap-2 rounded-md border border-n-700 bg-n-800 px-2 py-1">
-          <UserIcon className="size-4 text-n-400" />
-          <span className="text-xs text-n-200 max-w-[140px] truncate">{user?.email}</span>
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-bg-surface px-2 py-1">
+          <UserIcon className="size-4 text-fg-muted" />
+          <span className="text-xs text-fg-secondary max-w-[140px] truncate">{user?.email}</span>
         </div>
         <button
           onClick={() => logout().then(() => navigate("/"))}
           aria-label="Log out"
-          className="rounded-md border border-n-700 bg-n-800 p-1.5 text-n-400 hover:text-danger"
+          className="rounded-lg border border-border bg-bg-surface p-1.5 text-fg-muted hover:text-danger"
         >
           <LogOut className="size-4" />
         </button>
