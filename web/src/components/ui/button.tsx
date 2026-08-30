@@ -5,17 +5,16 @@ type Variant = "primary" | "ghost" | "outline" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary:
-    "bg-ab-500 text-white hover:bg-ab-600 shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_4px_12px_rgba(33,96,253,0.35)]",
-  ghost: "bg-n-800/60 text-n-100 hover:bg-n-800 border border-n-700",
-  outline: "bg-transparent text-n-100 border border-n-700 hover:border-pc-400 hover:text-pc-300",
-  danger: "bg-danger/90 text-white hover:bg-danger",
+  primary: "bg-brand text-fg-inverse hover:bg-brand-hover shadow-sm",
+  ghost: "bg-transparent text-fg-secondary hover:bg-bg-surface hover:text-fg-primary border border-border",
+  outline: "bg-transparent text-fg-primary border border-border hover:border-brand hover:text-brand",
+  danger: "bg-danger text-fg-inverse hover:bg-danger/90",
 };
 
 const sizes: Record<Size, string> = {
   sm: "h-9 px-3 text-sm",
-  md: "h-11 px-5 text-[0.95rem]",
-  lg: "h-12 px-6 text-base",
+  md: "h-10 px-4 text-sm",
+  lg: "h-11 px-5 text-base",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -28,7 +27,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium font-sans transition-all duration-200 ease-pc disabled:opacity-50 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pc-400",
+        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
         variants[variant],
         sizes[size],
         className,

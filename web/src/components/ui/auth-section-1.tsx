@@ -43,25 +43,18 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      email,
-      password,
-      displayName: mode === "signup" ? `${firstName} ${lastName}`.trim() || undefined : undefined,
-      turnstile: turnstileToken ?? undefined,
-    });
+    onSubmit({ email, password, displayName: mode === "signup" ? `${firstName} ${lastName}`.trim() || undefined : undefined, turnstile: turnstileToken ?? undefined });
   };
 
   return (
     <section className="grid min-h-screen bg-bg-primary text-fg-primary antialiased lg:grid-cols-[0.94fr_1.06fr]">
       <div className="flex min-h-[760px] items-start border-border px-6 py-12 sm:px-10 lg:min-h-0 lg:px-14 lg:py-20 xl:px-20">
         <div className="mx-auto w-full max-w-[560px]">
-          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl lg:text-[42px] lg:leading-[1.05]">
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-[42px] lg:leading-[1.05]">
             {mode === "signup" ? "Create an account" : "Welcome back"}
           </h1>
           <p className="mt-3 text-lg text-fg-secondary sm:text-xl">
-            {mode === "signup"
-              ? "Encode the rules your agents must obey."
-              : "Sign in to your control plane."}
+            {mode === "signup" ? "Encode the rules your agents must obey." : "Sign in to your control plane."}
           </p>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -82,9 +75,7 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
             <Input type="password" required placeholder="Password" aria-label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
 
             {error && (
-              <div className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
-                {error}
-              </div>
+              <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">{error}</div>
             )}
 
             <div className="flex justify-center py-2">
@@ -92,7 +83,7 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
             </div>
 
             <Button type="submit" size="lg" className="w-full" disabled={loading || !turnstileToken}>
-              {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+              {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
             </Button>
           </form>
 
@@ -106,20 +97,20 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
         </div>
       </div>
 
-      <div className="relative flex min-h-[640px] overflow-hidden bg-bg-elevated p-8 sm:p-12 lg:min-h-0">
+      <div className="relative flex min-h-[640px] overflow-hidden bg-bg-surface p-8 sm:p-12 lg:min-h-0">
         <GrainGradient
           speed={1} scale={1} rotation={0} offsetX={0} offsetY={0}
           softness={0.5} intensity={0.5} noise={0.25} shape="corners" frame={2854.5}
-          colors={["#2DD4BF", "#14B8A6", "#F97316", "#0D9488", "#2DD4BF", "#F97316"]}
+          colors={["#2383E2", "#1A6BC0", "#0070F3", "#2383E2", "#1A6BC0", "#0070F3"]}
           colorBack="#00000000"
-          className="absolute inset-0 bg-bg-elevated"
+          className="absolute inset-0 bg-bg-surface"
         />
         <div className="relative z-10 flex h-full w-full flex-col justify-between">
-          <h2 className="max-w-[620px] pt-0 font-display text-5xl font-semibold tracking-tight text-fg-primary sm:text-6xl lg:pt-12 lg:text-[64px] lg:leading-[0.98]">
+          <h2 className="max-w-[620px] pt-0 font-display text-5xl font-bold tracking-tight text-fg-primary sm:text-6xl lg:pt-12 lg:text-[64px] lg:leading-[0.98]">
             One file.<br />Every agent.<br />No exceptions.
           </h2>
           <p className="mb-0 max-w-md text-lg text-fg-secondary/70 xl:mb-24">
-            Deterministic guardrails for Claude, Codex, and Cursor — enforced at tool-call time and again in CI.
+            Deterministic guardrails for Claude, Codex, and Cursor, enforced at tool-call time and again in CI.
           </p>
         </div>
       </div>
@@ -129,33 +120,17 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
 
 function SocialButton({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-bg-surface px-3 text-sm text-fg-primary transition-colors hover:border-brand hover:bg-bg-elevated"
-    >
+    <button type="button" onClick={onClick} className="flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-bg-elevated px-3 text-sm text-fg-primary transition-colors hover:border-brand hover:bg-bg-surface">
       <span className="shrink-0">{icon}</span>
       <span>Continue with {label}</span>
     </button>
   );
 }
 
-function FieldBox({
-  label, value, onChange, editing, setEditing,
-}: {
-  label: string; value: string; onChange: (v: string) => void; editing: boolean; setEditing: (b: boolean) => void;
-}) {
+function FieldBox({ label, value, onChange, editing, setEditing }: { label: string; value: string; onChange: (v: string) => void; editing: boolean; setEditing: (b: boolean) => void }) {
   return (
     <label className="flex h-12 items-center gap-3 rounded-lg border border-border bg-bg-elevated px-4">
-      <input
-        type="text"
-        value={value}
-        aria-label={label}
-        onFocus={() => !editing && setEditing(true)}
-        onChange={(e) => { onChange(e.target.value); setEditing(true); }}
-        placeholder={label}
-        className="min-w-0 flex-1 bg-transparent text-fg-primary outline-none placeholder:text-fg-muted"
-      />
+      <input type="text" value={value} aria-label={label} onFocus={() => !editing && setEditing(true)} onChange={(e) => { onChange(e.target.value); setEditing(true); }} placeholder={label} className="min-w-0 flex-1 bg-transparent text-fg-primary outline-none placeholder:text-fg-muted" />
     </label>
   );
 }
