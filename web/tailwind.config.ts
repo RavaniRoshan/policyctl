@@ -32,6 +32,10 @@ export default {
         },
         accent: {
           DEFAULT: "var(--accent)",
+          warm: "var(--accent-warm)",
+          coral: "var(--accent-coral)",
+          sky: "var(--accent-sky)",
+          midnight: "var(--accent-midnight)",
           muted: "var(--accent-muted)",
         },
         success: { DEFAULT: "var(--success)", muted: "var(--success-muted)" },

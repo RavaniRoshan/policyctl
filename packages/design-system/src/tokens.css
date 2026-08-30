@@ -1,31 +1,19 @@
-/* policyctl design system — tokens v3 */
-/* Light mode: Notion-style (clean white, blue accents, airy) */
-/* Dark mode: Vercel-style (near-black, electric blue, white text) */
+/* policyctl design system — tokens v4 */
+/* Light mode: Notion-style (warm paper, blue accent, playful) */
+/* Dark mode: Vercel-style (near-black, electric blue, monochrome) */
 
 :root {
   /* ── Typography (shared) ── */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* ── Radius (shared) ── */
-  --r-sm: 6px;
-  --r-md: 8px;
-  --r-lg: 12px;
-  --r-xl: 16px;
-  --r-pill: 999px;
-
-  /* ── Spacing (shared) ── */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-7: 3rem;
-  --space-8: 4rem;
-  --space-9: 6rem;
-  --space-10: 8rem;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+  --r-pill: 9999px;
 
   /* ── Motion (shared) ── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -37,99 +25,125 @@
 
 /* ══════════════════════════════════════════════════════════════
    LIGHT MODE — Notion style
+   Warm paper canvas, blue accent, playful accents
    ══════════════════════════════════════════════════════════════ */
 :root,
 [data-theme="light"] {
-  /* Backgrounds */
-  --bg-primary: #FFFFFF;
-  --bg-surface: #F7F6F3;
-  --bg-elevated: #FFFFFF;
-  --bg-subtle: #F1F0ED;
+  /* Surfaces */
+  --bg-primary: #f6f5f4;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f1f0ed;
   --bg-overlay: rgba(0, 0, 0, 0.4);
 
-  /* Foregrounds */
-  --fg-primary: #1F2937;
-  --fg-secondary: #6B7280;
-  --fg-muted: #9CA3AF;
-  --fg-inverse: #FFFFFF;
+  /* Text */
+  --fg-primary: #000000;
+  --fg-secondary: #615d59;
+  --fg-muted: #757575;
+  --fg-inverse: #ffffff;
 
   /* Borders */
   --border: rgba(0, 0, 0, 0.08);
   --border-hover: rgba(0, 0, 0, 0.12);
   --border-strong: rgba(0, 0, 0, 0.16);
 
-  /* Brand (Notion blue) */
-  --brand: #2383E2;
-  --brand-hover: #1A6BC0;
-  --brand-muted: rgba(35, 131, 226, 0.08);
-  --brand-subtle: rgba(35, 131, 226, 0.04);
+  /* Brand — Notion Blue */
+  --brand: #0075de;
+  --brand-hover: #0068c4;
+  --brand-muted: #e6f3fe;
+  --brand-subtle: rgba(0, 117, 222, 0.04);
 
-  /* Accent (warm, for highlights) */
-  --accent: #D97706;
-  --accent-muted: rgba(217, 119, 6, 0.08);
+  /* Accent colors for feature cards */
+  --accent-warm: #ffb110;
+  --accent-coral: #f64932;
+  --accent-sky: #62aef0;
+  --accent-midnight: #02093a;
+  --accent-saffron: #e89d01;
+  --accent-mocha: #b18164;
 
   /* Semantic */
   --success: #059669;
   --success-muted: rgba(5, 150, 105, 0.08);
-  --danger: #DC2626;
+  --danger: #dc2626;
   --danger-muted: rgba(220, 38, 38, 0.08);
-  --warning: #D97706;
+  --warning: #d97706;
   --warning-muted: rgba(217, 119, 6, 0.08);
-  --info: #2383E2;
-  --info-muted: rgba(35, 131, 226, 0.08);
+  --info: #0075de;
+  --info-muted: #e6f3fe;
 
-  /* Shadows */
-  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --sh-md: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --sh-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --sh-brand: 0 1px 2px rgba(35, 131, 226, 0.2);
+  /* Shadows — minimal, only for nav and product mockups */
+  --sh-sm: 0 0.7px 1.462px rgba(0, 0, 0, 0.015), 0 3px 9px rgba(0, 0, 0, 0.03);
+  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --sh-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
+  --sh-brand: 0 1px 2px rgba(0, 117, 222, 0.2);
+
+  /* Text alpha hierarchy */
+  --fg-alpha-100: 1;
+  --fg-alpha-95: 0.95;
+  --fg-alpha-90: 0.9;
+  --fg-alpha-60: 0.6;
+  --fg-alpha-40: 0.4;
+  --fg-alpha-20: 0.2;
 }
 
 /* ══════════════════════════════════════════════════════════════
    DARK MODE — Vercel style
+   Near-black canvas, electric blue, monochrome discipline
    ══════════════════════════════════════════════════════════════ */
 [data-theme="dark"] {
-  /* Backgrounds */
-  --bg-primary: #0A0A0A;
+  /* Surfaces */
+  --bg-primary: #0a0a0a;
   --bg-surface: #111111;
-  --bg-elevated: #1A1A1A;
+  --bg-elevated: #1a1a1a;
   --bg-subtle: #202020;
   --bg-overlay: rgba(0, 0, 0, 0.7);
 
-  /* Foregrounds */
-  --fg-primary: #FAFAFA;
-  --fg-secondary: #A1A1AA;
-  --fg-muted: #71717A;
-  --fg-inverse: #0A0A0A;
+  /* Text */
+  --fg-primary: #fafafa;
+  --fg-secondary: #a1a1aa;
+  --fg-muted: #71717a;
+  --fg-inverse: #0a0a0a;
 
   /* Borders */
   --border: rgba(255, 255, 255, 0.08);
   --border-hover: rgba(255, 255, 255, 0.12);
   --border-strong: rgba(255, 255, 255, 0.2);
 
-  /* Brand (Vercel electric blue) */
-  --brand: #0070F3;
-  --brand-hover: #3291FF;
+  /* Brand — Vercel electric blue */
+  --brand: #0070f3;
+  --brand-hover: #3291ff;
   --brand-muted: rgba(0, 112, 243, 0.1);
   --brand-subtle: rgba(0, 112, 243, 0.05);
 
-  /* Accent */
-  --accent: #F59E0B;
-  --accent-muted: rgba(245, 158, 11, 0.1);
+  /* Accent colors — muted for dark mode */
+  --accent-warm: #f59e0b;
+  --accent-coral: #ef4444;
+  --accent-sky: #3b82f6;
+  --accent-midnight: #1e3a5f;
+  --accent-saffron: #d97706;
+  --accent-mocha: #92400e;
 
   /* Semantic */
-  --success: #22C55E;
+  --success: #22c55e;
   --success-muted: rgba(34, 197, 94, 0.1);
-  --danger: #EF4444;
+  --danger: #ef4444;
   --danger-muted: rgba(239, 68, 68, 0.1);
-  --warning: #F59E0B;
+  --warning: #f59e0b;
   --warning-muted: rgba(245, 158, 11, 0.1);
-  --info: #0070F3;
+  --info: #0070f3;
   --info-muted: rgba(0, 112, 243, 0.1);
 
   /* Shadows */
-  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --sh-md: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --sh-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --sh-sm: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 0 2px #0a0a0a;
+  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --sh-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
   --sh-brand: 0 1px 2px rgba(0, 112, 243, 0.3);
+
+  /* Text alpha hierarchy */
+  --fg-alpha-100: 1;
+  --fg-alpha-95: 0.95;
+  --fg-alpha-90: 0.9;
+  --fg-alpha-60: 0.6;
+  --fg-alpha-40: 0.4;
+  --fg-alpha-20: 0.2;
 }

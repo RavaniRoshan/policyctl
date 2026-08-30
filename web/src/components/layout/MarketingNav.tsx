@@ -5,15 +5,14 @@ import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 const GITHUB = "https://github.com/RavaniRoshan/policyctl";
-const NPM = "https://www.npmjs.com/package/@policyctl/cli";
 
 export function MarketingNav() {
   const [mobile, setMobile] = useState(false);
   const { theme, toggle } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-bg-primary/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-content items-center justify-between px-6">
+    <header className="sticky top-0 z-50 h-16 border-b border-border bg-bg-primary/80 backdrop-blur-md">
+      <div className="mx-auto flex h-full max-w-content items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2 text-fg-primary no-underline">
           <span className="text-brand text-lg">◆</span>
           <span className="font-display font-semibold text-lg">policyctl</span>
@@ -34,10 +33,7 @@ export function MarketingNav() {
           >
             {theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
           </button>
-          <Link
-            to="/login"
-            className="hidden sm:inline-flex text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors"
-          >
+          <Link to="/login" className="hidden sm:inline-flex text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors">
             Sign in
           </Link>
           <Link
