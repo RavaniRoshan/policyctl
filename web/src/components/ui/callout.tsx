@@ -14,7 +14,7 @@ const map: Record<Type, { icon: LucideIcon; cls: string; border: string; label: 
 export function Callout({ type = "note", title, children }: { type?: Type; title?: string; children: ReactNode }) {
   const { icon: Icon, cls, border, label } = map[type];
   return (
-    <div className={cn("my-4 flex gap-3 rounded-lg border border-border border-l-4 bg-bg-surface p-4", border)}>
+    <div className={cn("my-4 flex gap-3 rounded-xl border border-border border-l-4 bg-bg-surface p-4", border)}>
       <Icon className={cn("size-5 shrink-0 mt-0.5", cls)} />
       <div className="min-w-0">
         <div className={cn("font-semibold text-sm", cls)}>{title ?? label}</div>

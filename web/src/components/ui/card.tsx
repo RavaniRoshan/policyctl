@@ -22,3 +22,15 @@ export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingEle
 export function CardBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("text-fg-secondary text-sm leading-relaxed mt-1", className)} {...props} />;
 }
+
+export function CardCompact({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "flex flex-row items-center lg:items-start justify-start flex-nowrap lg:flex-wrap gap-6 rounded-xl border border-border bg-bg-elevated p-6",
+        className,
+      )}
+      {...props}
+    />
+  );
+}

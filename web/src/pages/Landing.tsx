@@ -18,7 +18,7 @@ export function Landing() {
     <div className="min-h-screen bg-bg-primary">
       <MarketingNav />
 
-      {/* Hero */}
+      {/* Hero — split screen with terminal demo */}
       <section className="relative overflow-hidden border-b border-border">
         <div className="mx-auto max-w-content px-6 py-20 sm:py-28 lg:py-36">
           <div className="grid items-center gap-16 lg:grid-cols-2">

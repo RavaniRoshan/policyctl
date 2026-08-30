@@ -1,7 +1,7 @@
 import { type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type Tone = "default" | "brand" | "accent" | "danger" | "info" | "muted" | "pc" | "ac";
+type Tone = "default" | "brand" | "accent" | "danger" | "info" | "muted" | "pc" | "ac" | "warm" | "coral" | "sky";
 
 const tones: Record<Tone, string> = {
   default: "border-border bg-bg-surface text-fg-secondary",
@@ -12,6 +12,9 @@ const tones: Record<Tone, string> = {
   muted: "border-border bg-bg-surface text-fg-muted",
   pc: "border-brand/20 bg-brand/10 text-brand",
   ac: "border-accent/20 bg-accent/10 text-accent",
+  warm: "border-accent-warm/20 bg-accent-warm/10 text-accent-warm",
+  coral: "border-accent-coral/20 bg-accent-coral/10 text-accent-coral",
+  sky: "border-accent-sky/20 bg-accent-sky/10 text-accent-sky",
 };
 
 export function Badge({ className, tone = "default", ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
