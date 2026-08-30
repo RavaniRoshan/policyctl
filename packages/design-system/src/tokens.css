@@ -1,6 +1,5 @@
-/* policyctl design system — Awwwards Tier */
-/* Archetype: Ethereal Glass on OLED black */
-/* Layout: Asymmetrical Bento with Z-Axis Cascade */
+/* policyctl design system — Light Mode Only */
+/* Archetype: Soft Structuralism on warm cream */
 
 @import "@fontsource/geist-sans/400.css";
 @import "@fontsource/geist-sans/500.css";
@@ -27,38 +26,38 @@
   --dur-fast: 200ms;
   --dur-base: 400ms;
   --dur-slow: 700ms;
-}
 
-/* ══════════════════════════════════════════════════════════════
-   LIGHT MODE — Soft Structuralism (warm white)
-   ══════════════════════════════════════════════════════════════ */
-:root,
-[data-theme="light"] {
+  /* ── Surfaces ── */
   --bg-primary: #FDFBF7;
   --bg-surface: #FFFFFF;
   --bg-elevated: #FFFFFF;
   --bg-subtle: #F5F3EF;
   --bg-overlay: rgba(0, 0, 0, 0.4);
 
+  /* ── Text ── */
   --fg-primary: #1A1A1A;
   --fg-secondary: #6B6B6B;
   --fg-muted: #9A9A9A;
   --fg-inverse: #FFFFFF;
 
+  /* ── Borders ── */
   --border: rgba(0, 0, 0, 0.06);
   --border-hover: rgba(0, 0, 0, 0.1);
   --border-strong: rgba(0, 0, 0, 0.15);
 
+  /* ── Brand ── */
   --brand: #2563EB;
   --brand-hover: #1D4ED8;
   --brand-muted: rgba(37, 99, 235, 0.08);
   --brand-subtle: rgba(37, 99, 235, 0.04);
 
+  /* ── Accent colors ── */
   --accent-warm: #F59E0B;
   --accent-coral: #EF4444;
   --accent-sky: #3B82F6;
   --accent-midnight: #1E3A5F;
 
+  /* ── Semantic ── */
   --success: #10B981;
   --success-muted: rgba(16, 185, 129, 0.08);
   --danger: #EF4444;
@@ -68,52 +67,9 @@
   --info: #3B82F6;
   --info-muted: rgba(59, 130, 246, 0.08);
 
+  /* ── Shadows ── */
   --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
   --sh-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
   --sh-lg: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
   --sh-brand: 0 4px 16px rgba(37, 99, 235, 0.15);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   DARK MODE — Ethereal Glass (OLED black)
-   ══════════════════════════════════════════════════════════════ */
-[data-theme="dark"] {
-  --bg-primary: #050505;
-  --bg-surface: #0A0A0A;
-  --bg-elevated: #111111;
-  --bg-subtle: #1A1A1A;
-  --bg-overlay: rgba(0, 0, 0, 0.8);
-
-  --fg-primary: #FAFAFA;
-  --fg-secondary: #A1A1AA;
-  --fg-muted: #71717A;
-  --fg-inverse: #050505;
-
-  --border: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.15);
-
-  --brand: #3B82F6;
-  --brand-hover: #60A5FA;
-  --brand-muted: rgba(59, 130, 246, 0.1);
-  --brand-subtle: rgba(59, 130, 246, 0.05);
-
-  --accent-warm: #F59E0B;
-  --accent-coral: #EF4444;
-  --accent-sky: #3B82F6;
-  --accent-midnight: #1E3A5F;
-
-  --success: #22C55E;
-  --success-muted: rgba(34, 197, 94, 0.1);
-  --danger: #EF4444;
-  --danger-muted: rgba(239, 68, 68, 0.1);
-  --warning: #F59E0B;
-  --warning-muted: rgba(245, 158, 11, 0.1);
-  --info: #3B82F6;
-  --info-muted: rgba(59, 130, 246, 0.1);
-
-  --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
-  --sh-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
-  --sh-brand: 0 4px 16px rgba(59, 130, 246, 0.2);
 }
