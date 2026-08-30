@@ -9,11 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@policyctl/design-system": "workspace:^0.1.0",
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/geist-sans": "^5.3.0",
     "@paper-design/shaders-react": "^0.0.80",
+    "@phosphor-icons/react": "^2.1.10",
+    "@policyctl/design-system": "workspace:^0.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lucide-react": "^1.37.0",
+    "framer-motion": "^13.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.18.3",

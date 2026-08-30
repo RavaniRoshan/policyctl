@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { List, X, Sun, Moon } from "@phosphor-icons/react";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +43,7 @@ export function MarketingNav() {
             Get started
           </Link>
           <button className="md:hidden text-fg-secondary" onClick={() => setMobile((m) => !m)} aria-label="Toggle menu">
-            {mobile ? <X className="size-5" /> : <Menu className="size-5" />}
+            {mobile ? <X className="size-5" /> : <List className="size-5" />}
           </button>
         </div>
       </div>

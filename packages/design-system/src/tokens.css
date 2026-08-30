@@ -1,149 +1,119 @@
-/* policyctl design system — tokens v4 */
-/* Light mode: Notion-style (warm paper, blue accent, playful) */
-/* Dark mode: Vercel-style (near-black, electric blue, monochrome) */
+/* policyctl design system — Awwwards Tier */
+/* Archetype: Ethereal Glass on OLED black */
+/* Layout: Asymmetrical Bento with Z-Axis Cascade */
+
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/geist-sans/700.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
 
 :root {
-  /* ── Typography (shared) ── */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /* ── Typography ── */
+  --font-sans: "Geist Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* ── Radius (shared) ── */
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 8px;
-  --r-xl: 12px;
+  /* ── Radii ── */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
   --r-pill: 9999px;
 
-  /* ── Motion (shared) ── */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 150ms;
-  --dur-base: 200ms;
-  --dur-slow: 300ms;
+  /* ── Motion ── */
+  --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 200ms;
+  --dur-base: 400ms;
+  --dur-slow: 700ms;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   LIGHT MODE — Notion style
-   Warm paper canvas, blue accent, playful accents
+   LIGHT MODE — Soft Structuralism (warm white)
    ══════════════════════════════════════════════════════════════ */
 :root,
 [data-theme="light"] {
-  /* Surfaces */
-  --bg-primary: #f6f5f4;
-  --bg-surface: #ffffff;
-  --bg-elevated: #ffffff;
-  --bg-subtle: #f1f0ed;
+  --bg-primary: #FDFBF7;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-subtle: #F5F3EF;
   --bg-overlay: rgba(0, 0, 0, 0.4);
 
-  /* Text */
-  --fg-primary: #000000;
-  --fg-secondary: #615d59;
-  --fg-muted: #757575;
-  --fg-inverse: #ffffff;
+  --fg-primary: #1A1A1A;
+  --fg-secondary: #6B6B6B;
+  --fg-muted: #9A9A9A;
+  --fg-inverse: #FFFFFF;
 
-  /* Borders */
-  --border: rgba(0, 0, 0, 0.08);
-  --border-hover: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.16);
+  --border: rgba(0, 0, 0, 0.06);
+  --border-hover: rgba(0, 0, 0, 0.1);
+  --border-strong: rgba(0, 0, 0, 0.15);
 
-  /* Brand — Notion Blue */
-  --brand: #0075de;
-  --brand-hover: #0068c4;
-  --brand-muted: #e6f3fe;
-  --brand-subtle: rgba(0, 117, 222, 0.04);
+  --brand: #2563EB;
+  --brand-hover: #1D4ED8;
+  --brand-muted: rgba(37, 99, 235, 0.08);
+  --brand-subtle: rgba(37, 99, 235, 0.04);
 
-  /* Accent colors for feature cards */
-  --accent-warm: #ffb110;
-  --accent-coral: #f64932;
-  --accent-sky: #62aef0;
-  --accent-midnight: #02093a;
-  --accent-saffron: #e89d01;
-  --accent-mocha: #b18164;
+  --accent-warm: #F59E0B;
+  --accent-coral: #EF4444;
+  --accent-sky: #3B82F6;
+  --accent-midnight: #1E3A5F;
 
-  /* Semantic */
-  --success: #059669;
-  --success-muted: rgba(5, 150, 105, 0.08);
-  --danger: #dc2626;
-  --danger-muted: rgba(220, 38, 38, 0.08);
-  --warning: #d97706;
-  --warning-muted: rgba(217, 119, 6, 0.08);
-  --info: #0075de;
-  --info-muted: #e6f3fe;
+  --success: #10B981;
+  --success-muted: rgba(16, 185, 129, 0.08);
+  --danger: #EF4444;
+  --danger-muted: rgba(239, 68, 68, 0.08);
+  --warning: #F59E0B;
+  --warning-muted: rgba(245, 158, 11, 0.08);
+  --info: #3B82F6;
+  --info-muted: rgba(59, 130, 246, 0.08);
 
-  /* Shadows — minimal, only for nav and product mockups */
-  --sh-sm: 0 0.7px 1.462px rgba(0, 0, 0, 0.015), 0 3px 9px rgba(0, 0, 0, 0.03);
-  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --sh-lg: 0 12px 32px rgba(0, 0, 0, 0.08);
-  --sh-brand: 0 1px 2px rgba(0, 117, 222, 0.2);
-
-  /* Text alpha hierarchy */
-  --fg-alpha-100: 1;
-  --fg-alpha-95: 0.95;
-  --fg-alpha-90: 0.9;
-  --fg-alpha-60: 0.6;
-  --fg-alpha-40: 0.4;
-  --fg-alpha-20: 0.2;
+  --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --sh-lg: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --sh-brand: 0 4px 16px rgba(37, 99, 235, 0.15);
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DARK MODE — Vercel style
-   Near-black canvas, electric blue, monochrome discipline
+   DARK MODE — Ethereal Glass (OLED black)
    ══════════════════════════════════════════════════════════════ */
 [data-theme="dark"] {
-  /* Surfaces */
-  --bg-primary: #0a0a0a;
-  --bg-surface: #111111;
-  --bg-elevated: #1a1a1a;
-  --bg-subtle: #202020;
-  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --bg-primary: #050505;
+  --bg-surface: #0A0A0A;
+  --bg-elevated: #111111;
+  --bg-subtle: #1A1A1A;
+  --bg-overlay: rgba(0, 0, 0, 0.8);
 
-  /* Text */
-  --fg-primary: #fafafa;
-  --fg-secondary: #a1a1aa;
-  --fg-muted: #71717a;
-  --fg-inverse: #0a0a0a;
+  --fg-primary: #FAFAFA;
+  --fg-secondary: #A1A1AA;
+  --fg-muted: #71717A;
+  --fg-inverse: #050505;
 
-  /* Borders */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
 
-  /* Brand — Vercel electric blue */
-  --brand: #0070f3;
-  --brand-hover: #3291ff;
-  --brand-muted: rgba(0, 112, 243, 0.1);
-  --brand-subtle: rgba(0, 112, 243, 0.05);
+  --brand: #3B82F6;
+  --brand-hover: #60A5FA;
+  --brand-muted: rgba(59, 130, 246, 0.1);
+  --brand-subtle: rgba(59, 130, 246, 0.05);
 
-  /* Accent colors — muted for dark mode */
-  --accent-warm: #f59e0b;
-  --accent-coral: #ef4444;
-  --accent-sky: #3b82f6;
-  --accent-midnight: #1e3a5f;
-  --accent-saffron: #d97706;
-  --accent-mocha: #92400e;
+  --accent-warm: #F59E0B;
+  --accent-coral: #EF4444;
+  --accent-sky: #3B82F6;
+  --accent-midnight: #1E3A5F;
 
-  /* Semantic */
-  --success: #22c55e;
+  --success: #22C55E;
   --success-muted: rgba(34, 197, 94, 0.1);
-  --danger: #ef4444;
+  --danger: #EF4444;
   --danger-muted: rgba(239, 68, 68, 0.1);
-  --warning: #f59e0b;
+  --warning: #F59E0B;
   --warning-muted: rgba(245, 158, 11, 0.1);
-  --info: #0070f3;
-  --info-muted: rgba(0, 112, 243, 0.1);
+  --info: #3B82F6;
+  --info-muted: rgba(59, 130, 246, 0.1);
 
-  /* Shadows */
-  --sh-sm: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 0 2px #0a0a0a;
-  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --sh-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
-  --sh-brand: 0 1px 2px rgba(0, 112, 243, 0.3);
-
-  /* Text alpha hierarchy */
-  --fg-alpha-100: 1;
-  --fg-alpha-95: 0.95;
-  --fg-alpha-90: 0.9;
-  --fg-alpha-60: 0.6;
-  --fg-alpha-40: 0.4;
-  --fg-alpha-20: 0.2;
+  --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --sh-lg: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --sh-brand: 0 4px 16px rgba(59, 130, 246, 0.2);
 }

@@ -1,5 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { ArrowUpRight } from "@phosphor-icons/react";
 
 type Variant = "primary" | "ghost" | "outline" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -12,28 +13,38 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-11 px-5 text-base",
+  sm: "h-9 px-4 text-sm",
+  md: "h-11 px-5 text-sm",
+  lg: "h-12 px-6 text-base",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  trailingIcon?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", ...props }, ref) => (
+  ({ className, variant = "primary", size = "md", trailingIcon = false, children, ...props }, ref) => (
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+        "group inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-700 ease-fluid",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+        "active:scale-[0.98]",
         variants[variant],
         sizes[size],
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+      {trailingIcon && (
+        <span className="flex size-7 items-center justify-center rounded-full bg-fg-inverse/10 transition-all duration-700 ease-fluid group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-105">
+          <ArrowUpRight className="size-3.5" />
+        </span>
+      )}
+    </button>
   ),
 );
 Button.displayName = "Button";

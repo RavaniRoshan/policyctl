@@ -6,7 +6,7 @@ import { Callout } from "@/components/ui/callout";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, MessageSquare, Copy, Check } from "lucide-react";
+import { MagnifyingGlass, ChatCircle, Copy, Check } from "@phosphor-icons/react";
 import { GitHubIcon } from "@/components/ui/brand-icons";
 import { cn } from "@/lib/utils";
 
@@ -125,7 +125,7 @@ export function Docs() {
 
           <div className="mt-10 flex items-center justify-between border-t border-border pt-6 text-sm">
             <a href={`${GITHUB}/edit/main/site/docs.html`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-fg-muted hover:text-brand"><GitHubIcon className="size-4" /> Edit on GitHub</a>
-            <a href={`${GITHUB}/issues/new`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-fg-muted hover:text-brand"><MessageSquare className="size-4" /> Report an issue</a>
+            <a href={`${GITHUB}/issues/new`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-fg-muted hover:text-brand"><ChatCircle className="size-4" /> Report an issue</a>
           </div>
         </article>
 
@@ -141,7 +141,7 @@ export function Docs() {
             </ul>
             <div className="mt-6">
               <Button variant="ghost" size="sm" className="w-full" onClick={() => setPalette(true)}>
-                <Search className="size-3.5" /> Search docs
+                <MagnifyingGlass className="size-3.5" /> MagnifyingGlass docs
               </Button>
             </div>
           </div>

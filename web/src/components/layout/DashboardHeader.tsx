@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Command as CommandIcon, LogOut, User as UserIcon } from "lucide-react";
+import { Command as CommandIcon, SignOut, User as UserIcon } from "@phosphor-icons/react";
 import { useAuth } from "@/lib/auth";
 import { CommandPalette, type Command } from "@/components/ui/command-palette";
 
@@ -15,7 +15,7 @@ export function DashboardHeader({ title }: { title: string }) {
     { label: "Policies", group: "Navigate", action: () => navigate("/dashboard/policies") },
     { label: "AI", group: "Navigate", action: () => navigate("/dashboard/ai") },
     { label: "Reports", group: "Navigate", action: () => navigate("/dashboard/reports") },
-    { label: "Settings", group: "Navigate", action: () => navigate("/dashboard/settings") },
+    { label: "Gear", group: "Navigate", action: () => navigate("/dashboard/settings") },
     { label: "Documentation", group: "Resources", action: () => navigate("/docs") },
     { label: "Log out", group: "Account", action: () => logout().then(() => navigate("/")) },
   ];
@@ -45,7 +45,7 @@ export function DashboardHeader({ title }: { title: string }) {
           aria-label="Log out"
           className="rounded-lg border border-border bg-bg-surface p-1.5 text-fg-muted hover:text-danger"
         >
-          <LogOut className="size-4" />
+          <SignOut className="size-4" />
         </button>
       </div>
       <CommandPalette open={palette} onClose={() => setPalette(false)} commands={commands} />

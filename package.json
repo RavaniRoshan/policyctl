@@ -9,5 +9,11 @@
   "scripts": {
     "test": "pnpm -r test",
     "build": "pnpm -r build"
+  },
+  "dependencies": {
+    "@fontsource/geist-mono": "^5.3.0",
+    "@fontsource/geist-sans": "^5.3.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "framer-motion": "^13.1.1"
   }
 }

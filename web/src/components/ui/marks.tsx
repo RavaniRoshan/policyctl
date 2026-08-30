@@ -1,6 +1,6 @@
 export function PolicyctlMark({ className = "", size = 48 }: { className?: string; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className} aria-hidden="true">
+    <svg width={size} height={size}  fill="none" className={className} aria-hidden="true">
       <rect width="48" height="48" rx="12" fill="currentColor" className="text-brand" />
       <path d="M14 18h20M14 24h14M14 30h18" stroke="currentColor" className="text-fg-inverse" strokeWidth="2.5" strokeLinecap="round" />
       <circle cx="35" cy="30" r="4" fill="currentColor" className="text-success" />
@@ -40,7 +40,7 @@ export function AgentMark({ className = "", variant = "shield" }: { className?: 
   };
 
   return (
-    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className={className} aria-hidden="true">
+    <svg width="48" height="48"  fill="none" className={className} aria-hidden="true">
       {marks[variant]}
     </svg>
   );

@@ -14,7 +14,7 @@ import {
   Policies,
   Ai,
   Reports,
-  Settings,
+  Gear,
 } from "@/pages/Dashboard";
 
 export function App() {
@@ -35,7 +35,7 @@ export function App() {
                 <Route path="policies" element={<Policies />} />
                 <Route path="ai" element={<Ai />} />
                 <Route path="reports" element={<Reports />} />
-                <Route path="settings" element={<Settings />} />
+                <Route path="settings" element={<Gear />} />
               </Route>
               <Route path="*" element={<Landing />} />
             </Routes>
