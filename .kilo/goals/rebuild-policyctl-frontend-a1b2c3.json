@@ -21,7 +21,7 @@
   "criteria": [
     {
       "label": "Design tokens migrated to v2",
-      "check": "grep -q '2DD4BF' packages/design-system/src/tokens.css && echo 'PASS: teal brand token present' || echo 'FAIL: v2 tokens missing'",
+      "check": "grep -q '2DD4BF' packages/design-system/src/tokens.css && echo 'PASS' || echo 'FAIL'",
       "must_pass": true
     },
     {
@@ -31,7 +31,7 @@
     },
     {
       "label": "All existing tests pass",
-      "check": "pnpm test 2>&1 | tail -10",
+      "check": "pnpm -r test 2>&1 | tail -10",
       "must_pass": true
     },
     {
@@ -41,25 +41,25 @@
     },
     {
       "label": "Pages wrangler.toml exists for web/",
-      "check": "test -f web/wrangler.toml && echo 'PASS: web/wrangler.toml exists' || echo 'FAIL: missing'",
+      "check": "test -f web/wrangler.toml && echo 'PASS' || echo 'FAIL'",
       "must_pass": true
     }
   ],
   "tasks": [
-    {"id": 1, "desc": "Migrate design tokens to v2 (teal-coral palette)", "status": "todo"},
-    {"id": 2, "desc": "Create web/wrangler.toml for Cloudflare Pages deployment", "status": "todo"},
-    {"id": 3, "desc": "Create CI workflow (ci.yml) — lint, typecheck, test, build", "status": "todo"},
-    {"id": 4, "desc": "Create deploy workflow (deploy.yml) — build + deploy Pages + Worker", "status": "todo"},
-    {"id": 5, "desc": "Create preview workflow (preview.yml) — PR previews", "status": "todo"},
-    {"id": 6, "desc": "Update web/ app: unified routing (landing + docs + auth + dashboard)", "status": "todo"},
-    {"id": 7, "desc": "Wire dashboard pages to real Worker API (replace mock data)", "status": "todo"},
-    {"id": 8, "desc": "Verify build + deploy pipeline end-to-end", "status": "todo"}
+    {"id": 1, "desc": "Migrate design tokens to v2 (teal-coral palette)", "status": "done"},
+    {"id": 2, "desc": "Create web/wrangler.toml for Cloudflare Pages deployment", "status": "done"},
+    {"id": 3, "desc": "Create CI workflow (ci.yml) — lint, typecheck, test, build", "status": "done"},
+    {"id": 4, "desc": "Create deploy workflow (deploy.yml) — build + deploy Pages + Worker", "status": "done"},
+    {"id": 5, "desc": "Create preview workflow (preview.yml) — PR previews", "status": "done"},
+    {"id": 6, "desc": "Update web/ app: unified routing (landing + docs + auth + dashboard)", "status": "in_progress"},
+    {"id": 7, "desc": "Wire dashboard pages to real Worker API (replace mock data)", "status": "pending"},
+    {"id": 8, "desc": "Verify build + deploy pipeline end-to-end", "status": "pending"}
   ],
-  "current_task": 1,
-  "iterations": 0,
-  "budget_used": 0,
+  "current_task": 6,
+  "iterations": 1,
+  "budget_used": 1,
   "max_iterations": 50,
   "negative_knowledge": [],
-  "context_summary": "Goal: Rebuild policyctl frontend from scratch. Iteration 0: Surveyed codebase. Cloudflare resources verified (D1, KV, Worker, Pages, AI, DO all ready; R2 needs Dashboard enablement). Design system v2 approved (teal-coral palette). Architecture: Firecrawl-style same-origin path routing. Auth: keep custom D1 + Turnstile, harden it. Starting with Phase 0: Foundation.",
+  "context_summary": "Goal: Rebuild policyctl frontend. Iteration 0: Surveyed codebase, verified Cloudflare resources (D1, KV, Worker, Pages, AI, DO ready; R2 needs Dashboard). Iteration 1: Phase 0 foundation complete — v2 tokens migrated, CI/CD pipelines created, web/wrangler.toml configured, API client extended. All 5 criteria pass. Build succeeds. Tests pass (37 tests). Committed to branch goal/rebuild-policyctl-frontend-a1b2c3. Next: rebuild pages with v2 design, wire dashboard to real API.",
   "created_at": "2026-08-30T14:29:00Z"
 }
