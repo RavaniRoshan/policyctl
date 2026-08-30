@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: ["class", '[data-theme="dark"]'],
   content: ["./src/**/*.{ts,tsx}", "./index.html"],
   theme: {
     extend: {
@@ -32,7 +31,10 @@ export default {
         },
         accent: {
           DEFAULT: "var(--accent)",
-          muted: "var(--accent-muted)",
+          warm: "var(--accent-warm)",
+          coral: "var(--accent-coral)",
+          sky: "var(--accent-sky)",
+          midnight: "var(--accent-midnight)",
         },
         success: { DEFAULT: "var(--success)", muted: "var(--success-muted)" },
         danger: { DEFAULT: "var(--danger)", muted: "var(--danger-muted)" },
@@ -41,7 +43,6 @@ export default {
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
-        display: ["var(--font-display)"],
         mono: ["var(--font-mono)"],
       },
       borderRadius: {
@@ -58,15 +59,15 @@ export default {
         brand: "var(--sh-brand)",
       },
       transitionTimingFunction: {
-        pc: "var(--ease-smooth)",
-        out: "var(--ease-out)",
+        fluid: "var(--ease-fluid)",
+        spring: "var(--ease-spring)",
       },
       transitionDuration: {
         fast: "var(--dur-fast)",
         base: "var(--dur-base)",
         slow: "var(--dur-slow)",
       },
-      maxWidth: { prose: "42rem", content: "1120px" },
+      maxWidth: { prose: "42rem", content: "1280px" },
     },
   },
   plugins: [],

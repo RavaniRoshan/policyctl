@@ -16,7 +16,7 @@ interface Props {
 
 function GoogleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+    <svg width="16" height="16"  aria-hidden="true">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09Z" fill="#4285F4" />
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23Z" fill="#34A853" />
       <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84Z" fill="#FBBC05" />
@@ -27,7 +27,7 @@ function GoogleIcon() {
 
 function AppleIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <svg width="18" height="18"  fill="currentColor" aria-hidden="true">
       <path d="M17.05 12.54c-.03-3.02 2.47-4.47 2.58-4.54-1.41-2.06-3.6-2.34-4.38-2.37-1.86-.19-3.64 1.1-4.58 1.1-.95 0-2.42-1.07-3.98-1.04-2.05.03-3.94 1.19-4.99 3.02-2.13 3.69-.54 9.16 1.53 12.15 1.01 1.46 2.22 3.1 3.81 3.04 1.53-.06 2.11-.99 3.96-.99s2.37.99 3.99.96c1.65-.03 2.69-1.49 3.69-2.96 1.16-1.69 1.64-3.33 1.66-3.41-.04-.02-3.2-1.23-3.24-4.87ZM14.03 3.66c.84-1.02 1.41-2.43 1.25-3.84-1.21.05-2.68.81-3.55 1.83-.78.9-1.46 2.34-1.28 3.72 1.35.1 2.73-.69 3.58-1.71Z" />
     </svg>
   );
@@ -67,8 +67,8 @@ export function AuthSectionOne({ mode, onSubmit, onOAuth, error, loading }: Prop
           <form className="space-y-4" onSubmit={submit}>
             {mode === "signup" && (
               <div className="grid gap-4 sm:grid-cols-2">
-                <FieldBox label="First name" value={firstName} onChange={setFirstName} editing={editing} setEditing={setEditing} />
-                <FieldBox label="Last name" value={lastName} onChange={setLastName} editing={editing} setEditing={setEditing} />
+                <FieldPackage label="First name" value={firstName} onChange={setFirstName} editing={editing} setEditing={setEditing} />
+                <FieldPackage label="Last name" value={lastName} onChange={setLastName} editing={editing} setEditing={setEditing} />
               </div>
             )}
             <Input type="email" required placeholder="Email" aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -127,7 +127,7 @@ function SocialButton({ icon, label, onClick }: { icon: ReactNode; label: string
   );
 }
 
-function FieldBox({ label, value, onChange, editing, setEditing }: { label: string; value: string; onChange: (v: string) => void; editing: boolean; setEditing: (b: boolean) => void }) {
+function FieldPackage({ label, value, onChange, editing, setEditing }: { label: string; value: string; onChange: (v: string) => void; editing: boolean; setEditing: (b: boolean) => void }) {
   return (
     <label className="flex h-12 items-center gap-3 rounded-lg border border-border bg-bg-elevated px-4">
       <input type="text" value={value} aria-label={label} onFocus={() => !editing && setEditing(true)} onChange={(e) => { onChange(e.target.value); setEditing(true); }} placeholder={label} className="min-w-0 flex-1 bg-transparent text-fg-primary outline-none placeholder:text-fg-muted" />

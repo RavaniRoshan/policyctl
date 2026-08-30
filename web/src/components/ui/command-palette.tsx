@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, CornerDownLeft } from "lucide-react";
+import { MagnifyingGlass, CaretDown } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 export interface Command {
@@ -73,14 +73,14 @@ export function CommandPalette({ open, onClose, commands }: Props) {
         onKeyDown={onKey}
       >
         <div className="flex items-center gap-3 border-b border-n-800 px-4 py-3">
-          <Search className="size-4 text-n-400" />
+          <MagnifyingGlass className="size-4 text-n-400" />
           <input
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search docs, jump to a page, run a command…"
+            placeholder="MagnifyingGlass docs, jump to a page, run a command…"
             className="flex-1 bg-transparent text-n-100 outline-none placeholder:text-n-500"
-            aria-label="Search"
+            aria-label="MagnifyingGlass"
           />
           <kbd className="rounded border border-n-700 bg-n-800 px-1.5 py-0.5 font-mono text-[0.7rem] text-n-400">
             ESC
@@ -110,7 +110,7 @@ export function CommandPalette({ open, onClose, commands }: Props) {
                 >
                   <span>{c.label}</span>
                   {c.hint && <span className="font-mono text-xs text-n-500">{c.hint}</span>}
-                  {i === active && <CornerDownLeft className="size-3.5 text-pc-300" />}
+                  {i === active && <CaretDown className="size-3.5 text-pc-300" />}
                 </button>
               </div>
             );

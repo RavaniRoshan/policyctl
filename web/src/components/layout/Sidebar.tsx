@@ -1,14 +1,14 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Activity, ShieldCheck, Sparkles, FileBarChart, Settings, Box } from "lucide-react";
+import { SquaresFour, Pulse, ShieldCheck, Sparkle, ChartBar, Gear, Package } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { to: "/dashboard", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/dashboard/sessions", label: "Sessions", icon: Activity },
+  { to: "/dashboard", label: "Overview", icon: SquaresFour, end: true },
+  { to: "/dashboard/sessions", label: "Sessions", icon: Pulse },
   { to: "/dashboard/policies", label: "Policies", icon: ShieldCheck },
-  { to: "/dashboard/ai", label: "AI", icon: Sparkles },
-  { to: "/dashboard/reports", label: "Reports", icon: FileBarChart },
-  { to: "/dashboard/settings", label: "Settings", icon: Settings },
+  { to: "/dashboard/ai", label: "AI", icon: Sparkle },
+  { to: "/dashboard/reports", label: "Reports", icon: ChartBar },
+  { to: "/dashboard/settings", label: "Gear", icon: Gear },
 ];
 
 export function Sidebar() {
@@ -45,7 +45,7 @@ export function Sidebar() {
           rel="noreferrer"
           className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-fg-muted hover:text-brand"
         >
-          <Box className="size-4" />
+          <Package className="size-4" />
           <span className="font-mono text-xs">npm i -g @policyctl/cli</span>
         </a>
       </div>

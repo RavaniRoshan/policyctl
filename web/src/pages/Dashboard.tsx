@@ -10,9 +10,9 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { Callout } from "@/components/ui/callout";
 import { api } from "@/lib/api";
 import {
-  Activity, ShieldCheck, Sparkles, FileBarChart, AlertTriangle, CheckCircle2,
-  RefreshCw, Loader2,
-} from "lucide-react";
+  Pulse, ShieldCheck, Sparkle, ChartBar, Warning, CheckCircle,
+  ArrowClockwise, Spinner,
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 const titles: Record<string, string> = {
@@ -21,7 +21,7 @@ const titles: Record<string, string> = {
   "/dashboard/policies": "Policies",
   "/dashboard/ai": "AI",
   "/dashboard/reports": "Reports",
-  "/dashboard/settings": "Settings",
+  "/dashboard/settings": "Gear",
 };
 
 export function DashboardShell() {
@@ -84,7 +84,7 @@ export function Overview() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-8 text-brand animate-spin" />
+        <Spinner className="size-8 text-brand animate-spin" />
         <span className="ml-3 text-fg-secondary">Loading dashboard...</span>
       </div>
     );
@@ -109,13 +109,13 @@ export function Overview() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-end">
-        <Button variant="ghost" size="sm" onClick={load}><RefreshCw className="size-3.5" /> Refresh</Button>
+        <Button variant="ghost" size="sm" onClick={load}><ArrowClockwise className="size-3.5" /> Refresh</Button>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Compliance score" value={`${score}%`} tone="success" icon={ShieldCheck} />
-        <StatCard label="Active sessions" value={String(sessions)} tone="brand" icon={Activity} />
-        <StatCard label="Violations (24h)" value={String(violations)} tone={violations > 0 ? "danger" : "success"} icon={AlertTriangle} />
-        <StatCard label="AI insights" value={String(insights)} tone="accent" icon={Sparkles} />
+        <StatCard label="Active sessions" value={String(sessions)} tone="brand" icon={Pulse} />
+        <StatCard label="Violations (24h)" value={String(violations)} tone={violations > 0 ? "danger" : "success"} icon={Warning} />
+        <StatCard label="AI insights" value={String(insights)} tone="accent" icon={Sparkle} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -136,7 +136,7 @@ export function Overview() {
               ))
             ) : (
               <div className="rounded-lg border border-border bg-bg-surface p-6 text-center">
-                <CheckCircle2 className="mx-auto size-8 text-success" />
+                <CheckCircle className="mx-auto size-8 text-success" />
                 <p className="mt-2 text-sm text-fg-secondary">No violations recorded yet</p>
               </div>
             )}
@@ -145,7 +145,7 @@ export function Overview() {
         </Card>
 
         <Card>
-          <CardTitle className="flex items-center gap-2"><Sparkles className="size-4 text-accent" /> AI insight</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Sparkle className="size-4 text-accent" /> AI insight</CardTitle>
           <CardBody>Today's semantic analysis flagged a pattern worth a rule.</CardBody>
           <div className="mt-3 rounded-lg border border-border bg-bg-elevated p-3 text-sm text-fg-secondary">
             "Migrations edited by hand in <code className="font-mono">db/migrations</code> 3× this week — consider a <code className="font-mono">migrations-via-generator</code> rule."
@@ -183,7 +183,7 @@ export function Sessions() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-8 text-brand animate-spin" />
+        <Spinner className="size-8 text-brand animate-spin" />
       </div>
     );
   }
@@ -206,7 +206,7 @@ export function Sessions() {
         ))
       ) : (
         <Card className="p-8 text-center">
-          <CheckCircle2 className="mx-auto size-10 text-success" />
+          <CheckCircle className="mx-auto size-10 text-success" />
           <p className="mt-3 text-fg-primary font-medium">No sessions recorded</p>
           <p className="mt-1 text-sm text-fg-secondary">Enforcement sessions will appear here once you link a repo.</p>
         </Card>
@@ -226,7 +226,7 @@ export function Policies() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-8 text-brand animate-spin" />
+        <Spinner className="size-8 text-brand animate-spin" />
       </div>
     );
   }
@@ -287,7 +287,7 @@ export function Ai() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
-        <CardTitle className="flex items-center gap-2"><Sparkles className="size-4 text-accent" /> Rule author</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Sparkle className="size-4 text-accent" /> Rule author</CardTitle>
         <CardBody>Describe a rule in plain English; get a typed policy back.</CardBody>
         <textarea
           value={prompt}
@@ -319,7 +319,7 @@ export function Reports() {
         Delivered to your inbox at 09:00 UTC. The next report runs on the cron trigger and aggregates posture across all linked repos.
       </Callout>
       <Card>
-        <CardTitle className="flex items-center gap-2"><FileBarChart className="size-4 text-brand" /> Latest report</CardTitle>
+        <CardTitle className="flex items-center gap-2"><ChartBar className="size-4 text-brand" /> Latest report</CardTitle>
         <CardBody>No report yet — the first run happens at 09:00 UTC after you link a repo.</CardBody>
         <div className="mt-3 font-mono text-xs text-fg-muted">subject: policyctl compliance · 2026-08-29 · 3 repos · 2 violations</div>
       </Card>
@@ -327,7 +327,7 @@ export function Reports() {
   );
 }
 
-export function Settings() {
+export function Gear() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   return (

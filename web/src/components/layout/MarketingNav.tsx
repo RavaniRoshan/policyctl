@@ -1,53 +1,39 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Sun, Moon } from "lucide-react";
-import { useTheme } from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { List, X } from "@phosphor-icons/react";
 
 const GITHUB = "https://github.com/RavaniRoshan/policyctl";
-const NPM = "https://www.npmjs.com/package/@policyctl/cli";
 
 export function MarketingNav() {
   const [mobile, setMobile] = useState(false);
-  const { theme, toggle } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-bg-primary/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-content items-center justify-between px-6">
+    <header className="sticky top-0 z-50 h-16 border-b border-border bg-bg-primary/80 backdrop-blur-md">
+      <div className="mx-auto flex h-full max-w-content items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2 text-fg-primary no-underline">
           <span className="text-brand text-lg">◆</span>
-          <span className="font-display font-semibold text-lg">policyctl</span>
+          <span className="font-sans font-semibold text-lg">policyctl</span>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
-          <Link to="/docs" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors">Docs</Link>
-          <a href="#features" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors">Features</a>
-          <a href="#pricing" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors">Pricing</a>
-          <a href={GITHUB} target="_blank" rel="noreferrer" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors">GitHub</a>
+          <Link to="/docs" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-400">Docs</Link>
+          <a href="#features" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-400">Features</a>
+          <a href="#pricing" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-400">Pricing</a>
+          <a href={GITHUB} target="_blank" rel="noreferrer" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-400">GitHub</a>
         </nav>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={toggle}
-            aria-label="Toggle theme"
-            className="flex size-9 items-center justify-center rounded-lg border border-border text-fg-secondary hover:text-fg-primary hover:bg-bg-surface transition-colors"
-          >
-            {theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
-          </button>
-          <Link
-            to="/login"
-            className="hidden sm:inline-flex text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors"
-          >
+          <Link to="/login" className="hidden sm:inline-flex text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors duration-400">
             Sign in
           </Link>
           <Link
             to="/signup"
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-fg-inverse hover:bg-brand-hover transition-colors"
+            className="inline-flex h-9 items-center justify-center rounded-full bg-brand px-5 text-sm font-medium text-fg-inverse hover:bg-brand-hover transition-all duration-400 ease-fluid active:scale-[0.98]"
           >
             Get started
           </Link>
           <button className="md:hidden text-fg-secondary" onClick={() => setMobile((m) => !m)} aria-label="Toggle menu">
-            {mobile ? <X className="size-5" /> : <Menu className="size-5" />}
+            {mobile ? <X className="size-5" /> : <List className="size-5" />}
           </button>
         </div>
       </div>

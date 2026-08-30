@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
-import { Check } from "lucide-react";
+import { Check } from "@phosphor-icons/react";
 
 const steps = [
   { title: "Scaffold your policy", body: "Start from a template that encodes procedural rules, not opinions.", code: "policyctl init --template full" },
