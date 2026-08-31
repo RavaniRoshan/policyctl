@@ -1,5 +1,7 @@
 export interface Env {
   DB: D1Database;
+  /** Deployment environment (production, staging, development). */
+  NODE_ENV?: string;
   /** KV cache for parsed policies + session lookups (sub-ms reads). */
   POLICYCTL_CACHE: KVNamespace;
   /** Workers AI — edge LLM inference for semantic policy intelligence. */
