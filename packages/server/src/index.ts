@@ -27,6 +27,9 @@ import {
   resolveOrg,
   rollback,
   toCsv,
+  toWebAnalytics,
+  toWebPolicyVersion,
+  toWebViolation,
   trend,
   upsertUser,
 } from "./store.js";
@@ -39,14 +42,38 @@ import { PolicySession } from "./session.js";
 const app = new Hono<{ Bindings: Env }>();
 const API = "/api";
 
-// ── CORS for /api (lets the future dashboard SPA call cross-origin) ──
+// Global error handler — return JSON so the SPA can parse errors.
+app.onError((err, c) => {
+  console.error("Unhandled error:", err);
+  return c.json({ error: "Internal server error" }, 500);
+});
+
+// ── CORS for /api (lets the dashboard SPA call cross-origin with credentials) ──
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:4173",
+  "https://policyctl.pages.dev",
+];
 app.use(`${API}/*`, async (c, next) => {
   await next();
-  c.header("Access-Control-Allow-Origin", "*");
+  const origin = c.req.header("origin") ?? "";
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    c.header("Access-Control-Allow-Origin", origin);
+  }
   c.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   c.header("Access-Control-Allow-Headers", "content-type, authorization");
+  c.header("Access-Control-Allow-Credentials", "true");
 });
-app.options(`${API}/*`, (c) => c.body(null, 204));
+app.options(`${API}/*`, (c) => {
+  const origin = c.req.header("origin") ?? "";
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    c.header("Access-Control-Allow-Origin", origin);
+  }
+  c.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  c.header("Access-Control-Allow-Headers", "content-type, authorization");
+  c.header("Access-Control-Allow-Credentials", "true");
+  return c.body(null, 204);
+});
 
 // Map a server-side User row to the web app's User shape (string id, camelCase).
 function toWebUser(u: User) {
@@ -97,18 +124,31 @@ app.post(`${API}/auth/logout`, async (c) => {
   return c.json({ ok: true });
 });
 
+// Simple KV-based rate limiter keyed by IP. Returns true if the request should be blocked.
+async function rateLimited(c: { env: Env; req: { header: (k: string) => string | undefined } }, key: string, limit = 10, window = 60): Promise<boolean> {
+  const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const cacheKey = `rl:${key}:${ip}`;
+  const current = Number((await c.env.POLICYCTL_CACHE.get(cacheKey)) ?? "0");
+  if (current >= limit) return true;
+  await c.env.POLICYCTL_CACHE.put(cacheKey, String(current + 1), { expirationTtl: window });
+  return false;
+}
+
 /** POST /api/auth/signup — email/password signup with Turnstile. */
 app.post(`${API}/auth/signup`, async (c) => {
+  if (await rateLimited(c, "signup", 5, 300)) return c.json({ error: "rate limited" }, 429);
   const body = (await c.req.json().catch(() => ({}))) as {
     email?: string; password?: string; displayName?: string; turnstile?: string;
   };
   if (!body.email || !body.password) {
     return c.json({ error: "email and password required" }, 400);
   }
-  // Verify Turnstile if configured.
+  // Verify Turnstile if configured. Fail closed in production when missing.
   if (c.env.TURNSTILE_SECRET_SITE) {
     const ok = await verifyTurnstile(body.turnstile, c.env.TURNSTILE_SECRET_SITE);
     if (!ok) return c.json({ error: "turnstile verification failed" }, 403);
+  } else if (c.env.NODE_ENV === "production") {
+    return c.json({ error: "bot protection unavailable" }, 503);
   }
   // Check for existing user.
   const existing = await getUserByEmail(c.env.DB, body.email);
@@ -121,16 +161,19 @@ app.post(`${API}/auth/signup`, async (c) => {
 
 /** POST /api/auth/login — email/password login with Turnstile + session cookie. */
 app.post(`${API}/auth/login`, async (c) => {
+  if (await rateLimited(c, "login", 10, 300)) return c.json({ error: "rate limited" }, 429);
   const body = (await c.req.json().catch(() => ({}))) as {
     email?: string; password?: string; turnstile?: string;
   };
   if (!body.email || !body.password) {
     return c.json({ error: "email and password required" }, 400);
   }
-  // Verify Turnstile if configured.
+  // Verify Turnstile if configured. Fail closed in production when missing.
   if (c.env.TURNSTILE_SECRET_SITE) {
     const ok = await verifyTurnstile(body.turnstile, c.env.TURNSTILE_SECRET_SITE);
     if (!ok) return c.json({ error: "turnstile verification failed" }, 403);
+  } else if (c.env.NODE_ENV === "production") {
+    return c.json({ error: "bot protection unavailable" }, 503);
   }
   const user = await getUserByEmail(c.env.DB, body.email);
   if (!user || !user.password_hash || !(await verifyPassword(body.password, user.password_hash))) {
@@ -142,16 +185,20 @@ app.post(`${API}/auth/login`, async (c) => {
 });
 
 /** GET /api/auth/oauth/google — redirect to Google OAuth consent screen. */
-app.get(`${API}/auth/oauth/google`, (c) => {
+app.get(`${API}/auth/oauth/google`, async (c) => {
   const clientId = c.env.OAUTH_GOOGLE_CLIENT_ID;
   const redirectUri = c.env.OAUTH_REDIRECT_URI ?? "https://policyctl-server.shivamkumar10958.workers.dev/api/auth/oauth/callback";
   if (!clientId) return c.json({ error: "OAuth not configured" }, 501);
+  // Generate CSRF state and store in short-lived KV.
+  const state = crypto.randomUUID();
+  await c.env.POLICYCTL_CACHE.put(`oauth:state:${state}`, "1", { expirationTtl: 600 });
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("redirect_uri", redirectUri);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("access_type", "offline");
   url.searchParams.set("scope", "openid email profile");
+  url.searchParams.set("state", state);
   return c.redirect(url.toString(), 302);
 });
 
@@ -159,8 +206,14 @@ app.get(`${API}/auth/oauth/google`, (c) => {
 app.get(`${API}/auth/oauth/callback`, async (c) => {
   const code = c.req.query("code");
   const error = c.req.query("error");
+  const state = c.req.query("state");
   if (error) return c.redirect("/login?error=" + encodeURIComponent(error));
   if (!code) return c.redirect("/login?error=no_code");
+  // Validate CSRF state.
+  if (!state) return c.redirect("/login?error=missing_state");
+  const stored = await c.env.POLICYCTL_CACHE.get(`oauth:state:${state}`);
+  if (!stored) return c.redirect("/login?error=invalid_state");
+  await c.env.POLICYCTL_CACHE.delete(`oauth:state:${state}`);
 
   const clientId = c.env.OAUTH_GOOGLE_CLIENT_ID;
   const clientSecret = c.env.OAUTH_GOOGLE_CLIENT_SECRET;
@@ -232,7 +285,8 @@ app.get(`${API}/policy/versions`, async (c) => {
   if (!user) return c.json({ error: "unauthorized" }, 401);
   const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
   if (!org) return c.json({ error: "no org" }, 400);
-  return c.json({ versions: await listVersions(c.env.DB, org.id) });
+  const rows = await listVersions(c.env.DB, org.id);
+  return c.json(rows.map(toWebPolicyVersion));
 });
 
 app.post(`${API}/policy/versions/:id/rollback`, async (c) => {
@@ -268,7 +322,8 @@ app.get(`${API}/violations`, async (c) => {
   if (!user) return c.json({ error: "unauthorized" }, 401);
   const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
   if (!org) return c.json({ error: "no org" }, 400);
-  return c.json({ violations: await listViolations(c.env.DB, org.id) });
+  const rows = await listViolations(c.env.DB, org.id);
+  return c.json(rows.map(toWebViolation));
 });
 
 // ── Phase C: analytics ───────────────────────────────────────────────
@@ -278,7 +333,16 @@ app.get(`${API}/analytics`, async (c) => {
   const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
   if (!org) return c.json({ error: "no org" }, 400);
   const days = Number(c.req.query("days") ?? 30);
-  return c.json({ analytics: await analytics(c.env.DB, org.id, days) });
+  const a = await analytics(c.env.DB, org.id, days);
+  const violations24h = (await c.env.DB.prepare(
+    "SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?",
+  ).bind(org.id, Date.now() - 86400000).first<{ c: number }>())?.c ?? 0;
+  // active_sessions: distinct agents seen in the last 24h (proxy for live sessions).
+  const activeSessionsRow = (await c.env.DB.prepare(
+    "SELECT COUNT(DISTINCT agent) AS c FROM violations WHERE org_id = ? AND created_at >= ?",
+  ).bind(org.id, Date.now() - 86400000).first<{ c: number }>())?.c ?? 0;
+  const aiInsights = 0; // placeholder until AI suggestions are persisted
+  return c.json(toWebAnalytics(a, violations24h, activeSessionsRow, aiInsights));
 });
 
 // ── Phase D: Workers AI — semantic policy intelligence (paid-only) ──

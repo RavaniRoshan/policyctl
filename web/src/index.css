@@ -1,50 +1,110 @@
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/geist-sans/700.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
+@import "@fontsource/roboto-mono/400.css";
+@import "@fontsource/roboto-mono/500.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+  }
+
   body {
     margin: 0;
     font-family: var(--font-sans);
-    background: var(--n-950);
-    color: var(--n-100);
+    background: var(--background-base);
+    color: var(--accent-black);
     -webkit-font-smoothing: antialiased;
-    line-height: 1.6;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
     min-height: 100%;
+    overflow-x: clip;
+    overflow-anchor: none;
   }
-  ::selection { background: var(--pc-500); color: var(--n-950); }
-  h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.02em; }
-  /* Focus rings — WCAG 2.2 AA */
+
+  ::selection {
+    background: var(--heat-12);
+    color: var(--heat-100);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  /* Visible focus ring — WCAG 2.2 AA compliant (2px contrast) */
   :focus-visible {
-    outline: 2px solid var(--pc-400);
+    outline: 2px solid var(--heat-100);
     outline-offset: 2px;
     border-radius: 4px;
   }
-  /* No flash of unstyled content for theme */
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+
+  button {
+    font-family: inherit;
+  }
+
+  /* Skip-to-content link for keyboard users */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 8px;
+    z-index: 9999;
+    padding: 8px 16px;
+    background: var(--accent-black);
+    color: var(--accent-white);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 0 0 8px 8px;
+    transition: top 200ms ease;
+  }
+  .skip-link:focus {
+    top: 0;
   }
 }
 
 @layer components {
-  /* Reveal-on-scroll */
-  .reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
-  .reveal.in { opacity: 1; transform: none; }
-
-  /* Signature background mesh */
-  .pc-mesh {
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(13,147,115,0.18), transparent 60%),
-      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(245,158,11,0.10), transparent 60%),
-      var(--n-950);
+  .hide-scrollbar {
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 
-  /* Grain overlay */
-  .pc-grain { position: relative; }
-  .pc-grain::after {
-    content: ""; position: absolute; inset: 0; opacity: 0.04; pointer-events: none; z-index: 1;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  .backdrop-blur-4 {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .pcl-hairline-b {
+    border-bottom: 1px solid var(--border-faint);
+  }
+
+  .pcl-hairline-t {
+    border-top: 1px solid var(--border-faint);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

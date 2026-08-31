@@ -325,8 +325,11 @@ export async function reportViolations(
   const stmt = db.prepare(
     "INSERT INTO violations (org_id, repo, rule_id, enforce, message, agent, created_at, actor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
   );
-  for (const r of results) {
-    await stmt.bind(orgId, repo, r.ruleId ?? "", r.enforce ?? "", r.message ?? "", agent, ts, actor).run();
+  const bound = results.map((r) =>
+    stmt.bind(orgId, repo, r.ruleId ?? "", r.enforce ?? "", r.message ?? "", agent, ts, actor),
+  );
+  if (bound.length) {
+    await db.batch(bound);
   }
   return results.length;
 }
@@ -374,20 +377,11 @@ export async function trend(
   const since = now() - days * 86400000;
   const rows = (await db
     .prepare(
-      "SELECT created_at FROM violations WHERE org_id = ? AND created_at >= ?",
+      "SELECT date(created_at / 1000, 'unixepoch') AS day, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY day ORDER BY day",
     )
     .bind(orgId, since)
-    .all()) as unknown as { results: { created_at: number }[] };
-  const buckets = new Map<string, number>();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now() - i * 86400000);
-    buckets.set(d.toISOString().slice(0, 10), 0);
-  }
-  for (const r of rows.results) {
-    const key = new Date(r.created_at).toISOString().slice(0, 10);
-    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
-  }
-  return [...buckets.entries()].map(([day, count]) => ({ day, count }));
+    .all()) as unknown as { results: { day: string; count: number }[] };
+  return rows.results;
 }
 
 export interface Analytics {
@@ -401,37 +395,68 @@ export interface Analytics {
 
 export async function analytics(db: D1Database, orgId: number, days = 30): Promise<Analytics> {
   const since = now() - days * 86400000;
-  const all = (sql: string) => db.prepare(sql).bind(orgId, since).all() as Promise<{ results: any[] }>;
 
-  const totalRow = (await db.prepare("SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?").bind(orgId, since).first()) as { c: number };
+  const totalRow = (await db.prepare("SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?").bind(orgId, since).first()) as { c: number } | null;
   const total = totalRow?.c ?? 0;
 
-  const byActor = (await all("SELECT COALESCE(actor, 'agent') AS actor, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY COALESCE(actor, 'agent') ORDER BY count DESC")).results as { actor: string; count: number }[];
-  const byRepo = (await all("SELECT COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY repo ORDER BY count DESC LIMIT 15")).results as { repo: string; count: number }[];
-  const byRule = (await all("SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY rule_id ORDER BY count DESC LIMIT 15")).results as { rule_id: string; count: number }[];
+  const byActor = (await db.prepare("SELECT COALESCE(actor, 'agent') AS actor, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY COALESCE(actor, 'agent') ORDER BY count DESC").bind(orgId, since).all<{ actor: string; count: number }>()).results;
+  const byRepo = (await db.prepare("SELECT COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY repo ORDER BY count DESC LIMIT 15").bind(orgId, since).all<{ repo: string; count: number }>()).results;
+  const byRule = (await db.prepare("SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY rule_id ORDER BY count DESC LIMIT 15").bind(orgId, since).all<{ rule_id: string; count: number }>()).results;
+  const trend = await trendQuery(db, orgId, days);
 
-  const trendRows = (await db.prepare("SELECT created_at FROM violations WHERE org_id = ? AND created_at >= ?").bind(orgId, since).all()) as unknown as { results: { created_at: number }[] };
-  const buckets = new Map<string, number>();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now() - i * 86400000);
-    buckets.set(d.toISOString().slice(0, 10), 0);
-  }
-  for (const r of trendRows.results) {
-    const key = new Date(r.created_at).toISOString().slice(0, 10);
-    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
-  }
-  const trend = [...buckets.entries()].map(([day, count]) => ({ day, count }));
-
-  const repeatOffenders = (await (db
+  const repeatOffenders = (await db
     .prepare(
       `SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count
        FROM violations WHERE org_id = ? AND created_at >= ?
        GROUP BY rule_id, repo HAVING count > 1 ORDER BY count DESC LIMIT 20`,
     )
     .bind(orgId, since)
-    .all() as Promise<{ results: { rule_id: string; repo: string; count: number }[] }>)).results;
+    .all<{ rule_id: string; repo: string; count: number }>()).results;
 
   return { total, byActor, byRepo, byRule, trend, repeatOffenders };
+}
+
+// Alias to avoid name collision with the `trend` field inside Analytics.
+async function trendQuery(db: D1Database, orgId: number, days: number) {
+  return trend(db, orgId, days);
+}
+
+// Map backend Analytics to the web app's expected shape.
+export function toWebAnalytics(a: Analytics, violations24h: number, activeSessions: number, aiInsights: number) {
+  // compliance_score: 100 minus a penalty proportional to recent violations.
+  const penalty = Math.min(100, violations24h * 2 + a.repeatOffenders.length * 5);
+  return {
+    compliance_score: 100 - penalty,
+    active_sessions: activeSessions,
+    violations_24h: violations24h,
+    ai_insights: aiInsights,
+  };
+}
+
+// Map a backend Violation row to the web app's Violation type.
+export function toWebViolation(v: Violation) {
+  return {
+    id: String(v.id),
+    repo: v.repo ?? "",
+    rule_id: v.rule_id ?? "",
+    enforce: v.enforce ?? "",
+    message: v.message ?? "",
+    agent: v.agent ?? "",
+    created_at: new Date(v.created_at).toISOString(),
+  };
+}
+
+// Map a backend PolicyVersion row (with author_email) to the web app's PolicyVersion type.
+export function toWebPolicyVersion(v: PolicyVersion & { author_email?: string | null }) {
+  return {
+    id: String(v.id),
+    version: v.version,
+    yaml: v.yaml,
+    author_id: v.author_id != null ? String(v.author_id) : "",
+    author_email: v.author_email ?? null,
+    note: v.note ?? "",
+    created_at: new Date(v.created_at).toISOString(),
+  };
 }
 
 export function toCsv(violations: Violation[]): string {

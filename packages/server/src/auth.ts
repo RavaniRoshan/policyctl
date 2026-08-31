@@ -53,6 +53,8 @@ export async function verifyPassword(password: string, stored: string | null): P
   if (parts.length !== 4) return false;
   const [, iterStr, saltHex, hashHex] = parts;
   const iterations = Number(iterStr);
+  // Reject hashes weaker than the current standard.
+  if (!Number.isFinite(iterations) || iterations < PASSWORD_ITERATIONS) return false;
   const salt = Uint8Array.from(saltHex.match(/.{2}/g)!.map((h) => parseInt(h, 16)));
   const expected = Uint8Array.from(hashHex.match(/.{2}/g)!.map((h) => parseInt(h, 16)));
   try {

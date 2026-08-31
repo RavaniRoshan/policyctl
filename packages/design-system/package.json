@@ -6,7 +6,21 @@
   "exports": {
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens.css",
-    "./components.css": "./src/components.css"
+    "./primitives.css": "./src/primitives.css"
   },
-  "files": ["src"]
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "framer-motion": "^13.1.1"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router-dom": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7"
+  }
 }

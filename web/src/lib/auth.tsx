@@ -2,9 +2,11 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
 import { api, type Session, type User } from "./api";
 
 interface AuthState {
@@ -42,8 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const value = useMemo(
+    () => ({ user, loading, login, signup, logout }),
+    [user, loading],
+  );
+
   return (
-    <AuthCtx.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthCtx.Provider value={value}>
       {children}
     </AuthCtx.Provider>
   );
@@ -57,19 +64,25 @@ export function useAuth(): AuthState {
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      const next = window.location.pathname + window.location.search;
+      setRedirectTo(`/login?next=${encodeURIComponent(next)}`);
+    }
+  }, [user, loading]);
+
   if (loading) {
     return (
-      <div className="min-h-screen grid place-items-center text-n-400 font-mono text-sm">
+      <div className="min-h-screen grid place-items-center text-black-alpha-48 font-mono text-mono-small">
         Loading…
       </div>
     );
   }
-  if (!user) {
-    const next = encodeURIComponent(
-      typeof window !== "undefined" ? window.location.pathname : "/dashboard",
-    );
-    window.location.href = `/login?next=${next}`;
-    return null;
+  if (redirectTo) {
+    return <Navigate to={redirectTo} replace />;
   }
   return <>{children}</>;
 }

@@ -23,8 +23,8 @@ export function loadConfig(): HostConfig {
 }
 
 export function saveConfig(cfg: HostConfig): void {
-  mkdirSync(CONFIG_DIR, { recursive: true });
-  writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2));
+  mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2), { mode: 0o600 });
   console.error(`policyctl: config saved to ${CONFIG_PATH}`);
 }
 

@@ -1,63 +1,65 @@
-# policyctl web (preview)
+# policyctl — web app
 
-A small shadcn-compatible React + Vite + Tailwind + TypeScript app used as
-the **integration target** for the `GradientWave` WebGL component.
+The unified React + Vite + Tailwind + TypeScript SPA for policyctl.
+This is the **only** web surface — landing, docs, auth, onboarding, and
+the dashboard all live here.
 
-## Why this exists
+## Design language
 
-The marketing site (`/site`) is a static, hand-rolled multi-page Vite build
-(HTML + CSS, no React) so it stays at zero JS and ships to Cloudflare Pages
-in seconds. The WebGL `GradientWave` component is a React + Tailwind component
-from a 21st-style design system, so we keep a separate, lean `web/` workspace
-for it to be developed, tested, and demoed against.
+Firecrawl-inspired **blueprint minimalism**:
 
-## Structure
+- White technical drawing. 1px hairline grid. Mono annotations in brackets
+  (`[ 200 OK ]`, `[ .JSON ]`, `// Developer First //`).
+- Single accent: **heat orange** `#fa5d19` (only color, does all emphasis work).
+- Structural corners (CurvyRect SVG brackets), not border-radius on structure.
+- Living wireframes: scramble-decode chips, marquees, count-ups.
+- Linear slow loops, `prefers-reduced-motion` respected everywhere.
 
-```
-web/
-├── src/
-│   ├── components/ui/        # shadcn-style UI components (gradient-wave.tsx, …)
-│   ├── lib/utils.ts          # `cn()` helper
-│   ├── App.tsx               # demo: GradientWave adapted to policyctl tokens
-│   ├── main.tsx
-│   └── index.css
-├── components.json           # shadcn config
-├── tailwind.config.ts
-├── postcss.config.cjs
-├── vite.config.ts
-└── tsconfig.json
-```
+## Stack
 
-The `components/ui/` path is the shadcn default. Keeping components there
-keeps the import alias `@/components/ui/…` consistent and lets `npx shadcn add`
-add more primitives later without restructuring.
+| Layer | Choice |
+| --- | --- |
+| Framework | React 18 + TypeScript |
+| Build | Vite 6 |
+| Styling | Tailwind 3.4 (1 unit = 1 px, custom heat scale) |
+| Components | `@policyctl/design-system` (Firecrawl primitives) |
+| Routing | React Router v7 |
+| Data | TanStack Query 5 |
+| Forms | React Hook Form + Zod |
+| Animation | Framer Motion |
+| Icons | Phosphor |
+| Markdown | `react-markdown` + remark-gfm + rehype-slug + rehype-highlight |
+
+## Routes
+
+| Path | Page |
+| --- | --- |
+| `/` | Landing — hero + 5 sections + pricing + FAQ + CTA |
+| `/docs` | Documentation viewer (markdown + search) |
+| `/login` | Sign in (RHF + Zod, Turnstile) |
+| `/signup` | Create account |
+| `/onboarding` | 4-step wizard (auth required) |
+| `/dashboard` | Overview (auth required) |
+| `/dashboard/sessions` | Enforcement log + sheet detail |
+| `/dashboard/policies` | Version table + expandable YAML |
+| `/dashboard/ai` | Rule author + analyzer with history |
+| `/dashboard/reports` | Delivery schedule + latest report |
+| `/dashboard/settings` | Account, API key, theme, danger zone |
 
 ## Run
 
 ```bash
+pnpm install
 pnpm --filter policyctl-web dev      # http://localhost:5173
-pnpm --filter policyctl-web build    # type-check + build to dist/
+pnpm --filter policyctl-web build    # type-check + vite build
 ```
 
-## shadcn setup notes
+## Deploy
 
-If you want to extend with more components, this project is pre-wired so:
+Outputs to `dist/`. Configure your host (Cloudflare Pages, etc.) to serve
+`dist/` with SPA fallback. The `_redirects` file is preserved.
 
-```bash
-npx shadcn@latest init                # picks up components.json
-npx shadcn@latest add button card    # adds to src/components/ui/
-```
+## Token source
 
-The current setup uses Tailwind 3 + Vite 6 + React 18 + TypeScript 5, which
-is the supported matrix for shadcn-ui at the time of writing.
-
-## Color adaptation
-
-The component is invoked in `App.tsx` with a 6-color palette pulled from
-`packages/design-system/src/tokens.css`:
-
-```ts
-colors={["#0D9373", "#02241e", "#F59E0B", "#043a2f", "#34d399", "#086651"]}
-```
-
-`darkenTop` is enabled so the hero copy stays readable.
+Tokens live in `packages/design-system/src/tokens.css`. Read those before
+tweaking colors, spacing, or motion.

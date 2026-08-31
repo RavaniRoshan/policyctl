@@ -1,50 +1,127 @@
 import { Link } from "react-router-dom";
 
-const GITHUB = "https://github.com/RavaniRoshan/policyctl";
-const NPM = "https://www.npmjs.com/package/@policyctl/cli";
-const X = "https://x.com/policyctl";
+const COLS: { heading: string; links: { label: string; to?: string; href?: string }[] }[] = [
+  {
+    heading: "Product",
+    links: [
+      { label: "Features", to: "/#features" },
+      { label: "Pricing", to: "/#pricing" },
+      { label: "Documentation", to: "/docs" },
+      { label: "GitHub", href: "https://github.com/RavaniRoshan/policyctl" },
+    ],
+  },
+  {
+    heading: "Use cases",
+    links: [
+      { label: "Migrations via generator", to: "/docs" },
+      { label: "Secret scanning", to: "/docs" },
+      { label: "Protected paths", to: "/docs" },
+      { label: "CI gate", to: "/docs" },
+    ],
+  },
+  {
+    heading: "Resources",
+    links: [
+      { label: "Getting started", to: "/docs" },
+      { label: "CLI reference", to: "/docs" },
+      { label: "Examples", to: "/docs" },
+      { label: "Changelog", href: "https://github.com/RavaniRoshan/policyctl/releases" },
+    ],
+  },
+  {
+    heading: "Legal",
+    links: [
+      { label: "Terms of service", to: "/docs" },
+      { label: "Privacy policy", to: "/docs" },
+      { label: "Report abuse", href: "mailto:help@policyctl.dev" },
+    ],
+  },
+];
 
 export function Footer() {
   return (
-    <footer className="border-t border-n-800 mt-16">
-      <div className="mx-auto max-w-content px-6 py-10 grid gap-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-          <div className="flex items-center gap-2 text-n-100">
-            <span className="text-pc-400">◆</span>
-            <span className="font-display font-semibold text-lg">policyctl</span>
+    <footer className="relative pt-0">
+      <div className="pcl-index-strip pl-5 lg:pl-10">
+        <div className="pcl-index-strip__cell">
+          <span className="pcl-index-strip__label">FOOTER</span>
+        </div>
+        <div className="pcl-index-strip__cell" />
+      </div>
+
+      <div className="pcl-container py-32 lg:py-56">
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-32 lg:gap-64">
+          <div className="px-16 lg:px-32">
+            <div className="flex items-center gap-2 mb-16">
+              <span className="font-mono text-mono-medium uppercase tracking-wider">
+                policyctl
+              </span>
+            </div>
+            <p className="text-label-x-large text-accent-black max-w-sm">
+              Make your coding agents <span className="text-heat-100">obey the rules</span>.
+            </p>
+            <p className="text-body-medium text-black-alpha-64 mt-8 max-w-sm">
+              The easiest way to keep Claude, Codex, and Cursor inside the lines you draw.
+            </p>
           </div>
-          <p className="mt-3 text-n-400 text-sm max-w-xs">
-            Provider-agnostic policy runtime for coding agents. One file, every agent, every repo.
-          </p>
-          <p className="mt-4 text-n-500 text-xs">MIT · © 2026 policyctl</p>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-16 px-16 lg:px-32">
+            {COLS.map((col) => (
+              <div key={col.heading}>
+                <div className="text-label-medium text-accent-black py-12 px-16 lg:p-16 lg:px-20 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+                  {col.heading}
+                </div>
+                <ul className="space-y-4">
+                  {col.links.map((l) => (
+                    <li key={l.label} className="-mt-1 relative">
+                      <LinkOrAnchor
+                        to={l.to}
+                        href={l.href}
+                        className="text-label-small text-black-alpha-72 hover:text-heat-100 transition-colors duration-200 block py-8 px-16 lg:px-20 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
+                      >
+                        {l.label}
+                      </LinkOrAnchor>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
-        <div>
-          <div className="font-mono text-xs uppercase tracking-wider text-n-500 mb-3">Product</div>
-          <ul className="space-y-2 text-sm text-n-300">
-            <li><a href="/#how" className="hover:text-pc-300">How it works</a></li>
-            <li><a href="/#enforce" className="hover:text-pc-300">Enforce</a></li>
-            <li><a href="/#pricing" className="hover:text-pc-300">Pricing</a></li>
-            <li><Link to="/docs" className="hover:text-pc-300">Docs</Link></li>
-          </ul>
-        </div>
-        <div>
-          <div className="font-mono text-xs uppercase tracking-wider text-n-500 mb-3">Resources</div>
-          <ul className="space-y-2 text-sm text-n-300">
-            <li><Link to="/docs" className="hover:text-pc-300">Documentation</Link></li>
-            <li><Link to="/login" className="hover:text-pc-300">Control plane</Link></li>
-            <li><a href={GITHUB} target="_blank" rel="noreferrer" className="hover:text-pc-300">GitHub</a></li>
-            <li><a href={NPM} target="_blank" rel="noreferrer" className="hover:text-pc-300">npm</a></li>
-          </ul>
-        </div>
-        <div>
-          <div className="font-mono text-xs uppercase tracking-wider text-n-500 mb-3">Company</div>
-          <ul className="space-y-2 text-sm text-n-300">
-            <li><a href={X} target="_blank" rel="noreferrer" className="hover:text-pc-300">X / Twitter</a></li>
-            <li><a href="https://news.ycombinator.com/item?id=49466458" target="_blank" rel="noreferrer" className="hover:text-pc-300">Ask HN</a></li>
-            <li><span className="text-n-500">Built for staff engineers</span></li>
-          </ul>
+
+        <div className="mt-32 lg:mt-64 flex flex-col md:flex-row items-start md:items-center justify-between gap-12 px-16 lg:px-32 -mt-1">
+          <div className="text-mono-x-small text-black-alpha-32 font-mono px-16 lg:px-20 py-12 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+            © {new Date().getFullYear()} policyctl
+          </div>
+          <div className="text-mono-x-small text-black-alpha-32 font-mono">
+            MIT licensed · Built on Cloudflare
+          </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function LinkOrAnchor({
+  to,
+  href,
+  className,
+  children,
+}: {
+  to?: string;
+  href?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (to) {
+    return (
+      <Link to={to} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className={className}>
+      {children}
+    </a>
   );
 }

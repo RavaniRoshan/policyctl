@@ -16,7 +16,7 @@ function loadTurnstileScript(): Promise<void> {
     if (document.getElementById(SCRIPT_ID)) return resolve();
     const s = document.createElement("script");
     s.id = SCRIPT_ID;
-    s.src = "https://challenges.cloudflare.com/cdn-cgi/scripts/main/49514726/cloudflare-turnstile.min.js";
+    s.src = "https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/v0/api.js";
     s.async = true;
     s.defer = true;
     s.onload = () => resolve();
@@ -51,7 +51,7 @@ export function useTurnstile() {
 /** Renders the Cloudflare Turnstile challenge widget. */
 export function TurnstileWidget({
   action = "auth",
-  theme = "dark",
+  theme = "auto",
 }: {
   action?: string;
   theme?: "light" | "dark" | "auto";
@@ -59,29 +59,25 @@ export function TurnstileWidget({
   const { siteKey, setToken } = useTurnstile();
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const render = () => {
+  useEffect(() => {
+    if (!siteKey) {
+      console.warn("Turnstile: no site key configured — widget hidden");
+      return;
+    }
     const container = containerRef.current;
     if (!container || !window.turnstile) return;
-    // Clear any previous widget
+    // Reset any previous widget before re-rendering.
+    window.turnstile.reset();
     container.innerHTML = "";
     window.turnstile.render(container, {
-      sitekey: siteKey ?? "",
+      sitekey: siteKey,
       theme,
       action,
       callback: (t: string) => setToken(t),
       "error-callback": () => setToken(null),
       "timeout-callback": () => setToken(null),
     });
-  };
-
-  useEffect(() => {
-    if (!siteKey) {
-      console.warn("Turnstile: no site key configured — widget hidden");
-      return;
-    }
-    const id = window.setTimeout(render, 0);
-    return () => window.clearTimeout(id);
-  }, [siteKey, theme, action]);
+  }, [siteKey, theme, action, setToken]);
 
   if (!siteKey) return null;
   return <div ref={containerRef} />;

@@ -17,9 +17,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new ApiError(res.status, `Invalid response from server (${res.status})`);
+    }
+  }
   if (!res.ok) {
-    throw new ApiError(res.status, data?.error || `Request failed (${res.status})`);
+    const errMsg = (data && typeof data === "object" && "error" in data)
+      ? (data as { error: string }).error
+      : `Request failed (${res.status})`;
+    throw new ApiError(res.status, errMsg);
   }
   return data as T;
 }
@@ -46,7 +56,7 @@ export interface Violation {
   id: string;
   repo: string;
   rule_id: string;
-  enforce: string;
+  enforce: string | null;
   message: string;
   agent: string;
   created_at: string;
@@ -57,8 +67,20 @@ export interface PolicyVersion {
   version: number;
   yaml: string;
   author_id: string;
+  author_email: string | null;
   note: string;
   created_at: string;
+}
+
+export interface AiAnalyzeResult {
+  summary: string;
+  violations: string[];
+  suggestedRules: string[];
+}
+
+export interface AiAuthorResult {
+  rule: string;
+  explanation: string;
 }
 
 export const api = {
@@ -68,11 +90,9 @@ export const api = {
   login: (body: { email: string; password: string; turnstile?: string }) =>
     request<Session>("/api/auth/login", { method: "POST", body: JSON.stringify(body) }),
   logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
-  oauthUrl: (provider: "google" | "apple") =>
-    request<{ url: string }>(`/api/auth/oauth/${provider}`),
   analytics: () => request<Analytics>("/api/analytics"),
   violations: () => request<Violation[]>("/api/violations"),
   policyVersions: () => request<PolicyVersion[]>("/api/policy/versions"),
-  aiAnalyze: (text: string) => request<{ analysis: string }>("/api/ai/analyze", { method: "POST", body: JSON.stringify({ text }) }),
-  aiAuthor: (text: string) => request<{ yaml: string }>("/api/ai/author", { method: "POST", body: JSON.stringify({ text }) }),
+  aiAnalyze: (text: string) => request<AiAnalyzeResult>("/api/ai/analyze", { method: "POST", body: JSON.stringify({ diff: text }) }),
+  aiAuthor: (text: string) => request<AiAuthorResult>("/api/ai/author", { method: "POST", body: JSON.stringify({ intent: text }) }),
 };

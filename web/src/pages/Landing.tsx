@@ -1,326 +1,949 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowUpRight, ShieldCheck, Database, Sparkle, GitBranch, Cpu, Eye, Check, Lock, ChartBar } from "@phosphor-icons/react";
+import {
+  Section,
+  IndexStrip,
+  FooterStrip,
+  Marquee,
+  Scramble,
+  Typewriter,
+  CountUp,
+  FeatureTabs,
+  CurvyRect,
+} from "@policyctl/design-system";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowUpRight,
+  ShieldCheck,
+  Database,
+  Sparkle,
+  GitBranch,
+  Cpu,
+  Eye,
+  Check,
+  Lock,
+  ChartBar,
+  Plus,
+  Minus,
+} from "@phosphor-icons/react";
 import { MarketingNav } from "@/components/layout/MarketingNav";
+import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/ui/code-block";
-import { DoppelCard } from "@/components/ui/card";
-import { ProductMockup } from "@/components/ui/marks";
+import { Badge } from "@/components/ui/badge";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24, filter: "blur(8px)" },
   visible: { opacity: 1, y: 0, filter: "blur(0px)" },
 };
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
-};
+const stagger = { visible: { transition: { staggerChildren: 0.06 } } };
 
 export function Landing() {
   return (
-    <div className="min-h-screen bg-bg-primary selection:bg-brand/20">
+    <div className="min-h-screen bg-background-base text-accent-black overflow-x-clip">
       <MarketingNav />
-
-      {/* Hero — massive typography + radial mesh gradient */}
-      <section className="relative overflow-hidden border-b border-border">
-        {/* Radial mesh gradient background */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-0 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-brand/[0.03] blur-[120px]" />
-          <div className="absolute right-0 top-1/4 h-[400px] w-[400px] rounded-full bg-accent-warm/[0.02] blur-[100px]" />
-        </div>
-
-        <div className="relative mx-auto max-w-content px-6 pt-24 pb-32 sm:pt-32 sm:pb-40">
-          <motion.div variants={stagger} initial="hidden" animate="visible" className="mx-auto max-w-3xl text-center">
-            <motion.div variants={fadeUp}>
-              <Badge tone="brand" className="mb-8">Provider-agnostic policy runtime</Badge>
-            </motion.div>
-
-            <motion.h1
-              variants={fadeUp}
-              className="font-sans text-5xl font-bold leading-[1.05] tracking-tight text-fg-primary sm:text-6xl lg:text-7xl"
-            >
-              Make your coding agents{" "}
-              <span className="text-brand">obey the rules.</span>
-            </motion.h1>
-
-            <motion.p variants={fadeUp} className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-fg-secondary">
-              One <code className="font-mono text-sm bg-bg-subtle px-1.5 py-0.5 rounded-md text-fg-primary border border-border">.policyctl.yml</code>, enforced inside Claude Code, Codex, and Cursor at tool-call time, and again as a hard gate in CI.
-            </motion.p>
-
-            <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center justify-center gap-4">
-              <Link to="/signup">
-                <Button size="lg" trailingIcon>Get started free</Button>
-              </Link>
-              <Link to="/docs">
-                <Button size="lg" variant="ghost">Read the docs</Button>
-              </Link>
-            </motion.div>
-
-            <motion.div variants={fadeUp} className="mt-6 flex items-center justify-center gap-6 text-sm text-fg-muted">
-              <span className="flex items-center gap-1.5"><Check className="size-4 text-success" /> Free CLI</span>
-              <span className="flex items-center gap-1.5"><Check className="size-4 text-success" /> MIT licensed</span>
-              <span className="flex items-center gap-1.5"><Check className="size-4 text-success" /> Local-first</span>
-            </motion.div>
-          </motion.div>
-
-          {/* Product mockup with Z-axis cascade */}
-          <motion.div
-            initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1, delay: 0.4, ease: [0.32, 0.72, 0, 1] }}
-            className="relative mx-auto mt-20 max-w-2xl"
-          >
-            <div className="absolute -left-12 -top-6 rotate-[-8deg] opacity-50 blur-[2px]">
-              <div className="w-44 rounded-xl border border-border bg-bg-elevated p-3 shadow-md">
-                <div className="font-mono text-[10px] text-fg-muted">$ policyctl init --template full</div>
-              </div>
-            </div>
-            <div className="absolute -right-10 -top-4 rotate-[5deg] opacity-40 blur-[2px]">
-              <div className="w-36 rounded-xl border border-border bg-bg-elevated p-3 shadow-md">
-                <div className="font-mono text-[10px] text-fg-muted">$ policyctl gen claude</div>
-              </div>
-            </div>
-            <ProductMockup className="relative z-10" />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Trust logos */}
-      <section className="border-b border-border py-14">
-        <div className="mx-auto max-w-content px-6">
-          <p className="text-center text-sm font-medium text-fg-muted mb-10">Works with the tools you already use</p>
-          <div className="flex flex-wrap items-center justify-center gap-10">
-            {["Claude Code", "Codex", "Cursor", "GitHub Actions", "D1", "Workers AI"].map((name) => (
-              <span key={name} className="text-base font-medium text-fg-muted">{name}</span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features — Asymmetrical Bento Grid */}
-      <section id="features" className="border-b border-border py-28 sm:py-40">
-        <div className="mx-auto max-w-content px-6">
-          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="max-w-2xl">
-            <motion.div variants={fadeUp}>
-              <Badge tone="warm" className="mb-6">Capabilities</Badge>
-            </motion.div>
-            <motion.h2 variants={fadeUp} className="font-sans text-3xl font-bold tracking-tight text-fg-primary sm:text-4xl">
-              Everything you can enforce.
-            </motion.h2>
-            <motion.p variants={fadeUp} className="mt-4 text-lg text-fg-secondary">
-              Encode procedural rules once. policyctl generates the hook for each provider and enforces the same engine in CI.
-            </motion.p>
-          </motion.div>
-
-          {/* Bento grid — varying sizes */}
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          >
-            {[
-              { icon: ShieldCheck, title: "Migrations via generator", desc: "Block migrations lacking the generator signature, at hook time and in CI.", span: "col-span-2", tone: "brand" as const },
-              { icon: Database, title: "No protected edits", desc: "Prevent agents touching README, package.json, or any path.", span: "col-span-1", tone: "warm" as const },
-              { icon: Cpu, title: "No secrets in commits", desc: "Regex-detect AWS, GitHub, OpenAI keys, then fail the build.", span: "col-span-1", tone: "coral" as const },
-              { icon: GitBranch, title: "Tests for source", desc: "Warn when a src/ change ships without a matching test.", span: "col-span-1", tone: "sky" as const },
-              { icon: Eye, title: "Live enforcement sessions", desc: "Stream agent tool calls; kill a session on violation.", span: "col-span-1", tone: "brand" as const },
-              { icon: Sparkle, title: "AI rule author", desc: "Describe a rule in plain English; get a typed policy.", span: "col-span-2", tone: "warm" as const },
-              { icon: ChartBar, title: "Daily compliance report", desc: "Per-repo posture delivered to your inbox at 9am UTC.", span: "col-span-1", tone: "coral" as const },
-              { icon: Lock, title: "Allowlisted exceptions", desc: "Reviewed exceptions that don't weaken the policy.", span: "col-span-1", tone: "sky" as const },
-            ].map((f) => {
-              const Icon = f.icon;
-              return (
-                <motion.div key={f.title} variants={fadeUp} className={f.span}>
-                  <DoppelCard className="h-full">
-                    <div className="flex size-10 items-center justify-center rounded-lg bg-brand/10 text-brand">
-                      <Icon className="size-5" />
-                    </div>
-                    <h3 className="mt-4 font-sans text-base font-semibold text-fg-primary">{f.title}</h3>
-                    <p className="mt-2 text-sm text-fg-secondary">{f.desc}</p>
-                    <Badge tone={f.tone} className="mt-4">{f.tone}</Badge>
-                  </DoppelCard>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* How it works — 3 steps */}
-      <section className="border-b border-border py-28 sm:py-40">
-        <div className="mx-auto max-w-content px-6">
-          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="max-w-2xl">
-            <motion.div variants={fadeUp}>
-              <Badge tone="sky" className="mb-6">How it works</Badge>
-            </motion.div>
-            <motion.h2 variants={fadeUp} className="font-sans text-3xl font-bold tracking-tight text-fg-primary sm:text-4xl">
-              Three commands. One file. No backend required.
-            </motion.h2>
-          </motion.div>
-
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            className="mt-16 grid gap-6 md:grid-cols-3"
-          >
-            {[
-              { n: "01", t: "Scaffold", d: "Start from a template that encodes procedural rules, not opinions.", c: "policyctl init --template full" },
-              { n: "02", t: "Generate hooks", d: "Write the exact glue for each provider.", c: "policyctl gen claude\npolicyctl gen codex\npolicyctl gen cursor" },
-              { n: "03", t: "Gate the diff", d: "Fail CI on violations and stream them to the dashboard.", c: "policyctl check\npolicyctl check --report" },
-            ].map((s) => (
-              <motion.div key={s.t} variants={fadeUp}>
-                <DoppelCard className="h-full">
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-brand/10 text-brand font-sans font-bold">{s.n}</div>
-                  <h3 className="mt-4 font-sans text-xl font-semibold text-fg-primary">{s.t}</h3>
-                  <p className="mt-2 text-sm text-fg-secondary">{s.d}</p>
-                  <CodeBlock code={s.c} lang="bash" className="mt-5" />
-                </DoppelCard>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Comparison */}
-      <section className="border-b border-border py-28 sm:py-40">
-        <div className="mx-auto max-w-content px-6">
-          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="grid gap-6 lg:grid-cols-2">
-            <motion.div variants={fadeUp}>
-              <DoppelCard className="h-full border-danger/20">
-                <div className="flex items-center gap-2 font-semibold text-danger">
-                  <span className="size-5 rounded-full bg-danger/20 flex items-center justify-center text-xs">✕</span>
-                  Soft guardrails (prompt files)
-                </div>
-                <ul className="mt-4 space-y-3 text-sm text-fg-secondary">
-                  <li className="flex gap-2"><span className="text-danger">✗</span> CLAUDE.md, .cursorrules — suggestions agents skip</li>
-                  <li className="flex gap-2"><span className="text-danger">✗</span> No state survives a context reset</li>
-                  <li className="flex gap-2"><span className="text-danger">✗</span> Vendor-locked: one file per agent</li>
-                </ul>
-              </DoppelCard>
-            </motion.div>
-            <motion.div variants={fadeUp}>
-              <DoppelCard className="h-full border-success/20">
-                <div className="flex items-center gap-2 font-semibold text-success">
-                  <span className="size-5 rounded-full bg-success/20 flex items-center justify-center text-xs">✓</span>
-                  policyctl (deterministic)
-                </div>
-                <ul className="mt-4 space-y-3 text-sm text-fg-secondary">
-                  <li className="flex gap-2"><span className="text-success">✓</span> Hard block at tool-call time (hook)</li>
-                  <li className="flex gap-2"><span className="text-success">✓</span> Hard gate in CI — build stops</li>
-                  <li className="flex gap-2"><span className="text-success">✓</span> Audit trail + live session feed</li>
-                </ul>
-              </DoppelCard>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Social proof */}
-      <section className="border-b border-border py-28 sm:py-40">
-        <div className="mx-auto max-w-content px-6">
-          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="grid gap-12 lg:grid-cols-2 items-center">
-            <motion.div variants={fadeUp}>
-              <p className="text-lg leading-relaxed text-fg-primary">
-                "We encode 'migrations only via CLI codegen' once and it's enforced in Claude, Codex, and CI."
-              </p>
-              <p className="mt-4 text-sm text-fg-muted">Staff Engineer, infrastructure platform team</p>
-            </motion.div>
-            <motion.div variants={fadeUp}>
-              <p className="text-sm font-mono uppercase tracking-wider text-fg-muted mb-6">Trusted in production with</p>
-              <div className="flex flex-wrap gap-3">
-                {["Claude Code", "Codex", "Cursor", "D1", "Workers AI", "Durable Objects"].map((name) => (
-                  <span key={name} className="rounded-full border border-border bg-bg-surface px-4 py-2 text-sm text-fg-secondary font-medium">{name}</span>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="border-b border-border py-28 sm:py-40">
-        <div className="mx-auto max-w-content px-6">
-          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} className="max-w-2xl">
-            <motion.div variants={fadeUp}>
-              <Badge tone="coral" className="mb-6">Pricing</Badge>
-            </motion.div>
-            <motion.h2 variants={fadeUp} className="font-sans text-3xl font-bold tracking-tight text-fg-primary sm:text-4xl">
-              Free CLI. Paid control plane.
-            </motion.h2>
-          </motion.div>
-
-          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} className="mt-16 grid gap-6 lg:grid-cols-2">
-            <motion.div variants={fadeUp}>
-              <DoppelCard className="h-full">
-                <div className="font-sans text-xl font-semibold text-fg-primary">CLI</div>
-                <div className="mt-3 font-sans text-4xl font-bold text-fg-primary">$0<span className="text-lg text-fg-muted font-normal"> / forever</span></div>
-                <ul className="mt-6 space-y-3 text-sm text-fg-secondary">
-                  <li className="flex gap-2"><Check className="size-5 text-success shrink-0" /> All 12 commands, local-first</li>
-                  <li className="flex gap-2"><Check className="size-5 text-success shrink-0" /> Hooks for Claude, Codex, Cursor</li>
-                  <li className="flex gap-2"><Check className="size-5 text-success shrink-0" /> CI gate + 8 matchers</li>
-                </ul>
-                <Link to="/docs" className="mt-8 block"><Button variant="outline" className="w-full">Read the docs</Button></Link>
-              </DoppelCard>
-            </motion.div>
-            <motion.div variants={fadeUp}>
-              <DoppelCard variant="glow" className="h-full border-brand/20">
-                <div className="absolute top-4 right-4"><Badge tone="brand">Paid</Badge></div>
-                <div className="font-sans text-xl font-semibold text-fg-primary">Control plane</div>
-                <div className="mt-3 font-sans text-4xl font-bold text-fg-primary">Usage-based</div>
-                <ul className="mt-6 space-y-3 text-sm text-fg-secondary">
-                  <li className="flex gap-2"><Check className="size-5 text-brand shrink-0" /> Cross-repo policy versioning</li>
-                  <li className="flex gap-2"><Check className="size-5 text-brand shrink-0" /> Live enforcement sessions</li>
-                  <li className="flex gap-2"><Check className="size-5 text-brand shrink-0" /> AI rule author + analyzer</li>
-                </ul>
-                <Link to="/signup" className="mt-8 block"><Button className="w-full" trailingIcon>Start free trial</Button></Link>
-              </DoppelCard>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-28 sm:py-40">
-        <div className="mx-auto max-w-content px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 32, filter: "blur(8px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
-            className="rounded-2xl border border-border bg-bg-elevated p-12 text-center"
-          >
-            <h2 className="font-sans text-3xl font-bold tracking-tight text-fg-primary sm:text-4xl">Stop shipping agent accidents.</h2>
-            <p className="mt-4 text-lg text-fg-secondary">One file, every agent, every repo. The CLI is free forever.</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Link to="/signup"><Button size="lg" trailingIcon>Get started free</Button></Link>
-              <Link to="/docs"><Button size="lg" variant="ghost">Read the docs</Button></Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-14">
-        <div className="mx-auto max-w-content px-6">
-          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div className="flex items-center gap-2 text-fg-primary">
-              <span className="text-brand text-lg">◆</span>
-              <span className="font-sans font-semibold">policyctl</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-6 text-sm text-fg-muted">
-              <Link to="/docs" className="hover:text-fg-primary transition-colors duration-400">Docs</Link>
-              <a href="https://github.com/RavaniRoshan/policyctl" target="_blank" rel="noreferrer" className="hover:text-fg-primary transition-colors duration-400">GitHub</a>
-              <a href="https://www.npmjs.com/package/@policyctl/cli" target="_blank" rel="noreferrer" className="hover:text-fg-primary transition-colors duration-400">npm</a>
-            </div>
-            <div className="text-sm text-fg-muted">MIT License</div>
-          </div>
-        </div>
-      </footer>
+      <main id="main-content" tabIndex={-1} className="focus:outline-none">
+      <Hero />
+      <TrustedBy />
+      <Section
+        index={1}
+        total={6}
+        id="features"
+        label="Developer first"
+        badge={<>Developer first</>}
+        title={
+          <>
+            Write rules <span className="text-heat-100">once</span>,
+            <br className="lg:hidden" /> enforce everywhere
+          </>
+        }
+        subtitle="One YAML file. Hooks at tool-call time. A gate in CI. A dashboard when it matters."
+      >
+        <DeveloperFirst />
+      </Section>
+      <Section
+        index={2}
+        total={6}
+        label="Agent ready"
+        compact
+        badge={<>Agent ready</>}
+        title={
+          <>
+            Connect with your <span className="text-heat-100">AI agents</span>
+          </>
+        }
+        subtitle="Drop policyctl into Claude Code, Codex, or Cursor with one command. The hooks are generated for you."
+      >
+        <AgentReady />
+      </Section>
+      <Section
+        index={3}
+        total={6}
+        label="Built for trust"
+        badge={<>Built for trust</>}
+        title={
+          <>
+            Fast, deterministic, and <span className="text-heat-100">auditable</span>
+          </>
+        }
+        subtitle="The same engine runs at hook time and in CI. No drift. No interpretation."
+      >
+        <BuiltForTrust />
+      </Section>
+      <Section
+        index={4}
+        total={6}
+        label="Use cases"
+        badge={<>Use cases</>}
+        title={
+          <>
+            From migration rules to <span className="text-heat-100">secret scans</span>
+          </>
+        }
+        subtitle="Encode the rules your team keeps re-stating in PR comments."
+      >
+        <UseCases />
+      </Section>
+      <Section
+        index={5}
+        total={6}
+        label="Community"
+        badge={<>Community</>}
+        title={
+          <>
+            People ship <span className="text-heat-100">with policyctl</span>
+          </>
+        }
+        subtitle="From one-engineer teams to platform teams running dozens of repos."
+      >
+        <CommunityMarquee />
+      </Section>
+      <Pricing />
+      <FAQ />
+      <CTA />
+      </main>
+      <Footer />
     </div>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="relative overflow-clip pt-56 lg:pt-25 -mt-12 lg:-mt-12">
+      <div className="pcl-container relative">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="visible"
+          className="mx-auto max-w-3xl text-center"
+        >
+          <motion.div variants={fadeUp}>
+            <Badge tone="heat" className="mb-16">
+              Provider-agnostic policy runtime
+            </Badge>
+          </motion.div>
+
+          <motion.h1
+            variants={fadeUp}
+            className="text-title-h1 text-accent-black tracking-tight"
+          >
+            Make your coding agents{" "}
+            <span className="text-heat-100">obey the rules</span>.
+          </motion.h1>
+
+          <motion.p
+            variants={fadeUp}
+            className="mx-auto mt-16 max-w-xl text-body-large text-black-alpha-72 leading-26"
+          >
+            One{" "}
+            <code className="font-mono text-mono-medium bg-black-alpha-4 px-6 py-2 rounded-4 text-accent-black -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+              .policyctl.yml
+            </code>
+            , enforced inside Claude Code, Codex, and Cursor at tool-call time, and again
+            as a hard gate in CI.
+          </motion.p>
+
+          <motion.div variants={fadeUp} className="mt-32 flex flex-wrap items-center justify-center gap-12">
+            <Link to="/signup">
+              <Button size="lg" trailingIcon>
+                Get started free
+              </Button>
+            </Link>
+            <Link to="/docs">
+              <Button size="lg" variant="tertiary">
+                Read the docs
+              </Button>
+            </Link>
+          </motion.div>
+
+          <motion.div
+            variants={fadeUp}
+            className="mt-20 flex items-center justify-center gap-20 text-body-small text-black-alpha-48"
+          >
+            <span className="flex items-center gap-4">
+              <Check className="size-4 text-heat-100" /> Free CLI
+            </span>
+            <span className="flex items-center gap-4">
+              <Check className="size-4 text-heat-100" /> MIT licensed
+            </span>
+            <span className="flex items-center gap-4">
+              <Check className="size-4 text-heat-100" /> Local-first
+            </span>
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1, delay: 0.4, ease: [0.32, 0.72, 0, 1] }}
+          className="relative mx-auto mt-64 max-w-552"
+        >
+          <div className="relative rounded-xl bg-surface shadow-hero-card p-16">
+            <CurvyRect sides="allSides" color="var(--border-muted)" />
+            <div className="flex items-center gap-6 border-b border-border-faint pb-12 mb-16">
+              <Scramble
+                text=".policyctl.yml"
+                randomizeChance={0.6}
+                className="font-mono text-mono-small text-black-alpha-72"
+              />
+            </div>
+            <pre className="font-mono text-mono-medium leading-22 text-accent-black">
+              <span className="text-black-alpha-32"># runtime: cross-agent</span>{"\n"}
+              <span className="text-heat-100">rules</span>:{"\n"}
+              {"  "}- <span className="text-heat-100">id</span>: migrations-via-generator{"\n"}
+              {"    "}<span className="text-heat-100">match</span>:{" "}
+              <span className="text-black-alpha-72">path:db/migrations/*</span>{"\n"}
+              {"    "}<span className="text-heat-100">enforce</span>: block{"\n"}
+              {"  "}- <span className="text-heat-100">id</span>: no-secrets-in-commits{"\n"}
+              {"    "}<span className="text-heat-100">match</span>:{" "}
+              <span className="text-black-alpha-72">regex:(AKIA|ghp_)</span>{"\n"}
+              {"    "}<span className="text-heat-100">enforce</span>: fail
+            </pre>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function TrustedBy() {
+  const logos = [
+    "Claude Code",
+    "Cursor",
+    "OpenAI Codex",
+    "GitHub Actions",
+    "Windsurf",
+    "Continue.dev",
+    "Cody",
+    "Aider",
+  ];
+  return (
+    <section className="pcl-section--compact py-40 lg:py-56">
+      <div className="pcl-container flex flex-col lg:flex-row items-stretch gap-0 -mt-1 relative">
+        <div className="lg:w-300 border-b lg:border-b-0 lg:border-r border-border-faint p-16 lg:p-40 relative">
+          <CurvyRect sides="allSides" />
+          <div className="text-mono-x-small text-black-alpha-32 uppercase mb-12">
+            [ trusted-by ]
+          </div>
+          <p className="text-body-large text-black-alpha-72 leading-26 max-w-240">
+            Hooks at tool-call time in{" "}
+            <span className="contents text-label-large text-accent-black">
+              every major coding agent.
+            </span>
+          </p>
+        </div>
+        <div className="flex-1 overflow-hidden border-t lg:border-t-0 border-border-faint min-w-0 p-16 lg:p-24 flex items-center relative">
+          <CurvyRect sides="allSides" />
+          <Marquee duration={80_000}>
+            {logos.map((name, i) => (
+              <div
+                key={i}
+                className="border-r border-border-faint px-32 py-20 flex items-center justify-center h-96 min-w-200"
+              >
+                <span className="font-mono text-mono-medium text-black-alpha-56">{name}</span>
+              </div>
+            ))}
+          </Marquee>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const SAMPLES: Record<string, { lang: string; code: string; filename: string }> = {
+  rule: {
+    lang: "yaml",
+    filename: ".policyctl.yml",
+    code: `rules:
+  - id: migrations-via-generator
+    match:
+      path: db/migrations/*
+    enforce: block
+    message: |
+      Migration files must be generated by the CLI.
+      Run \`policyctl gen migration <name>\` instead.
+  - id: no-secrets-in-commits
+    match:
+      regex: '(AKIA|ghp_|sk-|xox[abp]-)'
+    enforce: fail`,
+  },
+  hook: {
+    lang: "bash",
+    filename: "hook",
+    code: `#!/usr/bin/env bash
+# Auto-installed by \`policyctl init\`
+exec policyctl check \\
+  --provider claude \\
+  --tool "$TOOL_NAME" \\
+  --input "$TOOL_INPUT"`,
+  },
+  ci: {
+    lang: "yaml",
+    filename: ".github/workflows/policy.yml",
+    code: `- name: policyctl gate
+  run: |
+    npx -y @policyctl/cli check \\
+      --policy .policyctl.yml \\
+      --report json \\
+      --fail-on block,fail`,
+  },
+};
+
+function DeveloperFirst() {
+  const [active, setActive] = useState<string>("rule");
+  return (
+    <div className="pcl-container pb-64 lg:pb-88">
+      <div className="grid lg:grid-cols-3 gap-16 lg:gap-24 -mt-1 relative">
+        <div className="lg:col-span-2 border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative">
+          <CurvyRect sides="allSides" />
+          <FeatureTabs
+            active={active}
+            onChange={(id) => setActive(id)}
+            tabs={[
+              {
+                id: "rule",
+                label: "Author rules",
+                description:
+                  "Declarative YAML. Procedural rules, not opinions. Every rule is an enforceable assertion.",
+              },
+              {
+                id: "hook",
+                label: "Generate hooks",
+                description:
+                  "One CLI emits the correct hook for Claude, Codex, Cursor, and your CI runner.",
+              },
+              {
+                id: "ci",
+                label: "Gate in CI",
+                description:
+                  "Fail the build on block / fail. Stream violations to the dashboard automatically.",
+              },
+            ]}
+          />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active}
+              initial={{ opacity: 0, x: 12, filter: "blur(2px)" }}
+              animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, x: -10, filter: "blur(2px)" }}
+              transition={{ duration: 0.2 }}
+              className="mt-16"
+            >
+              <CodeBlock code={SAMPLES[active].code} lang={SAMPLES[active].lang} title={SAMPLES[active].filename} />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+          <CurvyRect sides="allSides" />
+          <div className="text-mono-x-small text-black-alpha-32 uppercase">// runtime</div>
+          <p className="mt-16 text-label-x-large text-accent-black leading-28">
+            One engine, four call sites.
+          </p>
+          <p className="mt-12 text-body-large text-black-alpha-64">
+            The same evaluator runs at the hook, in CI, and against historical diffs. No
+            re-implementing the rule three times.
+          </p>
+          <div className="mt-32 grid grid-cols-2 gap-16">
+            {[
+              { k: "matchers", v: "8" },
+              { k: "providers", v: "4" },
+              { k: "ms median", v: "12" },
+              { k: "license", v: "MIT" },
+            ].map((m) => (
+              <div key={m.k} className="-mt-1 p-12 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+                <div className="text-mono-x-small text-black-alpha-32 uppercase">{m.k}</div>
+                <div className="text-title-h4 text-accent-black mt-4">{m.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AgentReady() {
+  return (
+    <div className="pcl-container pb-64 lg:pb-88">
+      <div className="grid lg:grid-cols-2 gap-16 -mt-1 relative">
+        <TerminalCard
+          eyebrow="// one command"
+          title="Install in seconds"
+          copyText="npx -y @policyctl/cli@latest init --all --browser"
+          code={`$ npx -y @policyctl/cli@latest init --all --browser
+
+✓ Detected agents: claude, codex, cursor
+✓ Wrote .policyctl.yml
+✓ Generated .claude/settings.json hook
+✓ Generated .codex/hooks/policyctl.json
+✓ Generated .cursor/hooks.json
+✓ Configured CI workflow stub
+
+Done. Try: policyctl check --demo`}
+        />
+        <TerminalCard
+          eyebrow="// agent skill"
+          title="Tell your agent about us"
+          copyText="curl -s https://policyctl.dev/skill.md"
+          code={`$ curl -s https://policyctl.dev/skill.md
+# policyctl skill manifest
+
+This file tells any coding agent how to use
+policyctl: where rules live, how the hook works,
+what enforces what, and how to recover from a
+block. Read it once, then add it to context.`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TerminalCard({
+  eyebrow,
+  title,
+  code,
+  copyText,
+}: {
+  eyebrow: string;
+  title: string;
+  code: string;
+  copyText?: string;
+}) {
+  return (
+    <div className="border border-border-faint rounded-xl bg-background-base relative p-16 lg:p-24">
+      <CurvyRect sides="allSides" />
+      <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center gap-6">
+          <span className="pcl-codeblock__dot" />
+          <span className="pcl-codeblock__dot" />
+          <span className="pcl-codeblock__dot" />
+          <span className="pcl-codeblock__title ml-12">{eyebrow}</span>
+        </div>
+        {copyText && <CopyChip text={copyText} />}
+      </div>
+      <h3 className="text-title-h4 text-accent-black mt-12">{title}</h3>
+      <pre className="mt-16 font-mono text-mono-medium leading-22 text-accent-black whitespace-pre-wrap">
+        {code}
+      </pre>
+    </div>
+  );
+}
+
+function CopyChip({ text }: { text: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      className="text-mono-x-small text-black-alpha-48 hover:text-heat-100 transition-colors flex items-center gap-4 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint px-6 py-2 before:transition-all before:duration-200"
+      onClick={async () => {
+        await navigator.clipboard.writeText(text);
+        setDone(true);
+        setTimeout(() => setDone(false), 1500);
+      }}
+    >
+      {done ? "copied" : "copy"}
+    </button>
+  );
+}
+
+function BuiltForTrust() {
+  return (
+    <div className="pcl-container pb-64 lg:pb-88">
+      <div className="grid lg:grid-cols-2 gap-16 -mt-1 relative">
+        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+          <CurvyRect sides="allSides" />
+          <div className="text-mono-x-small text-black-alpha-32 uppercase">// deterministic</div>
+          <p className="mt-12 text-title-h5 text-accent-black leading-28">
+            <span className="contents text-label-x-large text-accent-black">
+              Same input, same verdict.
+            </span>
+            No LLM in the loop.
+          </p>
+          <div className="mt-32 grid grid-cols-2 gap-16">
+            {[
+              { value: 1200000, suffix: "+", label: "evaluations / day" },
+              { value: 12, suffix: "ms", label: "median runtime" },
+              { value: 0, suffix: "", label: "telemetry emitted" },
+              { value: 100, suffix: "%", label: "local-first" },
+            ].map((m) => (
+              <div key={m.label} className="-mt-1 p-12 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+                <div className="text-title-h3 text-accent-black font-medium">
+                  <CountUp value={m.value} suffix={m.suffix} />
+                </div>
+                <div className="text-mono-x-small text-black-alpha-32 uppercase mt-4">
+                  {m.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+          <CurvyRect sides="allSides" />
+          <div className="text-mono-x-small text-black-alpha-32 uppercase">// open source</div>
+          <p className="mt-12 text-title-h5 text-accent-black leading-28">
+            <span className="contents text-label-x-large text-accent-black">
+              MIT licensed,
+            </span>{" "}
+            audited, no telemetry.
+          </p>
+          <pre className="mt-16 font-mono text-mono-medium leading-22 text-accent-black whitespace-pre-wrap">
+            <span className="text-black-alpha-32">$ </span>
+            <span className="text-heat-100">git clone</span> github.com/policyctl/cli{"\n"}
+            <span className="text-black-alpha-32">$ </span>
+            <span className="text-heat-100">cd</span> cli && make test{"\n"}
+            {"  →  117 tests pass, 0 network calls"}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const USE_CASES = [
+  {
+    id: "migrations",
+    title: "Migrations via generator",
+    body:
+      "Block any commit that edits db/migrations/* without the generated signature. Encoded once, enforced at hook time and in CI.",
+    icon: GitBranch,
+  },
+  {
+    id: "secrets",
+    title: "No secrets in commits",
+    body:
+      "Regex-detect AWS, GitHub, OpenAI, and Slack tokens. Fail the build. Surface the offending file in the violation feed.",
+    icon: Lock,
+  },
+  {
+    id: "protected",
+    title: "Protected paths",
+    body:
+      "Prevent agents from touching README, package.json, .github/, or any path that should require a human. Block by default, allow by exception.",
+    icon: ShieldCheck,
+  },
+  {
+    id: "tests",
+    title: "Tests for source",
+    body:
+      "Warn when a src/ change ships without a matching test/. The agent gets the hint in the same turn, not three PR comments later.",
+    icon: Database,
+  },
+  {
+    id: "ai-rules",
+    title: "AI rule author",
+    body:
+      "Describe a rule in plain English; get a typed policy. The CLI ships the matcher you wrote; the dashboard shows you the violations.",
+    icon: Sparkle,
+  },
+];
+
+function UseCases() {
+  const [active, setActive] = useState(USE_CASES[0].id);
+  const current = USE_CASES.find((u) => u.id === active)!;
+  const Icon = current.icon;
+
+  return (
+    <div className="pcl-container pb-64 lg:pb-88">
+      <div className="grid lg:grid-cols-[300px_1fr] gap-16 lg:gap-24 -mt-1 relative">
+        <div className="border border-border-faint rounded-xl bg-surface p-12 relative">
+          <CurvyRect sides="allSides" />
+          {USE_CASES.map((u) => {
+            const Ic = u.icon;
+            const isActive = u.id === active;
+            return (
+              <button
+                key={u.id}
+                onClick={() => setActive(u.id)}
+                className={`w-full text-left flex items-center gap-12 rounded-md p-16 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:transition-all before:duration-200 ${
+                  isActive
+                    ? "bg-heat-4 text-accent-black before:border-heat-12"
+                    : "text-black-alpha-72 hover:text-accent-black hover:bg-black-alpha-4 before:border-border-faint"
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-12 bottom-12 w-2 bg-heat-100" />
+                )}
+                <Ic className={`size-4 relative ${isActive ? "text-heat-100" : "text-black-alpha-48"}`} />
+                <span className="relative text-label-medium">{u.title}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+          <CurvyRect sides="allSides" />
+          <div className="flex items-center gap-12">
+            <span className="size-40 inline-flex items-center justify-center rounded-md bg-heat-4 text-heat-100 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-12">
+              <Icon className="size-4" />
+            </span>
+            <span className="text-mono-x-small text-black-alpha-32 uppercase">
+              [ use-case / {current.id} ]
+            </span>
+          </div>
+          <h3 className="mt-16 text-title-h4 text-accent-black">
+            {current.title}
+          </h3>
+          <p className="mt-12 text-body-large text-black-alpha-64 leading-26 max-w-369">
+            {current.body}
+          </p>
+          <Link
+            to="/docs"
+            className="mt-24 inline-flex items-center gap-4 text-label-large text-heat-100 hover:opacity-80 transition-opacity"
+          >
+            Learn more <ArrowUpRight className="size-3" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TESTIMONIALS = [
+  {
+    name: "Ravi Anand",
+    handle: "@raviand",
+    quote:
+      "policyctl replaced 3 vendor-specific configs with one file. The CI gate alone caught a leaked AWS key in a commit last week.",
+    bg: "var(--heat-12)",
+    initials: "RA",
+  },
+  {
+    name: "Lin Wei",
+    handle: "@linw",
+    quote:
+      "The hook fires before the agent writes the file. We stopped fighting PR comments and started enforcing at the source.",
+    bg: "var(--black-alpha-8)",
+    initials: "LW",
+  },
+  {
+    name: "Sam Otieno",
+    handle: "@samotieno",
+    quote:
+      "I described 'no manual migrations' once and it works across Claude, Codex, and CI. That's the dream.",
+    bg: "var(--heat-12)",
+    initials: "SO",
+  },
+  {
+    name: "Jordan Mehta",
+    handle: "@jmehta",
+    quote:
+      "Audit log shows exactly which agent did what, with diff and rule attached. Compliance finally has something to point at.",
+    bg: "var(--black-alpha-8)",
+    initials: "JM",
+  },
+  {
+    name: "Kim Sato",
+    handle: "@kimsato",
+    quote:
+      "The CLI is just a single static binary. We vendored it into our runner image and stopped thinking about governance.",
+    bg: "var(--heat-12)",
+    initials: "KS",
+  },
+  {
+    name: "Drew Patel",
+    handle: "@drewp",
+    quote:
+      "Open source, no telemetry, no cloud lock-in. We replaced a paid tool that did half of this for twice the price.",
+    bg: "var(--black-alpha-8)",
+    initials: "DP",
+  },
+];
+
+function CommunityMarquee() {
+  return (
+    <div className="pb-64 lg:pb-88">
+      <div className="overflow-hidden">
+        <Marquee duration={60_000}>
+          {TESTIMONIALS.slice(0, 3).map((t) => (
+            <TestimonialCard key={t.handle} {...t} />
+          ))}
+        </Marquee>
+      </div>
+      <div className="overflow-hidden mt-16 -mt-1">
+        <Marquee duration={70_000} reverse>
+          {TESTIMONIALS.slice(3).map((t) => (
+            <TestimonialCard key={t.handle} {...t} />
+          ))}
+        </Marquee>
+      </div>
+    </div>
+  );
+}
+
+function TestimonialCard({
+  name,
+  handle,
+  quote,
+  bg,
+  initials,
+}: {
+  name: string;
+  handle: string;
+  quote: string;
+  bg: string;
+  initials: string;
+}) {
+  return (
+    <div className="w-360 mr-16 border border-border-faint rounded-xl bg-surface hover:bg-black-alpha-4 transition-colors group relative">
+      <div className="absolute left-0 top-32 bottom-32 w-2 bg-heat-100 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
+      <div className="px-20 py-20 lg:pl-32 lg:p-24 border-b border-border-faint flex items-center gap-12">
+        <span
+          className="size-40 rounded-full inline-flex items-center justify-center text-label-medium -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
+          style={{ background: bg }}
+        >
+          {initials}
+        </span>
+        <div>
+          <div className="text-label-medium text-accent-black">{name}</div>
+          <div className="text-body-small text-black-alpha-56">{handle}</div>
+        </div>
+      </div>
+      <div className="p-28 lg:px-32 lg:py-24 text-body-large text-accent-black leading-26 h-144">
+        {quote}
+      </div>
+    </div>
+  );
+}
+
+function Pricing() {
+  return (
+    <section id="pricing" className="pcl-section--compact py-80 lg:py-143 relative -mt-1">
+      <CurvyRect sides="allSides" />
+      <div className="pcl-container">
+        <div className="text-center mb-40">
+          <span className="pcl-section__badge">Pricing</span>
+          <h2 className="pcl-section__title">
+            Free CLI. <span className="text-heat-100">Paid control plane.</span>
+          </h2>
+          <p className="pcl-section__subtitle">
+            Start free. Upgrade when your team needs shared policy versioning and an audit feed.
+          </p>
+        </div>
+        <div className="grid lg:grid-cols-2 gap-16 -mt-1">
+          <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+            <CurvyRect sides="allSides" />
+            <div className="text-mono-x-small text-black-alpha-32 uppercase">// cli</div>
+            <h3 className="mt-12 text-title-h4 text-accent-black">Free forever</h3>
+            <div className="mt-12 text-title-h2 text-accent-black">
+              $0
+              <span className="text-body-large text-black-alpha-48 ml-8">/ forever</span>
+            </div>
+            <ul className="mt-32 space-y-12 text-body-large text-black-alpha-72">
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                All 12 CLI commands
+              </li>
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                Hooks for Claude, Codex, Cursor
+              </li>
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                CI gate + 8 matchers
+              </li>
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                MIT licensed, no telemetry
+              </li>
+            </ul>
+            <Link to="/signup" className="mt-32 block">
+              <Button variant="secondary" className="w-full">
+                Get started free
+              </Button>
+            </Link>
+          </div>
+          <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+            <CurvyRect sides="allSides" />
+            <div className="absolute top-24 right-24">
+              <Badge tone="heat">Paid</Badge>
+            </div>
+            <div className="text-mono-x-small text-black-alpha-32 uppercase">// cloud</div>
+            <h3 className="mt-12 text-title-h4 text-accent-black">Control plane</h3>
+            <div className="mt-12 text-title-h2 text-accent-black">
+              $5
+              <span className="text-body-large text-black-alpha-48 ml-8">/ seat / month</span>
+            </div>
+            <ul className="mt-32 space-y-12 text-body-large text-black-alpha-72">
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                Cross-repo policy versioning
+              </li>
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                Live enforcement sessions
+              </li>
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                AI rule author + analyzer
+              </li>
+              <li className="flex gap-8">
+                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                Daily compliance report + CSV export
+              </li>
+            </ul>
+            <Link to="/signup" className="mt-32 block">
+              <Button className="w-full" trailingIcon>
+                Start free trial
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const FAQS = [
+  {
+    cat: "General",
+    items: [
+      {
+        q: "What is policyctl?",
+        a: "A provider-agnostic policy runtime for coding agents. One .policyctl.yml file is evaluated at hook time and in CI across Claude Code, OpenAI Codex, Cursor, and any tool that can shell out.",
+      },
+      {
+        q: "Why not just CLAUDE.md?",
+        a: "Prompt files are advisory. Agents skip them under context pressure. policyctl rules are evaluated deterministically and block at tool-call time — the agent literally cannot ignore a block enforcement.",
+      },
+      {
+        q: "Is the cloud control plane required?",
+        a: "No. The CLI is fully local-first and MIT licensed. The cloud adds cross-repo versioning, the violation feed, the audit dashboard, and the daily report — useful, but not required.",
+      },
+    ],
+  },
+  {
+    cat: "How it works",
+    items: [
+      {
+        q: "What does a rule look like?",
+        a: "A rule is a YAML object: an id, a match block (path, regex, globs, content), and an enforce level (block / fail / warn / log). Rules are procedural assertions, not opinions.",
+      },
+      {
+        q: "How do hooks get installed?",
+        a: "`policyctl init` detects which agent you're using (Claude / Codex / Cursor), writes the right hook config, and points it at the local `policyctl check` binary. Re-run it any time.",
+      },
+      {
+        q: "What about CI?",
+        a: "Same binary, same engine. `policyctl check --report json --fail-on block,fail` exits non-zero on violations. Stream results to the dashboard with one extra flag.",
+      },
+    ],
+  },
+];
+
+function FAQ() {
+  const [open, setOpen] = useState<string | null>("0-0");
+  return (
+    <section className="pcl-section--compact py-80 lg:py-109 relative -mt-1">
+      <CurvyRect sides="allSides" />
+      <div className="pcl-container">
+        <div className="grid lg:grid-cols-2 gap-32 lg:gap-64 -mt-1">
+          <div>
+            <span className="pcl-section__badge">FAQ</span>
+            <h2 className="pcl-section__title lg:!text-start lg:!pt-0 lg:!mx-0">
+              Frequently asked{" "}
+              <span className="text-heat-100">questions</span>
+            </h2>
+            <p className="pcl-section__subtitle lg:!text-start lg:!max-w-none lg:!mx-0">
+              Everything you need to know before you wire up the first repo.
+            </p>
+          </div>
+          <div>
+            {FAQS.map((group, gi) => (
+              <div key={group.cat} className="-mt-1">
+                <div className="text-title-h5 text-accent-black px-16 lg:px-32 py-24 lg:py-40 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+                  {group.cat}
+                </div>
+                {group.items.map((it, i) => {
+                  const id = `${gi}-${i}`;
+                  const isOpen = open === id;
+                  return (
+                    <div key={i} className="-mt-1">
+                      <button
+                        onClick={() => setOpen(isOpen ? null : id)}
+                        className="w-full text-label-large text-accent-black flex items-center justify-between gap-16 px-16 lg:px-32 py-20 hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
+                      >
+                        <span className="text-start">{it.q}</span>
+                        <motion.span
+                          animate={{ rotate: isOpen ? 45 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Plus className="size-4 text-black-alpha-48" />
+                        </motion.span>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } }}
+                            exit={{ height: 0, opacity: 0, transition: { duration: 0.3 } }}
+                            className="overflow-hidden -mt-1"
+                          >
+                            <div className="px-16 lg:px-32 py-20 border-t border-border-faint -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+                              <p className="text-body-large text-black-alpha-64 leading-26">
+                                {it.a}
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <IndexStrip index={6} total={6} label="Frequently asked" />
+    </section>
+  );
+}
+
+function CTA() {
+  return (
+    <section className="py-64 lg:py-88">
+      <div className="pcl-container">
+        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 text-center relative">
+          <CurvyRect sides="allSides" />
+          <div className="size-48 mx-auto rounded-full bg-heat-4 inline-flex items-center justify-center text-heat-100 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-12">
+            <Sparkle className="size-5" />
+          </div>
+          <h2 className="mt-24 text-title-h3 text-accent-black tracking-tight">
+            Ready to enforce?
+          </h2>
+          <p className="mt-12 text-body-large text-black-alpha-72 max-w-369 mx-auto">
+            <span className="contents text-label-large text-accent-black">
+              No credit card.
+            </span>{" "}
+            The CLI is free forever.
+          </p>
+          <div className="mt-32 flex flex-wrap justify-center gap-12">
+            <Link to="/signup">
+              <Button size="lg" trailingIcon>
+                Get started free
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

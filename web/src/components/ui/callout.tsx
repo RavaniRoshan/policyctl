@@ -1,24 +1,56 @@
-import { Info, Lightbulb, Warning, WarningCircle, type Icon } from "@phosphor-icons/react";
+import { Info, Lightbulb, Warning, WarningCircle } from "@phosphor-icons/react";
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type Type = "note" | "tip" | "warning" | "danger";
 
-const map: Record<Type, { icon: React.ComponentType<{ className?: string }>; cls: string; border: string; label: string }> = {
-  note: { icon: Info, cls: "text-info", border: "border-l-info", label: "Note" },
-  tip: { icon: Lightbulb, cls: "text-brand", border: "border-l-brand", label: "Tip" },
-  warning: { icon: Warning, cls: "text-warning", border: "border-l-warning", label: "Warning" },
-  danger: { icon: WarningCircle, cls: "text-danger", border: "border-l-danger", label: "Danger" },
+const map: Record<Type, { icon: React.ComponentType<{ className?: string }>; cls: string; label: string; clsRoot: string }> = {
+  note: {
+    icon: Info,
+    cls: "text-accent-black",
+    label: "Note",
+    clsRoot: "pcl-callout pcl-callout--note",
+  },
+  tip: {
+    icon: Lightbulb,
+    cls: "text-heat-100",
+    label: "Tip",
+    clsRoot: "pcl-callout pcl-callout--tip",
+  },
+  warning: {
+    icon: Warning,
+    cls: "text-warning",
+    label: "Warning",
+    clsRoot: "pcl-callout pcl-callout--warning",
+  },
+  danger: {
+    icon: WarningCircle,
+    cls: "text-danger",
+    label: "Danger",
+    clsRoot: "pcl-callout pcl-callout--danger",
+  },
 };
 
-export function Callout({ type = "note", title, children }: { type?: Type; title?: string; children: ReactNode }) {
-  const { icon: Icon, cls, border, label } = map[type];
+export function Callout({
+  type = "note",
+  title,
+  children,
+  className,
+}: {
+  type?: Type;
+  title?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  const { icon: Icon, cls, label, clsRoot } = map[type];
   return (
-    <div className={cn("my-4 flex gap-3 rounded-xl border border-border border-l-4 bg-bg-surface p-4", border)}>
-      <Icon className={cn("size-5 shrink-0 mt-0.5", cls)} />
+    <div className={cn(clsRoot, className)}>
+      <Icon className={cn("size-4 shrink-0 mt-1", cls)} />
       <div className="min-w-0">
-        <div className={cn("font-semibold text-sm", cls)}>{title ?? label}</div>
-        <div className="text-fg-secondary text-sm leading-relaxed mt-1">{children}</div>
+        <div className={cn("text-label-medium", cls)}>{title ?? label}</div>
+        <div className="text-body-medium text-black-alpha-64 leading-22 mt-2">
+          {children}
+        </div>
       </div>
     </div>
   );

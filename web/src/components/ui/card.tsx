@@ -1,49 +1,31 @@
 import { type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-/**
- * Double-Bezel (Doppelrand) Card
- * Outer shell + Inner core = machined hardware aesthetic
- */
-export function DoppelCard({
+export function Card({
   className,
   children,
-  variant = "default",
+  floating,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { variant?: "default" | "glow" }) {
-  const glowMap = {
-    default: "",
-    glow: "shadow-[0_0_80px_rgba(59,130,246,0.08)] dark:shadow-[0_0_80px_rgba(59,130,246,0.12)]",
-  };
-
+}: HTMLAttributes<HTMLDivElement> & { floating?: boolean }) {
   return (
     <div
       className={cn(
-        "rounded-2xl p-[1.5px] transition-all duration-700 ease-fluid",
-        "bg-bg-subtle ring-1 ring-border",
-        glowMap[variant],
+        "relative bg-surface border border-border-faint rounded-xl",
+        floating && "shadow-lg backdrop-blur-4",
         className,
       )}
       {...props}
     >
-      <div
-        className={cn(
-          "rounded-[calc(1rem-0.0625rem)] h-full",
-          "bg-bg-surface p-6",
-          "shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]",
-        )}
-      >
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
 
-export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-border bg-bg-elevated p-5",
+        "flex items-center justify-between p-16 border-b border-border-faint",
         className,
       )}
       {...props}
@@ -51,12 +33,32 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   );
 }
 
-export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
+export function CardTitle({
+  className,
+  ...props
+}: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn("font-sans font-semibold tracking-tight text-fg-primary text-lg", className)} {...props} />
+    <h3
+      className={cn(
+        "text-label-x-large text-accent-black",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 
 export function CardBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("text-fg-secondary text-sm leading-relaxed mt-1", className)} {...props} />;
+  return (
+    <div
+      className={cn("text-body-large text-black-alpha-64 mt-8", className)}
+      {...props}
+    />
+  );
+}
+
+export function CardSection({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("p-16", className)} {...props} />
+  );
 }

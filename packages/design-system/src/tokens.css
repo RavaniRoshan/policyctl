@@ -1,75 +1,135 @@
-/* policyctl design system — Light Mode Only */
-/* Archetype: Soft Structuralism on warm cream */
-
-@import "@fontsource/geist-sans/400.css";
-@import "@fontsource/geist-sans/500.css";
-@import "@fontsource/geist-sans/600.css";
-@import "@fontsource/geist-sans/700.css";
-@import "@fontsource/geist-mono/400.css";
-@import "@fontsource/geist-mono/500.css";
+/* ─────────────────────────────────────────────────────────────
+   policyctl design system — Firecrawl blueprint minimalism
+   ───────────────────────────────────────────────────────────── */
 
 :root {
   /* ── Typography ── */
   --font-sans: "Geist Sans", system-ui, -apple-system, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+  --font-ascii: "Roboto Mono", ui-monospace, monospace;
+
+  /* ── Color: accent (the ONE color) ── */
+  --heat-100: #fa5d19;
+  --heat-90: rgba(250, 93, 25, 0.9);
+  --heat-80: rgba(250, 93, 25, 0.8);
+  --heat-70: rgba(250, 93, 25, 0.7);
+  --heat-60: rgba(250, 93, 25, 0.6);
+  --heat-50: rgba(250, 93, 25, 0.5);
+  --heat-40: rgba(250, 93, 25, 0.4);
+  --heat-30: rgba(250, 93, 25, 0.3);
+  --heat-20: rgba(250, 93, 25, 0.2);
+  --heat-12: rgba(250, 93, 25, 0.12);
+  --heat-10: rgba(250, 93, 25, 0.1);
+  --heat-8: rgba(250, 93, 25, 0.08);
+  --heat-5: rgba(250, 93, 25, 0.05);
+  --heat-4: rgba(250, 93, 25, 0.04);
+
+  /* ── Color: text ── */
+  --accent-black: #262626;
+  --accent-white: #f5f5f5;
+
+  /* ── Color: surfaces ── */
+  --surface: #ffffff;
+  --background-base: #f9f9f9;
+  --background-lighter: #f4f4f4;
+
+  /* ── Color: borders ── */
+  --border-faint: #ededed;
+  --border-muted: #e8e8e8;
+  --border-loud: #e6e6e6;
+
+  /* ── Color: alpha scale (text on light) ── */
+  --black-alpha-4: rgba(38, 38, 38, 0.04);
+  --black-alpha-5: rgba(38, 38, 38, 0.05);
+  --black-alpha-6: rgba(38, 38, 38, 0.06);
+  --black-alpha-8: rgba(38, 38, 38, 0.08);
+  --black-alpha-12: rgba(38, 38, 38, 0.12);
+  --black-alpha-16: rgba(38, 38, 38, 0.16);
+  --black-alpha-20: rgba(38, 38, 38, 0.2);
+  --black-alpha-24: rgba(38, 38, 38, 0.24);
+  --black-alpha-32: rgba(38, 38, 38, 0.32);
+  --black-alpha-40: rgba(38, 38, 38, 0.4);
+  --black-alpha-48: rgba(38, 38, 38, 0.48);
+  --black-alpha-56: rgba(38, 38, 38, 0.56);
+  --black-alpha-64: rgba(38, 38, 38, 0.64);
+  --black-alpha-72: rgba(38, 38, 38, 0.72);
+  --black-alpha-88: rgba(38, 38, 38, 0.88);
+
+  /* ── Color: alpha scale (text on dark) ── */
+  --white-alpha-4: rgba(245, 245, 245, 0.04);
+  --white-alpha-8: rgba(245, 245, 245, 0.08);
+  --white-alpha-12: rgba(245, 245, 245, 0.12);
+  --white-alpha-16: rgba(245, 245, 245, 0.16);
+  --white-alpha-24: rgba(245, 245, 245, 0.24);
+  --white-alpha-32: rgba(245, 245, 245, 0.32);
+  --white-alpha-40: rgba(245, 245, 245, 0.4);
+  --white-alpha-48: rgba(245, 245, 245, 0.48);
+  --white-alpha-56: rgba(245, 245, 245, 0.56);
+  --white-alpha-64: rgba(245, 245, 245, 0.64);
+  --white-alpha-72: rgba(245, 245, 245, 0.72);
+  --white-alpha-88: rgba(245, 245, 245, 0.88);
+
+  /* ── Buttons ── */
+  --button-orange: #ff4c00;
 
   /* ── Radii ── */
+  --r-none: 0;
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
-  --r-xl: 24px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
   --r-pill: 9999px;
 
   /* ── Motion ── */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-menu: cubic-bezier(0.1, 0.1, 0.25, 1);
+  --ease-countup: cubic-bezier(0.25, 0.1, 0.25, 1);
   --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --dur-hover: 150ms;
+  --dur-press: 100ms;
   --dur-fast: 200ms;
   --dur-base: 400ms;
   --dur-slow: 700ms;
 
-  /* ── Surfaces ── */
-  --bg-primary: #FDFBF7;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #FFFFFF;
-  --bg-subtle: #F5F3EF;
-  --bg-overlay: rgba(0, 0, 0, 0.4);
+  /* ── Container ── */
+  --container-width: 1112px;
 
-  /* ── Text ── */
-  --fg-primary: #1A1A1A;
-  --fg-secondary: #6B6B6B;
-  --fg-muted: #9A9A9A;
-  --fg-inverse: #FFFFFF;
+}
 
-  /* ── Borders ── */
-  --border: rgba(0, 0, 0, 0.06);
-  --border-hover: rgba(0, 0, 0, 0.1);
-  --border-strong: rgba(0, 0, 0, 0.15);
+.dark {
+  --accent-black: #f5f5f5;
+  --accent-white: #262626;
+  --surface: #171717;
+  --background-base: #0a0a0a;
+  --background-lighter: #1f1f1f;
+  --border-faint: #2a2a2a;
+  --border-muted: #333333;
+  --border-loud: #404040;
+  --heat-100: #fa5d19;
 
-  /* ── Brand ── */
-  --brand: #2563EB;
-  --brand-hover: #1D4ED8;
-  --brand-muted: rgba(37, 99, 235, 0.08);
-  --brand-subtle: rgba(37, 99, 235, 0.04);
+  --black-alpha-4: rgba(245, 245, 245, 0.04);
+  --black-alpha-5: rgba(245, 245, 245, 0.05);
+  --black-alpha-6: rgba(245, 245, 245, 0.06);
+  --black-alpha-8: rgba(245, 245, 245, 0.08);
+  --black-alpha-12: rgba(245, 245, 245, 0.12);
+  --black-alpha-16: rgba(245, 245, 245, 0.16);
+  --black-alpha-20: rgba(245, 245, 245, 0.2);
+  --black-alpha-24: rgba(245, 245, 245, 0.24);
+  --black-alpha-32: rgba(245, 245, 245, 0.32);
+  --black-alpha-40: rgba(245, 245, 245, 0.4);
+  --black-alpha-48: rgba(245, 245, 245, 0.48);
+  --black-alpha-56: rgba(245, 245, 245, 0.56);
+  --black-alpha-64: rgba(245, 245, 245, 0.64);
+  --black-alpha-72: rgba(245, 245, 245, 0.72);
+  --black-alpha-88: rgba(245, 245, 245, 0.88);
+}
 
-  /* ── Accent colors ── */
-  --accent-warm: #F59E0B;
-  --accent-coral: #EF4444;
-  --accent-sky: #3B82F6;
-  --accent-midnight: #1E3A5F;
-
-  /* ── Semantic ── */
-  --success: #10B981;
-  --success-muted: rgba(16, 185, 129, 0.08);
-  --danger: #EF4444;
-  --danger-muted: rgba(239, 68, 68, 0.08);
-  --warning: #F59E0B;
-  --warning-muted: rgba(245, 158, 11, 0.08);
-  --info: #3B82F6;
-  --info-muted: rgba(59, 130, 246, 0.08);
-
-  /* ── Shadows ── */
-  --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --sh-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
-  --sh-lg: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
-  --sh-brand: 0 4px 16px rgba(37, 99, 235, 0.15);
+@supports (color: color(display-p3 1 1 1)) {
+  :root {
+    --heat-100: color(display-p3 0.9804 0.3647 0.098);
+    --button-orange: color(display-p3 0.9816 0.3634 0.0984);
+  }
 }
