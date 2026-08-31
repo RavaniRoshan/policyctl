@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { motion } from "framer-motion";
 
 interface MarqueeProps {
   children: ReactNode;
@@ -9,9 +10,8 @@ interface MarqueeProps {
 }
 
 /**
- * Marquee — Firecrawl double-track marquee engine.
- * Measures scrollWidth/2 after mount + ResizeObserver, animates linearly.
- * Pauses off-screen via IntersectionObserver when pauseOffscreen is true.
+ * Marquee — smooth infinite scroll using Framer Motion.
+ * Renders the children twice for seamless looping.
  */
 export function Marquee({
   children,
@@ -21,72 +21,72 @@ export function Marquee({
   pauseOffscreen = true,
 }: MarqueeProps) {
   const ref = useRef<HTMLDivElement | null>(null);
-  const [w, setW] = useState(0);
+  const [trackWidth, setTrackWidth] = useState(0);
   const [active, setActive] = useState(!pauseOffscreen);
 
+  // Measure the width of one track (half of the total container).
   useEffect(() => {
     if (!ref.current) return;
     const el = ref.current;
 
     const measure = () => {
-      const total = el.scrollWidth / 2;
-      setW(total);
+      setTrackWidth(el.scrollWidth / 2);
     };
 
-    const ro = new ResizeObserver(() => {
-      requestAnimationFrame(() => requestAnimationFrame(measure));
-    });
+    measure();
+    const ro = new ResizeObserver(() => requestAnimationFrame(measure));
     ro.observe(el);
-    requestAnimationFrame(() => requestAnimationFrame(measure));
-
     return () => ro.disconnect();
   }, [children]);
 
+  // Pause when off-screen.
   useEffect(() => {
     if (!pauseOffscreen || !ref.current) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setActive(entry.isIntersecting);
-      },
+      ([entry]) => setActive(entry.isIntersecting),
       { threshold: 0.01 },
     );
     observer.observe(ref.current);
     return () => observer.disconnect();
   }, [pauseOffscreen]);
 
+  const xFrom = reverse ? -trackWidth : 0;
+  const xTo = reverse ? 0 : -trackWidth;
+
   return (
     <div
       ref={ref}
-      className={`flex w-max transform-gpu will-change-transform ${className ?? ""}`}
-      style={{
-        animationPlayState: active ? "running" : "paused",
-      }}
+      className={`flex w-max overflow-hidden ${className ?? ""}`}
     >
-      <div
-        className="flex"
-        style={{
-          animation: w
-            ? `pcl-marquee ${duration / 1000}s linear infinite`
-            : undefined,
-          animationDirection: reverse ? "reverse" : "normal",
-          animationPlayState: active ? "running" : "paused",
+      <motion.div
+        className="flex shrink-0"
+        animate={active ? { x: [xFrom, xTo] } : { x: xFrom }}
+        transition={{
+          x: {
+            duration: duration / 1000,
+            repeat: active ? Infinity : 0,
+            ease: "linear",
+            repeatType: "loop",
+          },
         }}
       >
         {children}
-      </div>
-      <div
-        className="flex"
+      </motion.div>
+      <motion.div
+        className="flex shrink-0"
         aria-hidden="true"
-        style={{
-          animation: w
-            ? `pcl-marquee ${duration / 1000}s linear infinite`
-            : undefined,
-          animationDirection: reverse ? "reverse" : "normal",
-          animationPlayState: active ? "running" : "paused",
+        animate={active ? { x: [xFrom, xTo] } : { x: xFrom }}
+        transition={{
+          x: {
+            duration: duration / 1000,
+            repeat: active ? Infinity : 0,
+            ease: "linear",
+            repeatType: "loop",
+          },
         }}
       >
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 }

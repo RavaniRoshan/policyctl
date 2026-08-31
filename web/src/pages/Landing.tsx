@@ -669,21 +669,18 @@ const TESTIMONIALS = [
 
 function CommunityMarquee() {
   return (
-    <div className="pb-64 lg:pb-88">
-      <div className="overflow-hidden">
-        <Marquee duration={60_000}>
-          {TESTIMONIALS.slice(0, 3).map((t) => (
-            <TestimonialCard key={t.handle} {...t} />
-          ))}
-        </Marquee>
-      </div>
-      <div className="overflow-hidden mt-16 -mt-1">
-        <Marquee duration={70_000} reverse>
-          {TESTIMONIALS.slice(3).map((t) => (
-            <TestimonialCard key={t.handle} {...t} />
-          ))}
-        </Marquee>
-      </div>
+    <div className="pb-64 lg:pb-88 overflow-hidden">
+      <Marquee duration={50_000}>
+        {TESTIMONIALS.map((t) => (
+          <TestimonialCard key={t.handle} {...t} />
+        ))}
+      </Marquee>
+      <div className="h-16" />
+      <Marquee duration={50_000} reverse>
+        {TESTIMONIALS.map((t) => (
+          <TestimonialCard key={t.handle} {...t} />
+        ))}
+      </Marquee>
     </div>
   );
 }
@@ -702,7 +699,7 @@ function TestimonialCard({
   initials: string;
 }) {
   return (
-    <div className="w-360 mr-16 border border-border-faint rounded-xl bg-surface hover:bg-black-alpha-4 transition-colors group relative">
+    <div className="w-320 lg:w-360 shrink-0 mr-16 border border-border-faint rounded-xl bg-surface hover:bg-black-alpha-4 transition-colors duration-200 group relative">
       <div className="absolute left-0 top-32 bottom-32 w-2 bg-heat-100 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
       <div className="px-20 py-20 lg:pl-32 lg:p-24 border-b border-border-faint flex items-center gap-12">
         <span
