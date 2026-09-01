@@ -23,8 +23,8 @@ export function Settings() {
   const apiKeyMasked = "pc_live_••••••••••••••••••••";
 
   const copyKey = async () => {
-    // Copy the masked placeholder. In production, fetch the real key from the server.
-    await navigator.clipboard.writeText("pc_live_••••••••••••••••••••");
+    // In production, fetch the real key from the server. For now, copy the masked form.
+    await navigator.clipboard.writeText(apiKeyMasked);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -54,7 +54,7 @@ export function Settings() {
         <ul className="mt-16 space-y-12 -mt-1">
           <li className="flex justify-between items-center px-12 py-12 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
             <span className="text-body-medium text-black-alpha-56">Email</span>
-            <span className="font-mono text-mono-small text-accent-black">{user?.email}</span>
+            <span className="text-body-medium text-accent-black">{user?.email}</span>
           </li>
           <li className="flex justify-between items-center px-12 py-12 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
             <span className="text-body-medium text-black-alpha-56">Name</span>
@@ -94,8 +94,8 @@ export function Settings() {
       <Card className="p-24 lg:p-32">
         <CurvyRect sides="allSides" />
         <h3 className="text-label-x-large text-accent-black">Appearance</h3>
-        <p className="mt-8 text-body-medium text-black-alpha-64 leading-22">
-          Light is the shipped theme. Dark mode mirrors the same tokens with inverted surfaces.
+        <p className="mt-8 text-body-medium text-black-alpha-72 leading-22">
+          Match your environment. Tokens swap automatically.
         </p>
         <div className="mt-16 flex items-center gap-8">
           <Button
@@ -111,6 +111,13 @@ export function Settings() {
             onClick={() => setTheme("dark")}
           >
             <Moon className="size-3 mr-4" /> Dark
+          </Button>
+          <Button
+            variant={theme === "system" ? "primary" : "secondary"}
+            size="sm"
+            onClick={() => setTheme("system")}
+          >
+            System
           </Button>
         </div>
       </Card>
@@ -149,16 +156,22 @@ export function Settings() {
           to confirm. This action is permanent.
         </p>
         <Input
+          id="delete-confirm"
           className="mt-16"
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
           placeholder="delete my account"
+          aria-invalid={confirmText.length > 0 && confirmText !== "delete my account" ? "true" : undefined}
         />
         <div className="mt-24 flex items-center justify-end gap-8">
           <Button variant="tertiary" onClick={() => setConfirmDelete(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={onDelete}>
+          <Button
+            variant="danger"
+            onClick={onDelete}
+            disabled={confirmText !== "delete my account"}
+          >
             Delete permanently
           </Button>
         </div>

@@ -10,7 +10,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "relative bg-surface border border-border-faint rounded-xl",
+        "relative bg-surface border border-border-faint rounded-none",
         floating && "shadow-lg backdrop-blur-4",
         className,
       )}
@@ -50,10 +50,7 @@ export function CardTitle({
 
 export function CardBody({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn("text-body-large text-black-alpha-64 mt-8", className)}
-      {...props}
-    />
+    <div className={cn("text-body-large text-black-alpha-72 mt-8", className)} {...props} />
   );
 }
 

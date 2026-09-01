@@ -11,6 +11,8 @@ import {
   MagnifyingGlass,
   Sun,
   Moon,
+  List,
+  X,
 } from "@phosphor-icons/react";
 import { CommandPaletteHost } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
@@ -58,7 +60,7 @@ function Sidebar() {
   return (
     <aside className="hidden lg:flex w-240 shrink-0 flex-col border-r border-border-faint bg-background-base relative">
       <div className="flex items-center gap-2 px-20 h-64 border-b border-border-faint">
-        <NavLink to="/" className="flex items-center gap-2 text-accent-black no-underline">
+        <NavLink to="/" aria-label="policyctl home" className="flex items-center gap-2 text-accent-black no-underline">
           <span className="inline-flex size-7 items-center justify-center">
             <FlameMark />
           </span>
@@ -86,7 +88,7 @@ function Sidebar() {
             {({ isActive }) => (
               <>
                 {isActive && (
-                  <span className="absolute left-0 top-12 bottom-12 w-2 bg-heat-100" />
+                  <span className="absolute left-0 inset-y-8 w-2 bg-heat-100" />
                 )}
                 <Icon className="size-4 relative" />
                 <span className="relative">{label}</span>
@@ -103,7 +105,7 @@ function Sidebar() {
           className="flex items-center gap-8 rounded-md p-8 text-mono-small text-black-alpha-56 hover:text-heat-100 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
         >
           <Package className="size-4 relative" />
-          <span className="font-mono text-mono-x-small relative">npm i -g @policyctl/cli</span>
+          <span className="font-mono text-mono-small relative">npm i -g @policyctl/cli</span>
         </a>
       </div>
     </aside>
@@ -115,6 +117,7 @@ function Header({ title }: { title: string }) {
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const onLogout = async () => {
     await logout();
@@ -123,16 +126,20 @@ function Header({ title }: { title: string }) {
 
   return (
     <header className="sticky top-0 z-50 bg-background-base/95 backdrop-blur-4 border-b border-border-faint h-64 flex items-center px-16 lg:px-32">
-      <div className="flex items-center gap-8 lg:hidden">
-        <NavLink to="/" className="flex items-center gap-2 text-accent-black">
-          <span className="inline-flex size-7 items-center justify-center">
-            <FlameMark />
-          </span>
-        </NavLink>
-      </div>
-      <h1 className="ml-8 lg:ml-0 text-title-h5 text-accent-black tracking-tight">
+      {/* Mobile menu trigger */}
+      <button
+        className="lg:hidden mr-8 size-44 -ml-8 inline-flex items-center justify-center text-accent-black hover:bg-black-alpha-4 transition-colors relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
+        onClick={() => setMobileOpen((m) => !m)}
+        aria-label="Toggle navigation menu"
+        aria-expanded={mobileOpen}
+      >
+        {mobileOpen ? <X className="size-4" /> : <List className="size-4" />}
+      </button>
+
+      <h1 className="text-label-x-large sm:text-title-h5 text-accent-black tracking-tight">
         {title}
       </h1>
+
       <div className="ml-auto flex items-center gap-4">
         <button
           className="hidden lg:inline-flex items-center gap-4 rounded-md px-10 py-6 text-mono-small text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
@@ -147,8 +154,18 @@ function Header({ title }: { title: string }) {
             ⌘K
           </span>
         </button>
+        {/* Mobile search icon-only */}
         <button
-          className="rounded-md size-44 inline-flex items-center justify-center text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors"
+          className="lg:hidden size-44 inline-flex items-center justify-center text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
+          aria-label="Open search"
+          onClick={() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true } as any));
+          }}
+        >
+          <MagnifyingGlass className="size-4" />
+        </button>
+        <button
+          className="size-44 inline-flex items-center justify-center text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
           onClick={toggle}
           aria-label="Toggle theme"
         >
@@ -160,12 +177,13 @@ function Header({ title }: { title: string }) {
             className="rounded-full size-44 inline-flex items-center justify-center bg-heat-12 text-heat-100 text-label-medium uppercase -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-30"
             aria-haspopup="menu"
             aria-expanded={menu}
+            aria-label="User menu"
           >
             {user?.email?.charAt(0).toUpperCase() ?? "?"}
           </button>
           {menu && (
-            <div className="absolute right-0 top-40 z-50 w-240 rounded-md bg-surface border border-border-faint shadow-lg p-8 -mt-1">
-              <div className="px-8 py-4 text-mono-small text-black-alpha-56 border-b border-border-faint">
+            <div className="absolute right-0 top-48 z-50 w-240 rounded-md bg-surface border border-border-faint shadow-lg p-8 -mt-1">
+              <div className="px-8 py-4 text-mono-small text-black-alpha-56 border-b border-border-faint truncate">
                 {user?.email}
               </div>
               <button
@@ -178,6 +196,42 @@ function Header({ title }: { title: string }) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile menu drawer */}
+      <div
+        className={`lg:hidden absolute top-full left-0 right-0 bg-background-base border-b border-border-faint overflow-hidden transition-all duration-300 ${
+          mobileOpen ? "max-h-500 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <nav className="p-8 space-y-2">
+          {items.map(({ to, label, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-12 rounded-md p-12 text-label-medium transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200",
+                  isActive
+                    ? "bg-heat-4 text-accent-black before:border-heat-12"
+                    : "text-black-alpha-72 hover:text-accent-black hover:bg-black-alpha-4 before:border-transparent",
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span className="absolute left-0 inset-y-8 w-2 bg-heat-100" />
+                  )}
+                  <Icon className="size-4 relative" />
+                  <span className="relative">{label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
       </div>
     </header>
   );

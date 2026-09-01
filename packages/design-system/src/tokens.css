@@ -105,9 +105,9 @@
   --surface: #171717;
   --background-base: #0a0a0a;
   --background-lighter: #1f1f1f;
-  --border-faint: #2a2a2a;
-  --border-muted: #333333;
-  --border-loud: #404040;
+  --border-faint: #3a3a3a;
+  --border-muted: #4a4a4a;
+  --border-loud: #5a5a5a;
   --heat-100: #fa5d19;
 
   --black-alpha-4: rgba(245, 245, 245, 0.04);

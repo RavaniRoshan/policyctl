@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ShieldCheck, GitBranch, Copy, Check } from "@phosphor-icons/react";
+import { useState, useMemo } from "react";
+import { ShieldCheck, GitBranch, Copy, Check, MagnifyingGlass } from "@phosphor-icons/react";
 import { usePolicyVersions } from "@/lib/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,15 @@ export function Policies() {
   const { data, isLoading, error } = usePolicyVersions();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!data || !search) return data ?? [];
+    const q = search.toLowerCase();
+    return data.filter(
+      (v) => v.note?.toLowerCase().includes(q) || v.yaml?.toLowerCase().includes(q),
+    );
+  }, [data, search]);
 
   const copyYaml = async (id: string, text: string) => {
     await navigator.clipboard.writeText(text);
@@ -22,8 +31,21 @@ export function Policies() {
 
   return (
     <div className="space-y-24">
-      <div className="flex items-center justify-between -mt-1">
-        <MonoAnnotation>[ policies / {data?.length ?? 0} versions ]</MonoAnnotation>
+      <div className="flex items-center justify-between -mt-1 border-b border-border-faint pb-12 flex-wrap gap-8">
+        <MonoAnnotation>[ policies / {filtered.length}{data && data.length !== filtered.length ? ` of ${data.length}` : ""} versions ]</MonoAnnotation>
+        {data && data.length > 0 && (
+          <div className="flex items-center gap-8 px-12 py-6 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+            <MagnifyingGlass className="size-3 text-black-alpha-48" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="search notes / yaml…"
+              aria-label="Search policy versions"
+              className="bg-transparent text-mono-small outline-none w-200 placeholder:text-black-alpha-32"
+            />
+          </div>
+        )}
       </div>
 
       {error && (
@@ -57,7 +79,7 @@ export function Policies() {
           <CurvyRect sides="allSides" />
           <table className="w-full text-body-medium">
             <thead>
-              <tr className="border-b border-border-faint text-left text-mono-x-small text-black-alpha-32 uppercase">
+              <tr className="border-b border-border-faint text-left text-mono-x-small text-black-alpha-48 uppercase">
                 <th scope="col" className="p-16">version</th>
                 <th scope="col" className="p-16">note</th>
                 <th scope="col" className="p-16">author</th>
@@ -66,7 +88,7 @@ export function Policies() {
               </tr>
             </thead>
             <tbody>
-              {(data ?? []).map((v) => (
+              {filtered.map((v) => (
                 <VersionRow
                   key={v.id}
                   v={v}
@@ -134,8 +156,8 @@ function VersionRow({
         </td>
       </tr>
       {expanded && (
-        <tr className="bg-background-base">
-          <td colSpan={5} className="p-24 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+        <tr>
+          <td colSpan={5} className="p-24 border-b border-border-faint">
             <div className="flex items-center justify-between mb-12">
               <MonoAnnotation>// .policyctl.yml</MonoAnnotation>
               <Button variant="tertiary" size="sm" onClick={onCopy}>
@@ -143,7 +165,9 @@ function VersionRow({
                 {copied ? "copied" : "copy"}
               </Button>
             </div>
-            <CodeBlock code={v.yaml || "# empty policy"} lang="yaml" title="" showLineNumbers />
+            <div className="max-h-400 overflow-y-auto">
+              <CodeBlock code={v.yaml || "# empty policy"} lang="yaml" title="" showLineNumbers />
+            </div>
           </td>
         </tr>
       )}

@@ -30,9 +30,9 @@ export function Overview() {
 
   return (
     <div className="space-y-24">
-      <div className="flex items-center justify-between -mt-1">
-        <MonoAnnotation>[ overview / {new Date().toISOString().slice(0, 10)} ]</MonoAnnotation>
-        <Button variant="tertiary" size="sm" onClick={refresh}>
+      <div className="flex items-center justify-between -mt-1 border-b border-border-faint pb-12">
+        <MonoAnnotation>[ overview · {new Date().toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })} ]</MonoAnnotation>
+        <Button variant="secondary" size="sm" onClick={refresh}>
           <ArrowClockwise className="size-3 mr-4" /> Refresh
         </Button>
       </div>
@@ -125,8 +125,8 @@ export function Overview() {
                       {v.repo}
                     </span>
                   </div>
-                  <span className="font-mono text-mono-x-small text-black-alpha-32">
-                    {v.created_at}
+                  <span className="font-mono text-mono-x-small text-black-alpha-48">
+                    {new Date(v.created_at).toLocaleString("en-US", { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </li>
               ))}

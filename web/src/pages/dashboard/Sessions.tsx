@@ -100,7 +100,7 @@ export function Sessions() {
             <div>
               <MonoAnnotation>// enforcement</MonoAnnotation>
               <div className="mt-8 flex items-center gap-8">
-                <Badge tone={open.enforce === "block" ? "danger" : open.enforce === "fail" ? "accent" : "muted"}>
+                <Badge tone={open.enforce === "block" ? "danger" : open.enforce === "fail" ? "accent" : "default"}>
                   {open.enforce}
                 </Badge>
                 <span className="font-mono text-mono-medium text-accent-black">{open.rule_id}</span>
@@ -109,27 +109,20 @@ export function Sessions() {
 
             <div>
               <MonoAnnotation>// message</MonoAnnotation>
-              <p className="mt-8 text-body-medium text-black-alpha-72 leading-22">{open.message}</p>
+              <p className="mt-8 text-body-medium text-black-alpha-72 leading-22 whitespace-pre-wrap">
+                {open.message || "—"}
+              </p>
             </div>
 
             <div>
               <MonoAnnotation>// context</MonoAnnotation>
               <ul className="mt-8 space-y-4 text-body-medium">
-                <li className="flex justify-between"><span className="text-black-alpha-48">Repo</span><span className="font-mono text-mono-small">{open.repo}</span></li>
-                <li className="flex justify-between"><span className="text-black-alpha-48">Agent</span><span className="font-mono text-mono-small">{open.agent}</span></li>
-                <li className="flex justify-between"><span className="text-black-alpha-48">At</span><span className="font-mono text-mono-small">{open.created_at}</span></li>
-                <li className="flex justify-between"><span className="text-black-alpha-48">ID</span><span className="font-mono text-mono-small">{open.id}</span></li>
+                <li className="flex justify-between"><span className="text-black-alpha-56">Repo</span><span className="font-mono text-mono-small text-accent-black">{open.repo}</span></li>
+                <li className="flex justify-between"><span className="text-black-alpha-56">Agent</span><span className="font-mono text-mono-small text-accent-black">{open.agent}</span></li>
+                <li className="flex justify-between"><span className="text-black-alpha-56">At</span><span className="font-mono text-mono-small text-accent-black">{new Date(open.created_at).toLocaleString()}</span></li>
+                <li className="flex justify-between"><span className="text-black-alpha-56">ID</span><span className="font-mono text-mono-small text-accent-black">{open.id}</span></li>
               </ul>
             </div>
-
-            {open.message && (
-              <div>
-                <MonoAnnotation>// detail</MonoAnnotation>
-                <p className="mt-8 text-body-medium text-black-alpha-72 leading-22 whitespace-pre-wrap">
-                  {open.message}
-                </p>
-              </div>
-            )}
           </div>
         )}
       </Sheet>
