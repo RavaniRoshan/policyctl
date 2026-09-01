@@ -25,7 +25,7 @@ import { __isDemoMode } from "@/lib/hooks";
 
 const titles: Record<string, string> = {
   "/dashboard": "Overview",
-  "/dashboard/sessions": "Sessions",
+  "/dashboard/violations": "Violations",
   "/dashboard/policies": "Policies",
   "/dashboard/ai": "AI rule author",
   "/dashboard/reports": "Reports",
@@ -34,7 +34,7 @@ const titles: Record<string, string> = {
 
 const items = [
   { to: "/dashboard", label: "Overview", icon: SquaresFour, end: true },
-  { to: "/dashboard/sessions", label: "Sessions", icon: Pulse },
+  { to: "/dashboard/violations", label: "Violations", icon: Pulse },
   { to: "/dashboard/policies", label: "Policies", icon: ShieldCheck },
   { to: "/dashboard/ai", label: "AI", icon: Sparkle },
   { to: "/dashboard/reports", label: "Reports", icon: ChartBar },

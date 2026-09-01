@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Component, Suspense, type ReactNode } from "react";
 import { AuthProvider, RequireAuth } from "@/lib/auth";
@@ -94,11 +94,12 @@ export function App() {
                         }
                       >
                         <Route index element={<Overview />} />
-                        <Route path="sessions" element={<Sessions />} />
+                        <Route path="violations" element={<Sessions />} />
                         <Route path="policies" element={<Policies />} />
                         <Route path="ai" element={<Ai />} />
                         <Route path="reports" element={<Reports />} />
                         <Route path="settings" element={<Settings />} />
+                        <Route path="sessions" element={<Navigate to="/dashboard/violations" replace />} />
                       </Route>
 
                       <Route path="*" element={<NotFound />} />

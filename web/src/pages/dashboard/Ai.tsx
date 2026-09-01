@@ -4,6 +4,7 @@ import { useAiAuthor, useAiAnalyze } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CodeBlock } from "@/components/ui/code-block";
+import { Callout } from "@/components/ui/callout";
 import { Textarea } from "@/components/ui/input";
 import { CurvyRect, PillTabs } from "@policyctl/design-system";
 import { MonoAnnotation } from "@/components/shared/EmptyState";
@@ -22,6 +23,7 @@ export function Ai() {
   const [mode, setMode] = useState<"author" | "analyze">("author");
   const [prompt, setPrompt] = useState("");
   const [output, setOutput] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const authorMut = useAiAuthor();
@@ -36,9 +38,15 @@ export function Ai() {
         ? (res as { yaml?: string }).yaml ?? JSON.stringify(res, null, 2)
         : (res as { analysis?: string }).analysis ?? JSON.stringify(res, null, 2);
       setOutput(text);
+      setError(null);
       saveHistory(prompt, text, mode);
-    } catch {
-      setOutput("// error: AI request failed");
+    } catch (e: any) {
+      // Surface a real error message via the Callout — not as raw YAML text.
+      const msg = e?.message?.includes("429")
+        ? "Rate limited. Please wait a moment and try again."
+        : e?.message || "AI request failed. Please try again.";
+      setError(msg);
+      setOutput("");
     }
   };
 
@@ -106,6 +114,13 @@ export function Ai() {
               </Button>
             )}
           </div>
+          {error && (
+            <div className="mt-12">
+              <Callout type="danger" title="AI request failed">
+                {error}
+              </Callout>
+            </div>
+          )}
           {output ? (
             <CodeBlock
               code={output}
@@ -113,11 +128,11 @@ export function Ai() {
               title="output"
               showLineNumbers={mode === "author"}
             />
-          ) : (
-            <pre className="font-mono text-mono-medium text-black-alpha-32 leading-22 p-16">
-              {`// ${mode === "author" ? "rule" : "analysis"} will appear here`}
-            </pre>
-          )}
+          ) : !error ? (
+            <div className="p-16 text-mono-medium text-black-alpha-32 leading-22 text-center">
+              Describe a rule or paste a policy to begin. Output will appear here.
+            </div>
+          ) : null}
         </Card>
       </div>
 
