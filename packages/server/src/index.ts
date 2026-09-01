@@ -34,7 +34,7 @@ import {
   upsertUser,
 } from "./store.js";
 import { loginPage, renderDashboard } from "./dashboard.js";
-import { makeR2 } from "./s3.js";
+
 import { cacheGetPolicy, cacheGetUser, cacheInvalidatePolicy, cachePutPolicy, cachePutUser } from "./cache.js";
 import { analyzeDiff, authorRule } from "./ai.js";
 import { PolicySession } from "./session.js";
@@ -368,7 +368,7 @@ app.post(`${API}/ai/author`, async (c) => {
   return c.json(result);
 });
 
-// ── Phase C: export violations (R2-backed) ───────────────────────────
+// ── Phase C: export violations (CSV download, no storage required) ──
 app.get(`${API}/export/violations.csv`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
@@ -376,21 +376,13 @@ app.get(`${API}/export/violations.csv`, async (c) => {
   if (!org) return c.json({ error: "no org" }, 400);
   const rows = await listViolations(c.env.DB, org.id, 5000);
   const csv = toCsv(rows);
-  try {
-    const r2 = makeR2(c.env);
-    const key = `exports/org-${org.id}/violations-${Date.now()}.csv`;
-    await r2.putObject(key, csv, "text/csv");
-    const url = r2.presignedGet(key, 900);
-    return c.json({ ok: true, url, key });
-  } catch (e) {
-    // R2 not configured yet — return the CSV inline so the feature still works.
-    return new Response(csv, {
-      headers: {
-        "content-type": "text/csv",
-        "content-disposition": `attachment; filename="policyctl-violations-org-${org.id}.csv"`,
-      },
-    });
-  }
+  // Stream the CSV directly — no object storage needed.
+  return new Response(csv, {
+    headers: {
+      "content-type": "text/csv",
+      "content-disposition": `attachment; filename="policyctl-violations-org-${org.id}.csv"`,
+    },
+  });
 });
 
 // ── Orgs & members ───────────────────────────────────────────────────

@@ -19,11 +19,7 @@ export interface Env {
   OAUTH_GOOGLE_CLIENT_ID?: string;
   OAUTH_GOOGLE_CLIENT_SECRET?: string;
   OAUTH_REDIRECT_URI?: string;
-  // ── R2 (S3-compatible credentials for direct S3 API access) ──
-  R2_ACCESS_KEY_ID?: string;
-  R2_SECRET_ACCESS_KEY?: string;
-  R2_ENDPOINT?: string;
-  R2_BUCKET?: string;
+
 }
 
 export interface User {
