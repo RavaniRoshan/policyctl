@@ -34,9 +34,9 @@ export function AuthPage() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    // Pass `connection` so Auth0 routes directly to GitHub/Google.
-    // The connection must be enabled + have its own callback URL configured
-    // in the Auth0 dashboard (Authentication → Social → GitHub/Google → Settings).
+    // Auth0 needs each social connection enabled in its dashboard.
+    // We pass `connection` to route directly, or omit it to show the
+    // Auth0 universal login page with all enabled social buttons.
     loginWithRedirect({
       authorizationParams: {
         redirect_uri: REDIRECT_URI,
