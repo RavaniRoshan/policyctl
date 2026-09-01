@@ -55,7 +55,7 @@ export function AuthPage() {
     }
   }, [isAuthenticated, navigate]);
 
-  const REDIRECT_URI = `${window.location.origin}/`;
+  const REDIRECT_URI = window.location.origin;
 
   const errors = {
     firstName: touched.firstName && mode === "signup" && form.firstName.trim().length < 2
@@ -122,7 +122,7 @@ export function AuthPage() {
   // Friendly error messages for known Auth0 error codes.
   const friendlyError = error
     ? error.message?.includes("Callback URL")
-      ? `Auth0 rejected the callback URL. Add this URL to your Auth0 application's Allowed Callback URLs list: ${REDIRECT_URI}`
+      ? `Auth0 rejected the callback URL. The app sent: "${REDIRECT_URI}". Make sure this exact URL (with or without trailing slash) is in your Auth0 app's Allowed Callback URLs.`
       : error.message?.includes("access_denied")
         ? "Access was denied. Try signing in with email instead."
         : error.message ?? "Something went wrong. Please try again."

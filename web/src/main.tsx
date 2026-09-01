@@ -8,13 +8,7 @@ import { App } from "./App";
 
 const AUTH0_DOMAIN = "dev-wyyyhy36ogxygyky.us.auth0.com";
 const AUTH0_CLIENT_ID = "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I";
-// Auth0 sends the redirect_uri exactly as configured. We register BOTH the
-// bare origin and the origin with a trailing slash so social (GitHub/Google)
-// and database callbacks both succeed. Trailing slash is canonical — the
-// auth0-react SDK appends "/" when present.
-const rawOrigin = window.location.origin;
-const ALLOWED_ORIGINS = [rawOrigin, `${rawOrigin}/`];
-const REDIRECT_URI = `${rawOrigin}/`;
+const REDIRECT_URI = window.location.origin;
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
