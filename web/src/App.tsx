@@ -8,8 +8,7 @@ import { TurnstileProvider } from "@/components/ui/turnstile";
 import { queryClient } from "@/lib/query";
 import { Landing } from "@/pages/Landing";
 import { Docs } from "@/pages/Docs";
-import { Login } from "@/pages/Login";
-import { Signup } from "@/pages/Signup";
+import { AuthPage } from "@/pages/AuthPage";
 import { Onboarding } from "@/pages/Onboarding";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Overview } from "@/pages/dashboard/Overview";
@@ -72,8 +71,8 @@ export function App() {
                       {/* Public */}
                       <Route path="/" element={<Landing />} />
                       <Route path="/docs" element={<Docs />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/signup" element={<Signup />} />
+                      <Route path="/login" element={<AuthPage />} />
+                      <Route path="/signup" element={<AuthPage />} />
 
                       {/* Onboarding */}
                       <Route
