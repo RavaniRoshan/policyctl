@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Eye, EyeSlash, Copy, Check, GithubLogo, GoogleLogo } from "@phosphor-icons/react";
+import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
 
 export function AuthPage() {
   const [mode, setMode] = useState<"signup" | "login">("signup");
@@ -69,11 +70,19 @@ export function AuthPage() {
       {/* Left Panel - Auth Card */}
       <div className="flex-1 lg:w-1/2 bg-surface flex flex-col p-24 lg:p-40 overflow-y-auto">
         {/* Window Controls */}
-        <div className="flex items-center gap-8 mb-32">
-          <span className="size-12 rounded-full bg-danger/80" />
-          <span className="size-12 rounded-full bg-warning/80" />
-          <span className="size-12 rounded-full bg-success/80" />
+        <div className="flex items-center justify-between mb-32">
+          <div className="flex items-center gap-8">
+            <span className="size-12 rounded-full bg-danger/80" />
+            <span className="size-12 rounded-full bg-warning/80" />
+            <span className="size-12 rounded-full bg-success/80" />
+          </div>
+          <div className="flex items-center gap-8 text-heat-100">
+            <PolicyctlMark size={20} />
+            <span className="text-mono-small font-bold tracking-tight uppercase text-accent-black">policyctl</span>
+          </div>
         </div>
+
+        {/* Mode Toggle */}
 
         {/* Mode Toggle */}
         <div className="flex items-center gap-4 p-4 rounded-lg bg-black-alpha-4 w-max mb-24">

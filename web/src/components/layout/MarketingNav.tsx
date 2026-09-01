@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { List, X, ArrowRight, Scroll, Sparkle, ChartBar } from "@phosphor-icons/react";
+import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
 
 const GITHUB = "https://github.com/RavaniRoshan/policyctl";
 
@@ -39,9 +40,9 @@ export function MarketingNav() {
       }`}
     >
       <div className="pcl-container flex items-center justify-between h-64">
-        <Link to="/" className="flex items-center gap-8 text-accent-black no-underline group">
-          <span className="inline-flex size-32 items-center justify-center rounded-lg bg-heat-100 text-accent-white group-hover:scale-105 transition-transform duration-200">
-            <FlameMark className="size-5" />
+        <Link to="/" className="flex items-center gap-8 text-accent-black no-underline group" aria-label="policyctl home">
+          <span className="inline-flex size-32 items-center justify-center text-heat-100 group-hover:scale-105 transition-transform duration-200">
+            <PolicyctlMark size={28} />
           </span>
           <span className="text-label-large font-medium tracking-tight text-accent-black">
             policyctl
@@ -158,16 +159,5 @@ export function MarketingNav() {
         </div>
       </div>
     </header>
-  );
-}
-
-function FlameMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 600 600" fill="none" className={className} aria-hidden>
-      <path
-        d="M300 80c-50 70-90 110-90 200 0 100 80 200 90 220 10-20 90-120 90-220 0-90-40-130-90-200z"
-        fill="currentColor"
-      />
-    </svg>
   );
 }

@@ -19,6 +19,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
 
 const titles: Record<string, string> = {
   "/dashboard": "Overview",
@@ -60,9 +61,9 @@ function Sidebar() {
   return (
     <aside className="hidden lg:flex w-240 shrink-0 flex-col border-r border-border-faint bg-background-base relative">
       <div className="flex items-center gap-2 px-20 h-64 border-b border-border-faint">
-        <NavLink to="/" aria-label="policyctl home" className="flex items-center gap-2 text-accent-black no-underline">
-          <span className="inline-flex size-7 items-center justify-center">
-            <FlameMark />
+        <NavLink to="/" aria-label="policyctl home" className="flex items-center gap-2 text-accent-black no-underline group">
+          <span className="inline-flex size-7 items-center justify-center text-heat-100 group-hover:scale-105 transition-transform duration-200">
+            <PolicyctlMark size={24} />
           </span>
           <span className="font-mono text-mono-medium uppercase tracking-wider">
             policyctl
@@ -237,17 +238,3 @@ function Header({ title }: { title: string }) {
   );
 }
 
-function FlameMark() {
-  return (
-    <svg viewBox="0 0 600 600" fill="none" aria-hidden>
-      <path
-        d="M300 80c-50 70-90 110-90 200 0 100 80 200 90 220 10-20 90-120 90-220 0-90-40-130-90-200z"
-        fill="#fa5d19"
-      />
-      <path
-        d="M300 260c-20 30-40 60-40 110 0 60 30 110 40 130 10-20 40-70 40-130 0-50-20-80-40-110z"
-        fill="#262626"
-      />
-    </svg>
-  );
-}
