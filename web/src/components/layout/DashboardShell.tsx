@@ -13,6 +13,7 @@ import {
   Moon,
   List,
   X,
+  Warning,
 } from "@phosphor-icons/react";
 import { CommandPaletteHost } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
@@ -20,6 +21,7 @@ import { useTheme } from "@/lib/theme";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
+import { __isDemoMode } from "@/lib/hooks";
 
 const titles: Record<string, string> = {
   "/dashboard": "Overview",
@@ -47,6 +49,7 @@ export function DashboardShell() {
     <div className="min-h-screen flex bg-background-base">
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
+        {__isDemoMode && <DemoModeBanner />}
         <Header title={title} />
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-16 lg:p-32 focus:outline-none">
           <Outlet />
@@ -235,6 +238,22 @@ function Header({ title }: { title: string }) {
         </nav>
       </div>
     </header>
+  );
+}
+
+function DemoModeBanner() {
+  return (
+    <div
+      role="status"
+      aria-label="Demo data notice"
+      className="px-16 lg:px-32 py-8 bg-heat-100 text-accent-white text-mono-small flex items-center gap-12"
+    >
+      <Warning className="size-3.5 shrink-0" weight="bold" />
+      <span>
+        <strong>Demo data</strong> — no backend is wired in this build. Connect the
+        Worker (VITE_API_BASE) to see real analytics, violations, and policies.
+      </span>
+    </div>
   );
 }
 
