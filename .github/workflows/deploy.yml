@@ -38,6 +38,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @policyctl/server build
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
