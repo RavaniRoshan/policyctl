@@ -699,7 +699,7 @@ function TestimonialCard({
   initials: string;
 }) {
   return (
-    <div className="w-320 lg:w-360 shrink-0 mr-16 border border-border-faint rounded-xl bg-surface hover:bg-black-alpha-4 transition-colors duration-200 group relative">
+    <div className="w-280 lg:w-340 shrink-0 mr-16 border border-border-faint rounded-xl bg-surface hover:bg-black-alpha-4 transition-colors duration-200 group relative">
       <div className="absolute left-0 top-32 bottom-32 w-2 bg-heat-100 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
       <div className="px-20 py-20 lg:pl-32 lg:p-24 border-b border-border-faint flex items-center gap-12">
         <span
