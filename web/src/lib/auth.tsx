@@ -1,59 +1,55 @@
 import {
-  createContext,
   useContext,
-  useEffect,
-  useMemo,
-  useState,
+  createContext,
   type ReactNode,
 } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, Navigate } from "react-router-dom";
-import { api, type Session, type User } from "./api";
+import { useEffect, useState } from "react";
 
 interface AuthState {
-  user: User | null;
+  user: { sub: string; email?: string; name?: string; picture?: string } | null;
   loading: boolean;
-  login: (email: string, password: string, turnstile?: string) => Promise<void>;
-  signup: (email: string, password: string, displayName?: string, turnstile?: string) => Promise<void>;
-  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  login: (opts?: { screenHint?: "signup" | "login" }) => void;
+  logout: () => void;
 }
 
 const AuthCtx = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    user,
+    isLoading,
+    isAuthenticated,
+    loginWithRedirect,
+    logout: auth0Logout,
+  } = useAuth0();
 
-  useEffect(() => {
-    api
-      .me()
-      .then((s) => setUser(s?.user ?? null))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const login = async (email: string, password: string, turnstile?: string) => {
-    const s = await api.login({ email, password, turnstile });
-    setUser(s.user);
-  };
-  const signup = async (email: string, password: string, displayName?: string, turnstile?: string) => {
-    const s = await api.signup({ email, password, displayName, turnstile });
-    setUser(s.user);
-  };
-  const logout = async () => {
-    await api.logout();
-    setUser(null);
+  const login = (opts?: { screenHint?: "signup" | "login" }) => {
+    loginWithRedirect({
+      authorizationParams: {
+        redirect_uri: `${window.location.origin}/`,
+        screen_hint: opts?.screenHint || "login",
+      },
+    });
   };
 
-  const value = useMemo(
-    () => ({ user, loading, login, signup, logout }),
-    [user, loading],
-  );
+  const logout = () => {
+    auth0Logout({ logoutParams: { returnTo: `${window.location.origin}/` } });
+  };
 
-  return (
-    <AuthCtx.Provider value={value}>
-      {children}
-    </AuthCtx.Provider>
-  );
+  const value: AuthState = {
+    user: user
+      ? { sub: user.sub ?? "", email: user.email, name: user.name, picture: user.picture }
+      : null,
+    loading: isLoading,
+    isAuthenticated,
+    login,
+    logout,
+  };
+
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }
 
 export function useAuth(): AuthState {
@@ -63,18 +59,18 @@ export function useAuth(): AuthState {
 }
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth0();
   const navigate = useNavigate();
   const [redirectTo, setRedirectTo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isLoading && !isAuthenticated) {
       const next = window.location.pathname + window.location.search;
       setRedirectTo(`/login?next=${encodeURIComponent(next)}`);
     }
-  }, [user, loading]);
+  }, [isAuthenticated, isLoading]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen grid place-items-center text-black-alpha-48 font-mono text-mono-small">
         Loading…

@@ -19,10 +19,13 @@ export function AuthPage() {
 
   const { loginWithRedirect, isLoading, error, isAuthenticated, user, logout } = useAuth0();
 
+  const REDIRECT_URI = `${window.location.origin}/`;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     loginWithRedirect({
       authorizationParams: {
+        redirect_uri: REDIRECT_URI,
         screen_hint: mode === "signup" ? "signup" : "login",
       },
     });
@@ -31,6 +34,7 @@ export function AuthPage() {
   const handleSocialLogin = (provider: string) => {
     loginWithRedirect({
       authorizationParams: {
+        redirect_uri: REDIRECT_URI,
         connection: provider,
         screen_hint: mode === "signup" ? "signup" : "login",
       },
@@ -50,7 +54,7 @@ export function AuthPage() {
           <h1 className="text-title-h3 text-accent-black">Welcome, {user?.name || user?.email}</h1>
           <p className="mt-8 text-body-medium text-black-alpha-64">You're signed in to policyctl.</p>
           <button
-            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            onClick={() => logout({ logoutParams: { returnTo: `${window.location.origin}/` } })}
             className="mt-24 pcl-btn pcl-btn--secondary"
           >
             Sign out

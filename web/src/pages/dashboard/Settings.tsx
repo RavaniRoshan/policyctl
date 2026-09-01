@@ -57,12 +57,12 @@ export function Settings() {
             <span className="font-mono text-mono-small text-accent-black">{user?.email}</span>
           </li>
           <li className="flex justify-between items-center px-12 py-12 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
-            <span className="text-body-medium text-black-alpha-56">Provider</span>
-            <span className="font-mono text-mono-small text-accent-black">{user?.provider ?? "email"}</span>
+            <span className="text-body-medium text-black-alpha-56">Name</span>
+            <span className="font-mono text-mono-small text-accent-black">{user?.name ?? "—"}</span>
           </li>
           <li className="flex justify-between items-center px-12 py-12 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
-            <span className="text-body-medium text-black-alpha-56">Display name</span>
-            <span className="font-mono text-mono-small text-accent-black">{user?.displayName ?? "—"}</span>
+            <span className="text-body-medium text-black-alpha-56">User ID</span>
+            <span className="font-mono text-mono-small text-accent-black">{user?.sub ?? "—"}</span>
           </li>
         </ul>
       </Card>

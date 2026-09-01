@@ -15,8 +15,12 @@ createRoot(document.getElementById("root")!).render(
     <Auth0Provider
       domain={AUTH0_DOMAIN}
       clientId={AUTH0_CLIENT_ID}
-      authorizationParams={{ redirect_uri: REDIRECT_URI }}
+      authorizationParams={{
+        redirect_uri: REDIRECT_URI,
+      }}
       cacheLocation="localstorage"
+      useRefreshTokens={false}
+      skipRedirectCallback={false}
     >
       <App />
     </Auth0Provider>
