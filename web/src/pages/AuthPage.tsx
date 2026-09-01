@@ -34,9 +34,11 @@ export function AuthPage() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    // Auth0 needs each social connection enabled in its dashboard.
-    // We pass `connection` to route directly, or omit it to show the
-    // Auth0 universal login page with all enabled social buttons.
+    // We pass `connection` to route directly. If the connection isn't enabled
+    // in Auth0, this falls back to the universal login page. Users who hit
+    // a callback mismatch should add these callback URLs to the Auth0 app:
+    //   http://localhost:5173/
+    //   https://policyctl-web.pages.dev/
     loginWithRedirect({
       authorizationParams: {
         redirect_uri: REDIRECT_URI,
@@ -122,6 +124,13 @@ export function AuthPage() {
               <GoogleLogo className="size-4" weight="bold" />
               {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
             </button>
+            {error && (
+              <div role="alert" className="p-12 mt-12 -mt-1 text-mono-small text-danger bg-danger/5 border border-danger/20 rounded-lg">
+                {error.message?.includes("Callback URL")
+                  ? "Auth0 rejected the callback URL. Make sure these URLs are in your Auth0 application's Allowed Callback URLs list: " + REDIRECT_URI
+                  : error.message}
+              </div>
+            )}
           </div>
 
           {/* Divider */}

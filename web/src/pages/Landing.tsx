@@ -129,7 +129,7 @@ export function Landing() {
 
 function Hero() {
   return (
-    <section className="relative overflow-clip pt-56 lg:pt-25 -mt-12 lg:-mt-12">
+    <section className="relative overflow-clip pt-80 lg:pt-88 -mt-12 lg:-mt-12">
       <div className="pcl-container relative">
         <motion.div
           variants={stagger}
