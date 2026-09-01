@@ -34,6 +34,9 @@ export function AuthPage() {
   };
 
   const handleSocialLogin = (provider: string) => {
+    // Pass `connection` so Auth0 routes directly to GitHub/Google.
+    // The connection must be enabled + have its own callback URL configured
+    // in the Auth0 dashboard (Authentication → Social → GitHub/Google → Settings).
     loginWithRedirect({
       authorizationParams: {
         redirect_uri: REDIRECT_URI,
@@ -254,32 +257,41 @@ export function AuthPage() {
 
         {/* Content (centered, fits on a single page) */}
         <div className="relative z-10 flex flex-col justify-center items-start p-40 w-full">
+          {/* Subtle dark scrim behind the content to ensure text contrast */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 80% at 30% 50%, rgba(0,0,0,0.55), transparent 70%)",
+            }}
+          />
+
           {/* Floating logo mark */}
-          <div className="mb-32 inline-flex items-center gap-12 text-accent-white/90">
+          <div className="mb-32 relative inline-flex items-center gap-12">
             <PolicyctlMark size={48} className="text-heat-100" />
-            <span className="font-mono text-mono-medium uppercase tracking-wider text-body-medium">
+            <span className="font-mono text-mono-medium uppercase tracking-wider text-body-medium text-accent-white">
               policyctl
             </span>
           </div>
 
-          <h2 className="text-title-h1 text-accent-white tracking-tight leading-[1.05] mb-24">
+          <h2 className="relative text-title-h1 text-accent-white tracking-tight leading-[1.05] mb-24" style={{ textShadow: "0 2px 24px rgba(0,0,0,0.5)" }}>
             Define once,<br />Build compliant.
           </h2>
 
-          <p className="text-body-large text-accent-white/72 max-w-400 leading-26 mb-40">
-            One <span className="font-mono text-accent-white/90">.policyctl.yml</span> enforced
+          <p className="relative text-body-large text-accent-white max-w-400 leading-26 mb-40" style={{ textShadow: "0 1px 12px rgba(0,0,0,0.6)" }}>
+            One <span className="font-mono text-heat-100">.policyctl.yml</span> enforced
             across Claude Code, Codex, Cursor, and your CI pipeline. No vendor lock-in.
           </p>
 
           {/* CLI Pill */}
-          <div className="inline-flex items-center gap-12 px-20 py-12 rounded-full bg-white-alpha-8 backdrop-blur-xl border border-white-alpha-12">
+          <div className="relative inline-flex items-center gap-12 px-20 py-12 rounded-full bg-white-alpha-12 backdrop-blur-xl border border-white-alpha-24">
             <code className="text-mono-small text-accent-white">
               brew install ravaniroshan/tap/policyctl
             </code>
             <button
               onClick={copyCommand}
               aria-label="Copy install command"
-              className="text-accent-white/60 hover:text-accent-white transition-colors"
+              className="text-accent-white/80 hover:text-accent-white transition-colors"
             >
               {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
             </button>
