@@ -42,14 +42,6 @@ crons = ["0 9 * * *"]
 TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
 # OAuth redirect URI (must match the Cloudflare Access / Google Cloud OAuth consent screen).
 OAUTH_REDIRECT_URI = "https://policyctl-server.shivamkumar10958.workers.dev/api/auth/oauth/callback"
-# R2 bucket name for CSV exports
-R2_BUCKET = "policyctl"
-
-# R2 object storage (for CSV exports, presigned via S3-compatible API)
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "policyctl"
-
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true
