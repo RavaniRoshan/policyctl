@@ -38,6 +38,14 @@ todos/
 scratch/
 notes/
 
+# Process / release docs (not part of the code base itself)
+DESIGN.md
+LAUNCH_POSTS.md
+PUBLISH.md
+PUBLISHING.md
+TESTING.md
+TEST_PLAN.md
+
 # Source images for the brand (kept locally, not tracked)
 ChatGPT Image*.png
 chatgpt-image-*.png
