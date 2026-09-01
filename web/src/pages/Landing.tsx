@@ -877,12 +877,11 @@ function FAQ() {
                         className="w-full text-label-large text-accent-black flex items-center justify-between gap-16 px-16 lg:px-32 py-20 hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
                       >
                         <span className="text-start">{it.q}</span>
-                        <motion.span
-                          animate={{ rotate: isOpen ? 45 : 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
+                        {isOpen ? (
+                          <Minus className="size-4 text-black-alpha-48" />
+                        ) : (
                           <Plus className="size-4 text-black-alpha-48" />
-                        </motion.span>
+                        )}
                       </button>
                       <AnimatePresence initial={false}>
                         {isOpen && (

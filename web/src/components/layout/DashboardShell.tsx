@@ -48,7 +48,7 @@ export function DashboardShell() {
   return (
     <div className="min-h-screen flex bg-background-base">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
         {__isDemoMode && <DemoModeBanner />}
         <Header title={title} />
         <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-16 lg:p-32 focus:outline-none">
@@ -56,6 +56,33 @@ export function DashboardShell() {
         </main>
       </div>
       <CommandPaletteHost />
+
+      {/* Mobile bottom tab bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background-base/95 backdrop-blur-4 border-t border-border-faint" aria-label="Mobile navigation">
+        <div className="flex items-center justify-around h-14">
+          {items.map(({ to, label, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                cn(
+                  "flex flex-col items-center justify-center gap-1 flex-1 h-full text-black-alpha-48 transition-colors relative",
+                  isActive && "text-heat-100",
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-heat-100 rounded-full" />}
+                  <Icon className="size-5" />
+                  <span className="text-mono-x-small">{label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
@@ -246,7 +273,7 @@ function DemoModeBanner() {
     <div
       role="status"
       aria-label="Demo data notice"
-      className="px-16 lg:px-32 py-8 bg-heat-100 text-accent-white text-mono-small flex items-center gap-12"
+      className="px-16 lg:px-32 py-8 bg-warning text-accent-black text-mono-small flex items-center gap-12"
     >
       <Warning className="size-3.5 shrink-0" weight="bold" />
       <span>

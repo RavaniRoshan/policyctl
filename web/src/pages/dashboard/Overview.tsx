@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton, EmptyState, MonoAnnotation } from "@/components/shared/EmptyState";
+import { Callout } from "@/components/ui/callout";
 
 export function Overview() {
   const { data: analytics, isLoading: aLoading, error: aError } = useAnalytics();
@@ -38,9 +39,12 @@ export function Overview() {
       </div>
 
       {(aError || vError) && (
-        <div role="alert" className="p-16 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-danger/30 bg-danger/5 text-danger text-body-medium">
-          Failed to load dashboard data. Please try again.
-        </div>
+        <Callout type="danger" title="Failed to load dashboard" className="p-16">
+          {aError?.message || vError?.message || "An unexpected error occurred."}
+          <button onClick={refresh} className="mt-8 pcl-btn pcl-btn--secondary pcl-btn--sm">
+            <ArrowClockwise className="size-3 mr-4" /> Retry
+          </button>
+        </Callout>
       )}
 
       <div className="grid gap-16 sm:grid-cols-2 lg:grid-cols-4 -mt-1" aria-live="polite">

@@ -130,56 +130,56 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left Panel - Auth Card (fits on a single desktop page) */}
-      <div className="flex-1 lg:w-1/2 bg-surface flex flex-col p-24 lg:p-32 justify-between min-h-screen">
-        <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="flex items-center gap-8 text-accent-black no-underline group"
-            aria-label="policyctl home"
-          >
-            <span className="inline-flex size-32 items-center justify-center text-heat-100 group-hover:scale-105 transition-transform duration-200">
-              <PolicyctlMark size={28} />
-            </span>
-            <span className="text-label-large font-medium tracking-tight text-accent-black">
-              policyctl
-            </span>
-          </Link>
-          <button
-            onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-            className="text-body-small text-black-alpha-56 hover:text-accent-black transition-colors"
-          >
-            {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
-            <span className="text-heat-100 font-medium">
-              {mode === "signup" ? "Sign in" : "Sign up"}
-            </span>
-          </button>
-        </div>
+      {/* Left Panel - Auth Card (single desktop page, no scroll) */}
+      <div className="flex-1 lg:w-1/2 bg-surface flex flex-col justify-center p-6 sm:p-8 lg:p-12 xl:p-16">
+        <div className="w-full max-w-md mx-auto">
+          <div className="flex items-center justify-between mb-6 lg:mb-8">
+            <Link
+              to="/"
+              className="flex items-center gap-2 text-accent-black no-underline group"
+              aria-label="policyctl home"
+            >
+              <span className="inline-flex size-8 items-center justify-center text-heat-100 group-hover:scale-105 transition-transform duration-200">
+                <PolicyctlMark size={28} />
+              </span>
+              <span className="text-label-large font-medium tracking-tight text-accent-black">
+                policyctl
+              </span>
+            </Link>
+            <button
+              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
+              className="text-body-small text-black-alpha-56 hover:text-accent-black transition-colors"
+            >
+              {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
+              <span className="text-heat-100 font-medium">
+                {mode === "signup" ? "Sign in" : "Sign up"}
+              </span>
+            </button>
+          </div>
 
-        <div className="flex-1 flex flex-col justify-center max-w-420 mx-auto w-full py-24">
           <h1 className="text-title-h3 text-accent-black tracking-tight">
             {mode === "signup" ? "Create your account" : "Welcome back"}
           </h1>
-          <p className="mt-6 text-body-medium text-black-alpha-72">
+          <p className="mt-2 text-body-medium text-black-alpha-72">
             {mode === "signup"
               ? "Define guardrails, enforce policies across systems."
               : "Sign in to manage your policies."}
           </p>
 
           {friendlyError && (
-            <div className="mt-16">
+            <div className="mt-4">
               <Callout type="danger" title="Sign in failed">
                 {friendlyError}
               </Callout>
             </div>
           )}
 
-          <div className="mt-20 space-y-8">
+          <div className="mt-6 space-y-2">
             <button
               type="button"
               onClick={() => handleSocialLogin("github")}
               disabled={isLoading}
-              className="flex w-full h-44 items-center justify-center gap-8 rounded-xl border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
+              className="flex w-full h-10 items-center justify-center gap-2 rounded-lg border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
             >
               {isLoading ? (
                 <span className="size-4 border-2 border-border-faint border-t-heat-100 rounded-full animate-spin" />
@@ -192,7 +192,7 @@ export function AuthPage() {
               type="button"
               onClick={() => handleSocialLogin("google-oauth2")}
               disabled={isLoading}
-              className="flex w-full h-44 items-center justify-center gap-8 rounded-xl border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
+              className="flex w-full h-10 items-center justify-center gap-2 rounded-lg border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
             >
               {isLoading ? (
                 <span className="size-4 border-2 border-border-faint border-t-heat-100 rounded-full animate-spin" />
@@ -203,20 +203,17 @@ export function AuthPage() {
             </button>
           </div>
 
-          <div className="flex items-center gap-12 my-16">
+          <div className="flex items-center gap-3 my-4">
             <div className="flex-1 h-px bg-border-faint" />
             <span className="text-mono-x-small text-black-alpha-32 uppercase">or</span>
             <div className="flex-1 h-px bg-border-faint" />
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-12">
+          <form onSubmit={handleSubmit} noValidate className="space-y-3">
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label
-                    htmlFor="firstName"
-                    className="text-label-small text-accent-black block mb-4"
-                  >
+                  <label htmlFor="firstName" className="text-label-small text-accent-black block mb-1">
                     First Name
                   </label>
                   <input
@@ -228,20 +225,17 @@ export function AuthPage() {
                     placeholder="Ada"
                     aria-invalid={errors.firstName ? "true" : undefined}
                     aria-describedby={errors.firstName ? "firstName-error" : undefined}
-                    className="w-full h-40 rounded-xl border border-border-faint bg-surface px-12 py-10 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                    className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
                   />
                   {errors.firstName && (
-                    <p id="firstName-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                    <p id="firstName-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
                       <WarningCircle className="size-3" />
                       {errors.firstName}
                     </p>
                   )}
                 </div>
                 <div>
-                  <label
-                    htmlFor="lastName"
-                    className="text-label-small text-accent-black block mb-4"
-                  >
+                  <label htmlFor="lastName" className="text-label-small text-accent-black block mb-1">
                     Last Name
                   </label>
                   <input
@@ -253,10 +247,10 @@ export function AuthPage() {
                     placeholder="Lovelace"
                     aria-invalid={errors.lastName ? "true" : undefined}
                     aria-describedby={errors.lastName ? "lastName-error" : undefined}
-                    className="w-full h-40 rounded-xl border border-border-faint bg-surface px-12 py-10 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                    className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
                   />
                   {errors.lastName && (
-                    <p id="lastName-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                    <p id="lastName-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
                       <WarningCircle className="size-3" />
                       {errors.lastName}
                     </p>
@@ -266,7 +260,7 @@ export function AuthPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="text-label-small text-accent-black block mb-4">
+              <label htmlFor="email" className="text-label-small text-accent-black block mb-1">
                 Work Email
               </label>
               <input
@@ -279,10 +273,10 @@ export function AuthPage() {
                 required
                 aria-invalid={errors.email ? "true" : undefined}
                 aria-describedby={errors.email ? "email-error" : undefined}
-                className="w-full h-40 rounded-xl border border-border-faint bg-surface px-12 py-10 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
               />
               {errors.email && (
-                <p id="email-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                <p id="email-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
                   <WarningCircle className="size-3" />
                   {errors.email}
                 </p>
@@ -290,7 +284,7 @@ export function AuthPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="text-label-small text-accent-black block mb-4">
+              <label htmlFor="password" className="text-label-small text-accent-black block mb-1">
                 Password
               </label>
               <div className="relative">
@@ -305,19 +299,19 @@ export function AuthPage() {
                   minLength={8}
                   aria-invalid={errors.password ? "true" : undefined}
                   aria-describedby={errors.password ? "password-error" : undefined}
-                  className="w-full h-40 rounded-xl border border-border-faint bg-surface px-12 py-10 pr-44 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                  className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 pr-9 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-12 top-1/2 -translate-y-1/2 text-black-alpha-48 hover:text-accent-black transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-black-alpha-48 hover:text-accent-black transition-colors p-1"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeSlash className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
               {errors.password && (
-                <p id="password-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                <p id="password-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
                   <WarningCircle className="size-3" />
                   {errors.password}
                 </p>
@@ -326,7 +320,7 @@ export function AuthPage() {
 
             {mode === "signup" && (
               <div>
-                <label className="flex items-start gap-8 cursor-pointer pt-2">
+                <label className="flex items-start gap-2 cursor-pointer pt-1">
                   <input
                     type="checkbox"
                     checked={form.terms}
@@ -334,14 +328,14 @@ export function AuthPage() {
                     onBlur={() => setTouched((t) => ({ ...t, terms: true }))}
                     aria-invalid={errors.terms ? "true" : undefined}
                     aria-describedby={errors.terms ? "terms-error" : undefined}
-                    className="size-4 mt-1 rounded border-border-faint text-heat-100 focus:ring-heat-100"
+                    className="size-4 mt-0.5 rounded border-border-faint text-heat-100 focus:ring-heat-100"
                   />
-                  <span className="text-mono-small text-black-alpha-56 leading-16">
+                  <span className="text-mono-small text-black-alpha-56 leading-4">
                     I agree to the Terms of Service and Privacy Policy
                   </span>
                 </label>
                 {errors.terms && (
-                  <p id="terms-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                  <p id="terms-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
                     <WarningCircle className="size-3" />
                     {errors.terms}
                   </p>
@@ -352,7 +346,7 @@ export function AuthPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-44"
+              className="w-full h-10 mt-2"
               size="lg"
             >
               {isLoading ? (
@@ -364,43 +358,44 @@ export function AuthPage() {
           </form>
         </div>
 
-        <p className="text-mono-x-small text-black-alpha-32 text-center">
+        <p className="text-mono-x-small text-black-alpha-32 text-center mt-6">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
 
-      {/* Right Panel - always dark, looks great in both themes */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-accent-black border-l border-border-faint">
+      {/* Right Panel - dark artistic panel with vibrant gradient */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0a0a0a]">
         <div
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 80% 60% at 20% 30%, rgba(250, 93, 25, 0.35), transparent 60%),
-              radial-gradient(ellipse 60% 50% at 80% 70%, rgba(59, 130, 246, 0.25), transparent 60%),
+              radial-gradient(ellipse 80% 60% at 20% 30%, rgba(250, 93, 25, 0.4), transparent 60%),
+              radial-gradient(ellipse 60% 50% at 80% 70%, rgba(59, 130, 246, 0.3), transparent 60%),
+              radial-gradient(ellipse 50% 40% at 50% 50%, rgba(250, 93, 25, 0.15), transparent 50%),
               linear-gradient(135deg, #0a0a0a 0%, #1a0f0a 50%, #0a0a0a 100%)
             `,
           }}
         />
 
+        {/* Noise texture overlay */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none opacity-20"
           style={{
-            background:
-              "radial-gradient(ellipse 70% 80% at 30% 50%, rgba(0,0,0,0.55), transparent 70%)",
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           }}
         />
 
-        <div className="relative z-10 flex flex-col justify-center items-start p-40 w-full">
-          <div className="mb-32 relative inline-flex items-center gap-12">
+        <div className="relative z-10 flex flex-col justify-center items-start p-12 xl:p-16 w-full max-w-lg mx-auto">
+          <div className="mb-8 relative inline-flex items-center gap-3">
             <PolicyctlMark size={48} className="text-heat-100" />
-            <span className="font-mono text-mono-medium uppercase tracking-wider text-body-medium text-accent-white">
+            <span className="font-mono text-mono-medium uppercase tracking-wider text-body-medium text-white">
               policyctl
             </span>
           </div>
 
           <h2
-            className="relative text-title-h1 text-accent-white tracking-tight leading-[1.05] mb-24"
-            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.5)" }}
+            className="relative text-4xl xl:text-5xl font-bold text-white tracking-tight leading-tight mb-6"
+            style={{ textShadow: "0 2px 24px rgba(0,0,0,0.8), 0 0 48px rgba(250,93,25,0.2)" }}
           >
             Define once,
             <br />
@@ -408,8 +403,8 @@ export function AuthPage() {
           </h2>
 
           <p
-            className="relative text-body-large text-accent-white max-w-400 leading-26 mb-40"
-            style={{ textShadow: "0 1px 12px rgba(0,0,0,0.6)" }}
+            className="relative text-lg text-white/90 max-w-md leading-relaxed mb-10"
+            style={{ textShadow: "0 1px 12px rgba(0,0,0,0.8)" }}
           >
             One <span className="font-mono text-heat-100">.policyctl.yml</span> enforced
             across Claude Code, Codex, Cursor, and your CI pipeline. No vendor lock-in.
@@ -418,15 +413,15 @@ export function AuthPage() {
           <button
             onClick={copyCommand}
             aria-label="Copy install command"
-            className="relative inline-flex items-center gap-12 px-20 py-12 rounded-full bg-white-alpha-12 backdrop-blur-xl border border-white-alpha-24 hover:bg-white-alpha-24 transition-colors"
+            className="relative inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-colors"
           >
-            <code className="text-mono-small text-accent-white">
+            <code className="text-sm text-white font-mono">
               brew install ravaniroshan/tap/policyctl
             </code>
             {copied ? (
-              <Check className="size-4 text-accent-white" />
+              <Check className="size-4 text-white" />
             ) : (
-              <Copy className="size-4 text-accent-white/80" />
+              <Copy className="size-4 text-white/80" />
             )}
           </button>
         </div>

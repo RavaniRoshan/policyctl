@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { CheckCircle, Funnel } from "@phosphor-icons/react";
+import { CheckCircle, Funnel, ArrowClockwise, X } from "@phosphor-icons/react";
 import { useViolations } from "@/lib/hooks";
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Card } from "@/components/ui/card";
 import { Sheet, CurvyRect } from "@policyctl/design-system";
 import { Skeleton, EmptyState, MonoAnnotation } from "@/components/shared/EmptyState";
+import { Callout } from "@/components/ui/callout";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Violation } from "@/lib/api";
 
 export function Sessions() {
-  const { data, isLoading, error } = useViolations();
+  const { data, isLoading, error, refetch } = useViolations();
+  const queryClient = useQueryClient();
   const [provider, setProvider] = useState<string>("All");
   const [enforce, setEnforce] = useState<string>("All");
   const [open, setOpen] = useState<Violation | null>(null);
@@ -20,10 +23,15 @@ export function Sessions() {
     return true;
   });
 
+  const retry = () => {
+    queryClient.invalidateQueries({ queryKey: ["violations"] });
+    refetch();
+  };
+
   return (
     <div className="space-y-24">
       <div className="flex items-center justify-between -mt-1">
-        <MonoAnnotation>[ sessions / {filtered.length} records ]</MonoAnnotation>
+        <MonoAnnotation>[ violations / {filtered.length} records ]</MonoAnnotation>
         <div className="flex items-center gap-8">
           <SelectPill value={provider} onChange={setProvider} options={["All", "claude", "codex", "cursor", "ci"]} label="provider" />
           <SelectPill value={enforce} onChange={setEnforce} options={["All", "block", "fail", "warn", "log"]} label="enforce" />
@@ -31,9 +39,12 @@ export function Sessions() {
       </div>
 
       {error && (
-        <div role="alert" className="p-16 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-danger/30 bg-danger/5 text-danger text-body-medium">
-          Failed to load sessions. Please try again.
-        </div>
+        <Callout type="danger" title="Failed to load violations" className="p-16">
+          {error.message || "An unexpected error occurred."}
+          <button onClick={retry} className="mt-8 pcl-btn pcl-btn--secondary pcl-btn--sm">
+            <ArrowClockwise className="size-3 mr-4" /> Retry
+          </button>
+        </Callout>
       )}
 
       {isLoading ? (
@@ -47,51 +58,82 @@ export function Sessions() {
           <CurvyRect sides="allSides" />
           <EmptyState
             icon={CheckCircle}
-            title="No sessions recorded"
+            title="No violations recorded"
             description="Enforcement sessions will appear here once an agent runs against your repo."
           />
         </Card>
       ) : (
-        <Card className="p-0 overflow-hidden">
-          <CurvyRect sides="allSides" />
-          <div className="overflow-x-auto">
-          <table className="w-full text-body-medium min-w-600">
-            <thead>
-              <tr className="border-b border-border-faint text-left text-mono-x-small text-black-alpha-32 uppercase">
-                <th scope="col" className="p-16">enforce</th>
-                <th scope="col" className="p-16">rule_id</th>
-                <th scope="col" className="p-16">repo</th>
-                <th scope="col" className="p-16">agent</th>
-                <th scope="col" className="p-16">timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((v) => (
-                <tr
-                  key={v.id}
-                  onClick={() => setOpen(v)}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(v); } }}
-                  tabIndex={0}
-                  role="button"
-                  className="border-b border-border-faint hover:bg-black-alpha-4 transition-colors cursor-pointer focus-visible:bg-black-alpha-4"
-                >
-                  <td className="p-16">
-                    <Badge tone={v.enforce === "block" ? "danger" : v.enforce === "fail" ? "accent" : "muted"}>
-                      {v.enforce}
-                    </Badge>
-                  </td>
-                  <td className="p-16 font-mono text-mono-small text-accent-black">{v.rule_id}</td>
-                  <td className="p-16 text-black-alpha-72">{v.repo}</td>
-                  <td className="p-16 text-black-alpha-64">{v.agent}</td>
-                  <td className="p-16 font-mono text-mono-x-small text-black-alpha-32">
-                    {new Date(v.created_at).toLocaleString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <>
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-8 -mt-1">
+            {filtered.map((v) => (
+              <Card
+                key={v.id}
+                onClick={() => setOpen(v)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(v); } }}
+                tabIndex={0}
+                role="button"
+                className="p-16 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint hover:bg-black-alpha-4 transition-colors cursor-pointer focus-visible:bg-black-alpha-4"
+              >
+                <div className="flex items-center justify-between mb-8">
+                  <Badge tone={v.enforce === "block" ? "danger" : v.enforce === "fail" ? "accent" : "muted"}>
+                    {v.enforce}
+                  </Badge>
+                  <span className="text-mono-x-small text-black-alpha-32">
+                    {new Date(v.created_at).toLocaleString("en-US", { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+                <div className="font-mono text-mono-small text-accent-black mb-4">{v.rule_id}</div>
+                <div className="flex items-center justify-between text-body-small text-black-alpha-56">
+                  <span className="truncate">{v.repo}</span>
+                  <span className="font-mono text-mono-x-small ml-8">{v.agent}</span>
+                </div>
+              </Card>
+            ))}
           </div>
-        </Card>
+
+          {/* Desktop table */}
+          <Card className="p-0 overflow-hidden hidden md:block">
+            <CurvyRect sides="allSides" />
+            <div className="overflow-x-auto">
+            <table className="w-full text-body-medium min-w-600">
+              <thead>
+                <tr className="border-b border-border-faint text-left text-mono-x-small text-black-alpha-32 uppercase">
+                  <th scope="col" className="p-16">enforce</th>
+                  <th scope="col" className="p-16">rule_id</th>
+                  <th scope="col" className="p-16">repo</th>
+                  <th scope="col" className="p-16">agent</th>
+                  <th scope="col" className="p-16">timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((v) => (
+                  <tr
+                    key={v.id}
+                    onClick={() => setOpen(v)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(v); } }}
+                    tabIndex={0}
+                    role="button"
+                    className="border-b border-border-faint hover:bg-black-alpha-4 transition-colors cursor-pointer focus-visible:bg-black-alpha-4"
+                  >
+                    <td className="p-16">
+                      <Badge tone={v.enforce === "block" ? "danger" : v.enforce === "fail" ? "accent" : "muted"}>
+                        {v.enforce}
+                      </Badge>
+                    </td>
+                    <td className="p-16 font-mono text-mono-small text-accent-black">{v.rule_id}</td>
+                    <td className="p-16 text-black-alpha-72">{v.repo}</td>
+                    <td className="p-16 text-black-alpha-64">{v.agent}</td>
+                    <td className="p-16 font-mono text-mono-x-small text-black-alpha-32">
+                      {new Date(v.created_at).toLocaleString("en-US", { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            </div>
+          </Card>
+        </>
       )}
 
       <Sheet open={!!open} onClose={() => setOpen(null)} title="Session detail" width={520}>
@@ -119,7 +161,7 @@ export function Sessions() {
               <ul className="mt-8 space-y-4 text-body-medium">
                 <li className="flex justify-between"><span className="text-black-alpha-56">Repo</span><span className="font-mono text-mono-small text-accent-black">{open.repo}</span></li>
                 <li className="flex justify-between"><span className="text-black-alpha-56">Agent</span><span className="font-mono text-mono-small text-accent-black">{open.agent}</span></li>
-                <li className="flex justify-between"><span className="text-black-alpha-56">At</span><span className="font-mono text-mono-small text-accent-black">{new Date(open.created_at).toLocaleString()}</span></li>
+                <li className="flex justify-between"><span className="text-black-alpha-56">At</span><span className="font-mono text-mono-small text-accent-black">{new Date(open.created_at).toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span></li>
                 <li className="flex justify-between"><span className="text-black-alpha-56">ID</span><span className="font-mono text-mono-small text-accent-black">{open.id}</span></li>
               </ul>
             </div>

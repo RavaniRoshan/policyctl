@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ShieldCheck, GitBranch, Copy, Check, MagnifyingGlass } from "@phosphor-icons/react";
+import { ShieldCheck, GitBranch, Copy, Check, MagnifyingGlass, ArrowClockwise } from "@phosphor-icons/react";
 import { usePolicyVersions } from "@/lib/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,13 @@ import { Card } from "@/components/ui/card";
 import { CodeBlock } from "@/components/ui/code-block";
 import { CurvyRect } from "@policyctl/design-system";
 import { Skeleton, EmptyState, MonoAnnotation } from "@/components/shared/EmptyState";
+import { Callout } from "@/components/ui/callout";
+import { useQueryClient } from "@tanstack/react-query";
 import type { PolicyVersion } from "@/lib/api";
 
 export function Policies() {
-  const { data, isLoading, error } = usePolicyVersions();
+  const { data, isLoading, error, refetch } = usePolicyVersions();
+  const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -27,6 +30,11 @@ export function Policies() {
     await navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 1500);
+  };
+
+  const retry = () => {
+    queryClient.invalidateQueries({ queryKey: ["policyVersions"] });
+    refetch();
   };
 
   return (
@@ -49,9 +57,12 @@ export function Policies() {
       </div>
 
       {error && (
-        <div role="alert" className="p-16 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-danger/30 bg-danger/5 text-danger text-body-medium">
-          Failed to load policy versions. Please try again.
-        </div>
+        <Callout type="danger" title="Failed to load policy versions" className="p-16">
+          {error.message || "An unexpected error occurred."}
+          <button onClick={retry} className="mt-8 pcl-btn pcl-btn--secondary pcl-btn--sm">
+            <ArrowClockwise className="size-3 mr-4" /> Retry
+          </button>
+        </Callout>
       )}
 
       {isLoading ? (
@@ -149,7 +160,7 @@ function VersionRow({
         <td className="p-16 text-black-alpha-72">{v.note || "—"}</td>
         <td className="p-16 text-black-alpha-64 font-mono text-mono-small">{v.author_id}</td>
         <td className="p-16 font-mono text-mono-x-small text-black-alpha-32">
-          {new Date(v.created_at).toLocaleString()}
+          {new Date(v.created_at).toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
         </td>
         <td className="p-16">
           <Badge tone="heat">active</Badge>
