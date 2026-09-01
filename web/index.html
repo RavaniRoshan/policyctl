@@ -15,6 +15,20 @@
       content="policyctl — provider-agnostic policy runtime for coding agents. One .policyctl.yml, enforced inside Claude Code, Codex, Cursor, and CI. Not just prompt text."
     />
     <title>policyctl — make your coding agents obey the rules</title>
+    <script>
+      // Prevent FOUC: apply saved theme before React loads. Default = light.
+      (function () {
+        try {
+          var stored = localStorage.getItem("policyctl-theme");
+          var theme = (stored === "dark" || stored === "light" || stored === "system") ? stored : "light";
+          var resolved = theme;
+          if (theme === "system") {
+            resolved = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
+          document.documentElement.classList.toggle("dark", resolved === "dark");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

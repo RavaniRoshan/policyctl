@@ -28,7 +28,9 @@ function getInitial(): Theme {
   if (typeof window === "undefined") return "light";
   const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
   if (stored === "light" || stored === "dark" || stored === "system") return stored;
-  return "system";
+  // Default to light for first-time visitors (matches production).
+  // Users can opt into System or Dark from Settings.
+  return "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

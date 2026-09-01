@@ -223,8 +223,8 @@ export function AuthPage() {
         </p>
       </div>
 
-      {/* Right Panel - Hero / Brand with gradient */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-accent-black">
+      {/* Right Panel - Hero / Brand with gradient (always dark, looks great in both themes) */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-accent-black border-l border-border-faint">
         {/* Multi-layer gradient background */}
         <div
           className="absolute inset-0"
