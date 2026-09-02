@@ -768,9 +768,6 @@ function Pricing() {
           </div>
           <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
             <CurvyRect sides="allSides" />
-            <div className="absolute top-24 right-24">
-              <Badge tone="heat">Paid</Badge>
-            </div>
             <div className="text-mono-x-small text-black-alpha-32 uppercase">// cloud</div>
             <h3 className="mt-12 text-title-h4 text-accent-black">Control plane</h3>
             <div className="mt-12 text-title-h2 text-accent-black">
@@ -788,14 +785,14 @@ function Pricing() {
               </li>
               <li className="flex gap-8">
                 <Check className="size-4 text-heat-100 shrink-0 mt-2" />
-                AI rule author + analyzer
+                AI rule author + diff analyzer
               </li>
               <li className="flex gap-8">
                 <Check className="size-4 text-heat-100 shrink-0 mt-2" />
                 Daily compliance report + CSV export
               </li>
             </ul>
-            <Link to="/signup" className="mt-32 block">
+            <Link to="/signup?plan=trial" className="mt-32 block">
               <Button className="w-full" trailingIcon>
                 Start free trial
               </Button>

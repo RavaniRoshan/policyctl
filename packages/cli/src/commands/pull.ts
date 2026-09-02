@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadConfig, serverUrl } from "../hosted.js";
+import { loadConfig, requirePaidPlan, serverUrl } from "../hosted.js";
 import { spinner, c } from "../ui.js";
 
 export interface PullOptions {
@@ -11,6 +11,7 @@ export interface PullOptions {
 }
 
 export async function pullCommand(opts: PullOptions): Promise<void> {
+  await requirePaidPlan(opts.server);
   const cfg = loadConfig();
   if (!cfg.token) {
     console.error("policyctl: not logged in. Run `policyctl login`.");

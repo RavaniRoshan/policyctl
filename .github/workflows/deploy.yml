@@ -48,5 +48,38 @@ jobs:
           command: deploy
           secrets: |
             TURNSTILE_SECRET_SITE
-        env:
-          TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
+            STRIPE_SECRET_KEY
+            STRIPE_WEBHOOK_SECRET
+          env:
+            TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
+            STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+            STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @policyctl/server build
+      - name: Deploy staging Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: packages/server
+          command: deploy --name policyctl-server-staging
+          secrets: |
+            TURNSTILE_SECRET_SITE
+            STRIPE_SECRET_KEY
+            STRIPE_WEBHOOK_SECRET
+          env:
+            TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
+            STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+            STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}

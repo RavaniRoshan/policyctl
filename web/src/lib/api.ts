@@ -1,5 +1,19 @@
 // API client for the policyctl control-plane Worker.
 // In production the SPA (Pages) calls the Worker API directly.
+import type {
+  Session,
+  User,
+  Analytics,
+  Violation,
+  PolicyVersion,
+  AiAnalyzeResult,
+  AiAuthorResult,
+  DailyReport,
+  Org,
+  BillingStatus,
+  CheckoutSession,
+} from "@policyctl/types";
+
 export const API_BASE =
   (import.meta.env.VITE_API_BASE as string | undefined) ||
   "https://policyctl-server.shivamkumar10958.workers.dev";
@@ -10,10 +24,18 @@ export class ApiError extends Error {
   }
 }
 
+/** Set by AuthProvider — fetches the current Auth0 access token, or null. */
+let tokenGetter: (() => Promise<string | null>) | null = null;
+export function setTokenGetter(fn: (() => Promise<string | null>) | null) {
+  tokenGetter = fn;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = tokenGetter ? await tokenGetter() : null;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    headers,
     ...init,
   });
   const text = await res.text();
@@ -34,65 +56,77 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export interface User {
-  id: string;
-  email: string;
-  displayName: string | null;
-  provider: string;
-}
-
-export interface Session {
-  user: User;
-}
-
-export interface Analytics {
-  compliance_score: number;
-  active_sessions: number;
-  violations_24h: number;
-  ai_insights: number;
-}
-
-export interface Violation {
-  id: string;
-  repo: string;
-  rule_id: string;
-  enforce: string | null;
-  message: string;
-  agent: string;
-  created_at: string;
-}
-
-export interface PolicyVersion {
-  id: string;
-  version: number;
-  yaml: string;
-  author_id: string;
-  author_email: string | null;
-  note: string;
-  created_at: string;
-}
-
-export interface AiAnalyzeResult {
-  summary: string;
-  violations: string[];
-  suggestedRules: string[];
-}
-
-export interface AiAuthorResult {
-  rule: string;
-  explanation: string;
-}
+export { request };
 
 export const api = {
   me: () => request<Session | null>("/api/me"),
-  signup: (body: { email: string; password: string; displayName?: string; turnstile?: string }) =>
-    request<Session>("/api/auth/signup", { method: "POST", body: JSON.stringify(body) }),
-  login: (body: { email: string; password: string; turnstile?: string }) =>
-    request<Session>("/api/auth/login", { method: "POST", body: JSON.stringify(body) }),
-  logout: () => request<{ ok: true }>("/api/auth/logout", { method: "POST" }),
   analytics: () => request<Analytics>("/api/analytics"),
   violations: () => request<Violation[]>("/api/violations"),
   policyVersions: () => request<PolicyVersion[]>("/api/policy/versions"),
-  aiAnalyze: (text: string) => request<AiAnalyzeResult>("/api/ai/analyze", { method: "POST", body: JSON.stringify({ diff: text }) }),
-  aiAuthor: (text: string) => request<AiAuthorResult>("/api/ai/author", { method: "POST", body: JSON.stringify({ intent: text }) }),
+  publishPolicy: (yaml: string, note?: string) =>
+    request<{ ok: boolean; version: number; id: string }>("/api/policy", {
+      method: "POST",
+      body: JSON.stringify({ yaml, note }),
+    }),
+  rollbackVersion: (id: string) =>
+    request<{ ok: boolean }>("/api/policy/versions/" + id + "/rollback", {
+      method: "POST",
+    }),
+  dailyReport: () => request<{ report: DailyReport | null; message?: string }>("/api/report/daily"),
+  resendReport: () => request<{ ok: boolean; message?: string }>("/api/report/daily/resend", { method: "POST" }),
+  orgs: () => request<{ orgs: Org[] }>("/api/orgs"),
+  createOrg: (name: string) => request<{ org: Org }>("/api/orgs", { method: "POST", body: JSON.stringify({ name }) }),
+  aiAnalyze: (diff: string, opts?: { policy?: string; repo?: string }) =>
+    request<AiAnalyzeResult>("/api/ai/analyze", {
+      method: "POST",
+      body: JSON.stringify({ diff, ...opts }),
+    }),
+  aiAuthor: (intent: string) =>
+    request<AiAuthorResult>("/api/ai/author", {
+      method: "POST",
+      body: JSON.stringify({ intent }),
+    }),
+  billingStatus: () => request<BillingStatus>("/api/billing/status"),
+  billingCheckout: (plan: "growth" | "pro" = "growth", interval?: "annual" | "monthly") =>
+    request<CheckoutSession>("/api/billing/checkout", {
+      method: "POST",
+      body: JSON.stringify({ plan, interval }),
+    }),
+  billingPortal: () =>
+    request<CheckoutSession>("/api/billing/portal", {
+      method: "POST",
+    }),
+  generateApiKey: () =>
+    request<{ key: string }>("/api/billing/api-key", {
+      method: "POST",
+    }),
+  deleteOrg: (id: string | number) =>
+    request<{ ok: boolean }>(`/api/orgs/${id}`, {
+      method: "DELETE",
+    }),
+};
+
+/** Download violations as CSV (non-JSON response — streams directly from Worker). */
+export async function downloadViolationsCsv(): Promise<Blob> {
+  const token = tokenGetter ? await tokenGetter() : null;
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}/api/export/violations.csv`, { headers });
+  if (!res.ok) throw new ApiError(res.status, "Failed to download violations CSV");
+  return res.blob();
+}
+
+// Re-export shared types for convenience.
+export type {
+  Session,
+  User,
+  Analytics,
+  Violation,
+  PolicyVersion,
+  AiAnalyzeResult,
+  AiAuthorResult,
+  DailyReport,
+  Org,
+  BillingStatus,
+  CheckoutSession,
 };

@@ -170,18 +170,18 @@ policyctl check --report                         # CI gate that also reports to 
 
 - **Runtime:** Cloudflare Workers (V8 isolates, no cold-start server) — `packages/server`.
 - **Database:** Cloudflare D1 (SQLite at the edge) for orgs, members, policy versions, and the violation feed.
-- **Cache:** KV namespace (`POLICYCTL_CACHE`) for sub-ms policy + session lookups.
-- **Object storage:** Cloudflare R2 for dashboard CSV exports (S3-compatible credentials set; bucket enable is a dashboard click).
+- **Cache:** KV namespace (`POLICYCTL_CACHE`) for sub-ms policy, session, and JWKS lookups.
+- **Object storage:** None — CSV exports stream directly from the Worker response.
 - **AI:** Workers AI binding for semantic policy intelligence (Phase D, paid tier).
-- **Dashboard:** React + Tailwind SPA (`web/`) consuming the Worker API via session cookies + Bearer token.
-- **Security:** Cloudflare Turnstile on all auth endpoints, HttpOnly/Secure/SameSite=Lax session cookies, PBKDF2-SHA256 password hashing (100k iterations), KV-cached sessions.
+- **Dashboard:** React + Tailwind SPA (`web/`) consuming the Worker API via Auth0 RS256 JWT bearer tokens.
+- **Security:** Cloudflare Turnstile on all auth endpoints, Auth0-managed sessions, RS256 JWT verification via `jose` + cached JWKS, KV-cached AI response caching.
 
 ### Phase roadmap
 
 | Phase | Scope | Status |
 | --- | --- | --- |
 | **Phase A** — Local-first runtime (engine, generated hooks, CI gate) | Shipped — `@policyctl/cli` + `@policyctl/core` on npm | ✅ |
-| **Phase B** — Hosted control plane (auth, orgs, policy versioning, violation feed, dashboard) | Shipped — Cloudflare Workers + D1 + KV + R2 | ✅ |
+| **Phase B** — Hosted control plane (auth, orgs, policy versioning, violation feed, dashboard) | Shipped — Cloudflare Workers + D1 + KV | ✅ |
 | **Phase C** — Analytics & fleet (agent-vs-human attribution, repeat offenders, CSV export, Turnstile on auth) | Shipped | ✅ |
 | **Phase D** — AI + real-time sessions (Workers AI rule authoring, Durable Objects live streaming) | Shipped (core); AI gated behind paid plan | ✅ |
 
@@ -194,11 +194,10 @@ pnpm install
 pnpm --filter @policyctl/core test     # engine unit tests
 pnpm --filter @policyctl/cli test      # check/eval regression tests
 pnpm --filter @policyctl/server build  # control-plane API + dashboard (type-check + inline CSS)
-pnpm --filter policyctl-web dev        # React+Tailwind preview of the GradientWave component
-pnpm --filter policyctl-site build     # static landing + docs site
+pnpm --filter policyctl-web dev        # React+Tailwind dev server
 ```
 
-The landing page (`site/index.html`) is static HTML — no React. The WebGL `GradientWave` shader is ported to vanilla JS at `site/public/gradient-wave.js` and mounted into the hero for a performant, dependency-free animated background. The original React component lives in `web/src/components/ui/gradient-wave.tsx` (shadcn-compatible) for iteration.
+The web app (`web/`) is a React + Tailwind SPA that serves both the landing page and the dashboard. It deploys to Cloudflare Pages as `policyctl-web`.
 
 ---
 

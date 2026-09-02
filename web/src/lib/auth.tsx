@@ -2,51 +2,86 @@ import {
   useContext,
   createContext,
   type ReactNode,
+  useEffect,
+  useState,
 } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { setTokenGetter } from "./api.js";
+
+interface AuthUser {
+  id: string;
+  email: string;
+  displayName: string | null;
+  provider: string;
+}
 
 interface AuthState {
-  user: { sub: string; email?: string; name?: string; picture?: string } | null;
+  user: AuthUser | null;
   loading: boolean;
   isAuthenticated: boolean;
   login: (opts?: { screenHint?: "signup" | "login" }) => void;
   logout: () => void;
+  getAccessToken: () => Promise<string | null>;
 }
 
 const AuthCtx = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const {
-    user,
+    user: auth0User,
     isLoading,
     isAuthenticated,
     loginWithRedirect,
     logout: auth0Logout,
+    getAccessTokenSilently,
   } = useAuth0();
+
+  // Wire the Bearer-token getter so api.ts can attach Auth0 access tokens.
+  useEffect(() => {
+    if (isAuthenticated && typeof getAccessTokenSilently === "function") {
+      setTokenGetter(() => getAccessTokenSilently().catch(() => null));
+    } else {
+      setTokenGetter(null);
+    }
+  }, [isAuthenticated, getAccessTokenSilently]);
 
   const login = (opts?: { screenHint?: "signup" | "login" }) => {
     loginWithRedirect({
       authorizationParams: {
-        redirect_uri: `${window.location.origin}/`,
+        redirect_uri: window.location.origin,
         screen_hint: opts?.screenHint || "login",
       },
     });
   };
 
   const logout = () => {
-    auth0Logout({ logoutParams: { returnTo: `${window.location.origin}/` } });
+    auth0Logout({ logoutParams: { returnTo: window.location.origin } });
+  };
+
+  const getAccessToken = async (): Promise<string | null> => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently();
+    } catch {
+      return null;
+    }
   };
 
   const value: AuthState = {
-    user: user
-      ? { sub: user.sub ?? "", email: user.email, name: user.name, picture: user.picture }
+    user: auth0User
+      ? {
+          id: auth0User.sub ?? "",
+          email: auth0User.email ?? "",
+          displayName: auth0User.name ?? auth0User.nickname ?? null,
+          provider: auth0User.sub?.split("|")[0] ?? "auth0",
+        }
       : null,
     loading: isLoading,
     isAuthenticated,
     login,
     logout,
+    getAccessToken,
   };
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;

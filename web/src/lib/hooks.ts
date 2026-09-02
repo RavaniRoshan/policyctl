@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "./api";
-import { DEMO_ANALYTICS, DEMO_VIOLATIONS, DEMO_POLICIES } from "./demo-data";
+import type { BillingStatus } from "@policyctl/types";
+import { DEMO_ANALYTICS, DEMO_VIOLATIONS, DEMO_POLICIES, DEMO_DAILY_REPORT, DEMO_ORGS } from "./demo-data";
 
 /**
  * Build-mode detection:
@@ -58,17 +59,69 @@ export function usePolicyVersions() {
   });
 }
 
+export function useDailyReport() {
+  return useQuery({
+    queryKey: ["dailyReport"],
+    queryFn: () => fetchData(() => api.dailyReport(), () => ({ report: DEMO_DAILY_REPORT })),
+    staleTime: 60_000,
+  });
+}
+
+export { API_BASE, ApiError } from "./api.js";
+
+export function useOrgs() {
+  return useQuery({
+    queryKey: ["orgs"],
+    queryFn: () => fetchData(() => api.orgs(), () => ({ orgs: DEMO_ORGS })),
+    staleTime: 60_000,
+  });
+}
+
+export function useBilling() {
+  return useQuery({
+    queryKey: ["billing"],
+    queryFn: () => fetchData(() => api.billingStatus(), () => DEMO_BILLING_STATUS),
+    staleTime: 60_000,
+  });
+}
+
+const DEMO_BILLING_STATUS: BillingStatus = {
+  subscription: {
+    id: "demo-1",
+    stripe_sub_id: "sub_demo",
+    status: "trialing",
+    tier: "paid",
+    plan: "growth",
+    seat_count: 1,
+    price_id: "price_demo_monthly",
+    current_period_start: Date.now(),
+    current_period_end: Date.now() + 14 * 86400000,
+    trial_start: Date.now(),
+    trial_end: Date.now() + 14 * 86400000,
+    cancel_at_period_end: false,
+    canceled_at: null,
+    created_at: Date.now(),
+    updated_at: Date.now(),
+  },
+  is_paid: true,
+  is_trial: true,
+  days_remaining_in_trial: 14,
+  seat_count: 1,
+  plan: "growth",
+  has_api_key: true,
+};
+
 export function useAiAnalyze() {
   return useMutation({
-    mutationFn: async (text: string) => {
+    mutationFn: async ({ diff, policy, repo }: { diff: string; policy?: string; repo?: string }) => {
       if (USE_DEMO) {
         return {
-          summary: `Analyzed ${text.split(/\s+/).length} tokens. No critical violations detected. The diff follows best practices for the policy set you've configured.`,
+          summary: `Analyzed ${diff.split(/\s+/).length} tokens. No critical violations detected. The diff follows best practices for the policy set you've configured.`,
           violations: [],
           suggestedRules: [],
         };
       }
-      return api.aiAnalyze(text);
+      return api.aiAnalyze(diff, { policy, repo });
     },
   });
 }
@@ -97,3 +150,33 @@ export function useAiAuthor() {
 /** Exposed for tests / debug panels. */
 export const __isDemoMode = USE_DEMO;
 export const __buildMode = ENV;
+
+export function useGenerateApiKey() {
+  return useMutation({
+    mutationFn: () => api.generateApiKey(),
+  });
+}
+
+export function useDeleteOrg() {
+  return useMutation({
+    mutationFn: (id: string | number) => api.deleteOrg(id),
+  });
+}
+
+export function usePublishPolicy() {
+  return useMutation({
+    mutationFn: ({ yaml, note }: { yaml: string; note?: string }) => api.publishPolicy(yaml, note),
+  });
+}
+
+export function useRollbackVersion() {
+  return useMutation({
+    mutationFn: (id: string) => api.rollbackVersion(id),
+  });
+}
+
+export function useResendReport() {
+  return useMutation({
+    mutationFn: () => api.resendReport(),
+  });
+}

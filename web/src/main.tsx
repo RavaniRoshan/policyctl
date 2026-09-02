@@ -6,8 +6,8 @@ import "@policyctl/design-system/primitives.css";
 import "./index.css";
 import { App } from "./App";
 
-const AUTH0_DOMAIN = "dev-wyyyhy36ogxygyky.us.auth0.com";
-const AUTH0_CLIENT_ID = "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I";
+const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN as string;
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID as string;
 const REDIRECT_URI = window.location.origin;
 
 createRoot(document.getElementById("root")!).render(
@@ -17,9 +17,10 @@ createRoot(document.getElementById("root")!).render(
       clientId={AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: REDIRECT_URI,
+        audience: AUTH0_CLIENT_ID,
       }}
       cacheLocation="localstorage"
-      useRefreshTokens={false}
+      useRefreshTokens={true}
       skipRedirectCallback={false}
     >
       <App />

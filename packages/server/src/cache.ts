@@ -1,4 +1,4 @@
-import type { Env } from "./types.js";
+import type { Env, User } from "./types.js";
 
 /**
  * KV-backed cache for hot reads. Keys are namespaced; values are JSON.
@@ -58,6 +58,41 @@ export async function cachePutUser(env: Env, token: string, userId: number): Pro
   try {
     const v = JSON.stringify({ uid: userId, exp: Date.now() + SESSION_TTL * 1000 });
     await env.POLICYCTL_CACHE.put(sessionKey(token), v, { expirationTtl: SESSION_TTL });
+  } catch {
+    /* ignore */
+  }
+}
+
+// ── Auth0 sub-based user cache ─────────────────────────────────────────────
+// Caches the full user row by auth0_sub so requireUser doesn't hit D1 on
+// every request. TTL is short (60s) — a JWT is self-verifying, so the cache
+// is only an optimization for the D1 lookup, not a security boundary.
+
+const USER_CACHE_TTL = 60; // seconds
+
+function userCacheKey(auth0Sub: string): string {
+  return `user:v1:${auth0Sub.slice(-16)}`;
+}
+
+export async function cacheGetUserBySub(env: Env, auth0Sub: string): Promise<User | null> {
+  try {
+    const v = await env.POLICYCTL_CACHE.get(userCacheKey(auth0Sub), "json");
+    if (!v) return null;
+    const j = v as { user: User; exp: number };
+    if (j.exp < Date.now()) return null;
+    return j.user;
+  } catch {
+    return null;
+  }
+}
+
+export async function cachePutUserBySub(env: Env, auth0Sub: string, user: User): Promise<void> {
+  try {
+    const v = JSON.stringify({
+      user,
+      exp: Date.now() + USER_CACHE_TTL * 1000,
+    });
+    await env.POLICYCTL_CACHE.put(userCacheKey(auth0Sub), v, { expirationTtl: USER_CACHE_TTL });
   } catch {
     /* ignore */
   }

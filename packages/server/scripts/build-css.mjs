@@ -8,11 +8,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const dsRoot = join(here, "..", "..", "..", "packages", "design-system", "src");
 
 const tokens = readFileSync(join(dsRoot, "tokens.css"), "utf8");
-let components = readFileSync(join(dsRoot, "components.css"), "utf8");
-// tokens are imported by components.css; we inline tokens first, so drop the @import.
-components = components.replace(/@import\s+["']\.\/tokens\.css["'];?/g, "");
+const primitives = readFileSync(join(dsRoot, "primitives.css"), "utf8");
 
-let css = `${tokens}\n${components}`;
+let css = `${tokens}\n${primitives}`;
 // escape for a TS template literal
 css = css.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${");
 

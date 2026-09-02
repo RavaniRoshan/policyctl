@@ -7,7 +7,18 @@ This file documents the project structure, conventions, and workflows for AI age
 **policyctl** is a provider-agnostic policy runtime for coding agents. One `.policyctl.yml` file enforces deterministic rules across Claude Code, OpenAI Codex, Cursor, and CI pipelines.
 
 - **Free CLI**: local-first, MIT-licensed, full hooks + CI gate
-- **Cloud control plane**: policy versioning, audit dashboard, violation feed, CSV export, AI rule authoring
+- **Cloud** ($5/seat/month): shared policy versioning, audit feed, AI rule authoring, CSV export, live sessions, daily compliance reports
+
+### Pricing Tiers
+
+| Tier | Monthly | Annual | Features |
+|---|---|---|---|
+| **Free (Open Source)** | $0 | N/A | All CLI commands, hooks, CI gate, 8 matchers, MIT licensed, local-first |
+| **Cloud** | $5/seat | $50/seat | Policy versioning, audit feed, AI (analyzer + author), daily reports, CSV export, live sessions, 14-day trial |
+
+**Seat** = any `org_member` with role `owner`, `admin`, or `member` (excluding `viewer`). Annual billing is a simplified 2-month discount (pay $50 instead of $60).
+
+**Regional targeting**: Stripe Checkout supports multiple payment methods and currencies. For Chinese developers, consider adding Alipay/WeChat Pay via a local payment provider. For UK developers, GBP pricing and Faster Payments support. The pricing page should display prices in the user's local currency.
 
 ## Fundamental Engineering Principles
 
@@ -27,13 +38,15 @@ These are non-negotiable. Every change must respect them.
 
 The build mode is detected via `import.meta.env.MODE` and `import.meta.env.PROD`. Never check `window.location.hostname` or similar runtime checks for environment detection.
 
-### 3. **Auth0 callback URLs must end with a trailing slash.**
-- The frontend sends `redirect_uri = ${origin}/` (with trailing slash)
-- All callback URLs in the Auth0 dashboard must include the trailing slash variant
-- Both `http://localhost:5173/` and `https://policyctl-web.pages.dev/` must be in the Auth0 application's Allowed Callback URLs list
+### 3. **Auth0 callback URLs do NOT use a trailing slash.**
+- The frontend sends `redirect_uri = ${origin}` (no trailing slash), matching the Auth0 quickstart convention
+- In the Auth0 dashboard, Allowed Callback URLs, Allowed Logout URLs, and Allowed Web Origins should use the no-trailing-slash variants
+- Both `http://localhost:5173` and `https://policyctl-web.pages.dev` must be in the Auth0 application's Allowed Callback URLs list
 
-### 4. **R2 storage has been fully removed.**
-- CSV exports stream directly from the Worker response
+### 4. **Object storage (R2) has been fully removed.**
+- CSV exports stream directly from the Worker response — no object storage needed
+- Daily compliance reports persist in KV (`POLICYCTL_CACHE`) with a 7-day TTL
+- AI insights persist in D1 (`ai_insights` table) for audit and dashboard stats
 - No object storage, no card details needed
 - All R2 references removed from `wrangler.toml`, `index.ts`, secrets
 - `web/public/favicon.svg` and `logo-*.png` are static assets only
@@ -57,7 +70,8 @@ policyctl/
 │   ├── cli/              # @policyctl/cli — npm package, static binary
 │   ├── core/             # Policy engine (matchers, evaluators)
 │   ├── design-system/    # Shared UI primitives (tokens, components)
-│   └── server/           # Cloudflare Workers API (Hono + D1 + KV)
+│   ├── server/           # Cloudflare Workers API (Hono + D1 + KV)
+│   └── types/            # @policyctl/types — shared API contract types (Worker ↔ SPA)
 ├── web/                  # React SPA (Vite + Tailwind + React Router)
 ├── examples/             # Example .policyctl.yml files
 ├── AGENTS.md             # this file
@@ -132,24 +146,64 @@ All prefixed with `pcl-`:
 
 The frontend (`web/src/lib/api.ts`) calls the backend at `VITE_API_BASE` (default: `https://policyctl-server.shivamkumar10958.workers.dev`).
 
+### Auth Flow
+
+Auth0 (Universal Login) handles all authentication on the frontend via `@auth0/auth0-react`. The SPA obtains an RS256-signed access token and sends it as a `Bearer` token. The Worker verifies it with `jose` + Auth0's JWKS endpoint (cached in KV).
+
+The legacy CLI magic-link flow (`POST /api/login` with `?token=`) is retained for backward compatibility — `requireUser()` tries JWT verification first, then falls back to the legacy token lookup.
+
+**Turnstile** is enforced on `/api/login` (verified when a `turnstile_token` is present in the request body). The SPA's AuthPage uses Auth0 Universal Login, which has its own bot protection. The `TURNSTILE_SECRET_SITE` secret must be set via `wrangler secret put` or passed through CI/CD.
+
 ### Endpoints
 
 | Endpoint | Method | Returns |
 |---|---|---|
+| `/api/login` | POST | `{ token, email, id }` (legacy CLI magic-link) |
 | `/api/me` | GET | `{ user }` or `{ user: null }` |
-| `/api/auth/signup` | POST | `{ user }` |
-| `/api/auth/login` | POST | `{ user }` |
-| `/api/auth/logout` | POST | `{ ok: true }` |
+| `/api/orgs` | GET | `{ orgs: Org[] }` |
+| `/api/orgs` | POST | `{ org: Org }` |
+| `/api/orgs/:id/members` | POST | Add member to org |
+| `/api/orgs/:id` | DELETE | Delete org (cascade; requires owner role) |
 | `/api/analytics` | GET | `{ compliance_score, active_sessions, violations_24h, ai_insights }` |
 | `/api/violations` | GET | `Violation[]` |
+| `/api/policy` | GET | `{ yaml }` |
+| `/api/policy` | POST | `{ ok, version, id }` |
 | `/api/policy/versions` | GET | `PolicyVersion[]` |
-| `/api/ai/analyze` | POST | `{ summary, violations, suggestedRules }` |
-| `/api/ai/author` | POST | `{ rule, explanation }` |
+| `/api/policy/versions/:id/rollback` | POST | `{ ok }` |
+| `/api/report` | POST | `{ ok, count }` |
 | `/api/export/violations.csv` | GET | CSV download (streams directly) |
+| `/api/ai/analyze` | POST | `{ summary, violations, suggestedRules }` (paid tier required) |
+| `/api/ai/author` | POST | `{ rule, explanation }` (paid tier required) |
+| `/api/billing/status` | GET | `{ subscription, is_paid, is_trial, days_remaining_in_trial, seat_count, plan, has_api_key }` |
+| `/api/billing/checkout` | POST (body: `{ plan, interval }`) | `{ url }` (Stripe Checkout redirect) |
+| `/api/billing/portal` | POST | `{ url }` (Stripe Customer Portal redirect) |
+| `/api/billing/api-key` | POST | `{ key }` (generate control-plane API key) |
+| `/api/webhook/stripe` | POST | Stripe webhook handler (raw body, signature verified) |
+| `/api/report/daily` | GET | `{ report, message? }` |
+| `/api/report/daily/resend` | POST | `{ ok, message }` (regenerate report on demand) |
+| `/api/session/init` | POST | Session stub |
+| `/api/session/:key/stream` | GET | WebSocket to DO |
+| `/api/session/:key/report` | POST | Report to DO |
 
 ### Type Alignment
 
-The backend uses `toWebUser()`, `toWebViolation()`, `toWebPolicyVersion()`, and `toWebAnalytics()` mappers to convert D1 rows (numbers, nullable fields) to the shapes the frontend expects (strings, ISO dates). Never let the frontend guess at shape — if a backend field is `string | null`, the frontend type must say so too.
+Shared API contract types live in `packages/types/src/index.ts` (`@policyctl/types`). Both the Worker and the SPA import from this package, so response shapes stay in sync at compile time.
+
+### Billing & Subscriptions
+
+The control plane uses Stripe Checkout for subscriptions. Key rules:
+
+- **Subscription tier is at the org level** — each org has one Stripe subscription. Seats = non-viewer `org_members` (roles: owner, admin, member). Viewers are excluded from billing.
+- **14-day free trial** — starts at checkout time, not at signup. `subscription_status` is `trialing` during the trial, then `active` once payment is processed.
+- **Tier gating** — `isOrgActive(org)` returns `true` for `active` or `trialing` status. AI endpoints (`/api/ai/analyze`, `/api/ai/author`) return 403 with `code: "UPGRADE_REQUIRED"` for non-paid orgs.
+- **Secrets** — `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are set via `wrangler secret put` (never committed). Price IDs (`STRIPE_PRICE_ID_GROWTH_MONTHLY`, `STRIPE_PRICE_ID_GROWTH_ANNUAL`) are safe to commit as `[vars]`. Pro-tier price IDs (`STRIPE_PRICE_ID_PRO_MONTHLY/ANNUAL`) are kept for future expansion.
+- **Webhook** — `POST /api/webhook/stripe` receives raw body for signature verification. Handles `customer.subscription.created/updated/deleted`, `invoice.payment_succeeded/failed`, `customer.subscription.trial_will_end`.
+- **Customer portal** — `POST /api/billing/portal` creates a Stripe-hosted session for users to manage payment methods, upgrade/downgrade, and cancel.
+- **Annual discount** — Simplified 2-month discount (pay $50/seat/year instead of $60). Implemented as separate Stripe price IDs.
+- **Legacy server-rendered dashboard** (`dashboard.ts`) has been deprecated. The root `/` route now redirects to the SPA frontend. The CLI retains the legacy magic-link token path (`requireUser()` falls back to it) for backward compatibility.
+- **CLI tier awareness** — `requirePaidPlan()` in `packages/cli/src/hosted.ts` checks `/api/billing/status` before any cloud command (`push`, `report`, `pull`, `check --report`). Free users get a clear error message with a link to start a trial.
+
+The backend uses `toWebUser()`, `toWebOrg()`, `toWebViolation()`, `toWebPolicyVersion()`, and `toWebAnalytics()` mappers to convert D1 rows (numbers, nullable fields) to the shapes the frontend expects (strings, ISO dates). Never let the frontend guess at shape — if a backend field is `string | null`, the frontend type must say so too.
 
 ## Demo Data Layer
 
@@ -162,21 +216,32 @@ The demo data is never extended to add fake "production" behavior. If you need a
 ### Happy Path
 
 ```
-Landing (/) → Signup → Onboarding → Dashboard → Sessions/Policies/AI/Reports/Settings
+Landing (/) → Signup → Onboarding → Choose plan (pricing page) → Billing (start trial) → Dashboard
 ```
 
 ### Auth States
 
 - **Unauthenticated**: Can view Landing, Docs, Login, Signup
-- **Authenticated**: Can access Dashboard, Onboarding, Settings
+- **Authenticated, no subscription**: Can access Dashboard, Onboarding, Settings; AI/paywall-gated
+- **Trial or Paid**: Full access including AI endpoints
 - **Session expiry**: `RequireAuth` redirects to `/login?next=<path>`, login redirects back
+
+### Billing Flow
+
+1. User lands on `/pricing` or clicks "Start free trial" from the Landing page
+2. Chooses billing interval (monthly $5 or annual $50)
+3. Clicks "Start free trial" → calls `POST /api/billing/checkout?plan=growth&interval=annual`
+4. Server creates a Stripe Checkout Session with 14-day trial → redirects to Stripe
+5. After successful checkout, Stripe webhook fires → org's `subscription_status` set to `trialing`
+6. User is redirected back to `/dashboard/billing` showing trial countdown
+7. At trial end, if payment succeeds → status becomes `active`; if it fails → `past_due`
 
 ### Onboarding
 
 - 4 steps: Welcome → Workspace → Install → Push
 - Skippable ("Skip for now")
 - Completion persisted in `localStorage` (`policyctl-onboarding-complete`)
-- Does NOT create org/repo/policy via API — displays CLI instructions only
+- The Workspace step creates an org via `POST /api/orgs` (best-effort — navigation proceeds even if the org already exists)
 
 ## Development
 
@@ -206,10 +271,11 @@ cd web && pnpm preview      # http://localhost:4173
 
 ### Deploy
 
-The frontend deploys to Cloudflare Pages via GitHub Actions. Push to `main` triggers:
-1. `ci` — lint, type-check, build, test
-2. `deploy-worker` — deploys `packages/server` to Cloudflare Workers
-3. `deploy-pages` — deploys `web/dist` to Cloudflare Pages project `policyctl-web`
+The frontend deploys to Cloudflare Pages and the Worker deploys to Cloudflare Workers via GitHub Actions. Push to `main` triggers:
+1. `ci` — build, type-check, test
+2. `deploy` — deploys `packages/server` to Cloudflare Workers and `web/dist` to Cloudflare Pages project `policyctl-web`
+
+Pull requests to `main` trigger a staging Worker deploy (`policyctl-server-staging`).
 
 **Important:** Do not create a duplicate Pages project called `policyctl` — that's a known footgun. Always use `policyctl-web`.
 
@@ -226,6 +292,7 @@ The frontend deploys to Cloudflare Pages via GitHub Actions. Push to `main` trig
 
 - `@/` → `web/src/`
 - `@policyctl/design-system` → `packages/design-system/src/index.ts`
+- `@policyctl/types` → `packages/types/src/index.ts`
 
 ### Token Usage
 
@@ -268,22 +335,34 @@ No tests yet. Response-shape contracts should be tested against `web/src/lib/api
 ```
 VITE_API_BASE=https://policyctl-server.shivamkumar10958.workers.dev
 VITE_TURNSTILE_SITE_KEY=your-site-key
+VITE_AUTH0_DOMAIN=your-tenant.us.auth0.com
+VITE_AUTH0_CLIENT_ID=your-auth0-client-id
 ```
 
 ### Backend (`packages/server/wrangler.toml`)
 
 ```
-TURNSTILE_SECRET_SITE=your-secret-key    # via wrangler secret put
+TURNSTILE_SECRET_SITE=your-secret-key    # via wrangler secret put or CI/CD
+AUTH0_DOMAIN=your-tenant.us.auth0.com     # via [vars]
+AUTH0_AUDIENCE=your-api-audience          # via [vars]
+# Stripe (passed through CI/CD secrets or set via wrangler secret put — never committed):
+#   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+# Stripe price IDs (safe to commit via [vars]):
+STRIPE_PRICE_ID_GROWTH_MONTHLY, STRIPE_PRICE_ID_GROWTH_ANNUAL
+STRIPE_PRICE_ID_PRO_MONTHLY, STRIPE_PRICE_ID_PRO_ANNUAL
 ```
+
+The `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are passed through CI/CD (see `.github/workflows/deploy.yml`) or set via `wrangler secret put`. Price IDs are safe to commit as `[vars]` — run `node scripts/setup-stripe-prices.mjs` to create real Stripe products/prices and auto-write the IDs into `wrangler.toml`. Growth ($5/mo, $50/yr) and Pro ($12/mo, $120/yr) products should be set up. For Chinese developers, Stripe Checkout automatically offers Alipay and WeChat Pay when the customer's locale is `zh`.
 
 ## Common Tasks for AI Agents
 
 ### "Add a new dashboard page"
 1. Create `web/src/pages/dashboard/MyPage.tsx`
-2. Use `useQuery` from `@/lib/hooks` for data
-3. If data is new, add a type to `web/src/lib/api.ts` AND a corresponding store function in `packages/server/src/store.ts`
-4. Add the route in `web/src/App.tsx` under the `/dashboard` parent
-5. Add a sidebar item in `web/src/components/layout/DashboardShell.tsx`
+2. Add a type to `packages/types/src/index.ts` if the endpoint returns a new shape
+3. Add an API method to `web/src/lib/api.ts` using the shared type
+4. Add a hook to `web/src/lib/hooks.ts` (using `fetchData` for dev fallback)
+5. Add the route in `web/src/App.tsx` under the `/dashboard` parent
+6. Add a sidebar item in `web/src/components/layout/DashboardShell.tsx`
 
 ### "Add a new UI component"
 1. Decide if it's generic (in `packages/design-system/`) or app-specific (in `web/src/components/`)

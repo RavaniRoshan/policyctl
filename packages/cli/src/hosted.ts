@@ -38,8 +38,29 @@ export interface ReportBody {
   results: unknown[];
 }
 
+/** Check whether the authenticated org is on a paid (active/trialing) plan.
+ * Throws with a helpful message if not — call before any cloud command that
+ * requires a subscription (push, report, pull).
+ */
+export async function requirePaidPlan(override?: string): Promise<void> {
+  const cfg = loadConfig();
+  if (!cfg.token) throw new Error("not logged in (run `policyctl login`)");
+  const server = serverUrl(override);
+  const res = await fetch(`${server}/api/billing/status`, {
+    headers: { authorization: `Bearer ${cfg.token}` },
+  });
+  if (!res.ok) throw new Error(`billing check failed (${res.status})`);
+  const status = (await res.json()) as { is_paid: boolean; is_trial: boolean };
+  if (!status.is_paid && !status.is_trial) {
+    throw new Error(
+      "control plane subscription required. Visit /dashboard/billing to start a 14-day free trial.",
+    );
+  }
+}
+
 /** POST a violation outcome to the hosted feed. Throws on failure. */
 export async function sendReport(body: ReportBody, override?: string): Promise<void> {
+  await requirePaidPlan(override);
   const cfg = loadConfig();
   if (!cfg.token) throw new Error("not logged in (run `policyctl login`)");
   const server = serverUrl(override);

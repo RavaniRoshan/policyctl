@@ -1,6 +1,6 @@
 name = "policyctl-server"
 main = "src/index.ts"
-compatibility_date = "2024-12-05"
+compatibility_date = "2026-09-01"
 workers_dev = true
 
 # D1 database (created with: wrangler d1 create policyctl)
@@ -40,8 +40,26 @@ crons = ["0 9 * * *"]
 #   secret: 1x0000000000000000000000000000000AA
 [vars]
 TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
-# OAuth redirect URI (must match the Cloudflare Access / Google Cloud OAuth consent screen).
-OAUTH_REDIRECT_URI = "https://policyctl-server.shivamkumar10958.workers.dev/api/auth/oauth/callback"
+# Auth0 — primary auth provider for the SPA. Auth0 handles OAuth/social login
+# via Universal Login; the Worker only verifies the resulting JWT bearer token.
+AUTH0_DOMAIN = "dev-wyyyhy36ogxygyky.us.auth0.com"
+AUTH0_AUDIENCE = "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I"
+# Comma-separated list of origins allowed to call the Worker API.
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:4173,https://policyctl-web.pages.dev"
+
+# ── Stripe (set secrets via: wrangler secret put) ──
+# STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are set via `wrangler secret put`
+# and are NOT committed to source control.
+# Price IDs are safe to commit — they are public identifiers from Stripe.
+# Create these in the Stripe Dashboard after setting up the products:
+#   - "policyctl growth" (monthly + annual) → $5/mo, $50/yr
+#   - "policyctl pro" (monthly + annual)     → $12/mo, $120/yr
+# Run `node scripts/setup-stripe-prices.mjs` to create real price IDs and
+# auto-update this file. Until then, checkout will return 503.
+STRIPE_PRICE_ID_GROWTH_MONTHLY = "price_1_placeholder_set_me"
+STRIPE_PRICE_ID_GROWTH_ANNUAL = "price_1_placeholder_set_me"
+STRIPE_PRICE_ID_PRO_MONTHLY = "price_1_placeholder_set_me"
+STRIPE_PRICE_ID_PRO_ANNUAL = "price_1_placeholder_set_me"
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true

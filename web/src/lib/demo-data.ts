@@ -1,4 +1,4 @@
-import type { Analytics, Violation, PolicyVersion } from "./api";
+import type { Analytics, Violation, PolicyVersion, DailyReport, Org } from "./api";
 
 /**
  * Demo data for the dashboard when the Worker isn't reachable.
@@ -152,9 +152,33 @@ export const DEMO_POLICIES: PolicyVersion[] = [
   },
 ];
 
+export const DEMO_ORGS: Org[] = [
+  {
+    id: "1",
+    name: "Acme Platform",
+    current_version: "3",
+  },
+];
+
 export const DEMO_SESSIONS = DEMO_VIOLATIONS.map((v, i) => ({
   ...v,
   session_id: `sess_${i.toString().padStart(3, "0")}`,
   duration_ms: Math.floor(Math.random() * 45000) + 5000,
   tool_calls: Math.floor(Math.random() * 8) + 1,
 }));
+
+export const DEMO_DAILY_REPORT: DailyReport = {
+  generatedAt: NOW - 3 * HOUR,
+  period: "24h",
+  total: 12,
+  byActor: [
+    { actor: "claude", count: 7 },
+    { actor: "cursor", count: 3 },
+    { actor: "codex", count: 1 },
+    { actor: "ci", count: 1 },
+  ],
+  repeatOffenders: [
+    { rule_id: "no-secrets-in-commits", repo: "acme-platform/api-gateway", count: 3 },
+    { rule_id: "migrations-via-generator", repo: "acme-platform/web", count: 2 },
+  ],
+};

@@ -7,8 +7,9 @@ import {
   CheckCircle,
   ArrowClockwise,
   ArrowUpRight,
+  Gift,
 } from "@phosphor-icons/react";
-import { useAnalytics, useViolations } from "@/lib/hooks";
+import { useAnalytics, useViolations, useBilling } from "@/lib/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { CountUp, CurvyRect, useToast } from "@policyctl/design-system";
 import { Card } from "@/components/ui/card";
@@ -37,6 +38,8 @@ export function Overview() {
           <ArrowClockwise className="size-3 mr-4" /> Refresh
         </Button>
       </div>
+
+      <TrialBanner />
 
       {(aError || vError) && (
         <Callout type="danger" title="Failed to load dashboard" className="p-16">
@@ -144,20 +147,38 @@ export function Overview() {
             <Sparkle className="size-4 text-heat-100" />
             <h3 className="text-label-x-large text-accent-black">AI insight</h3>
           </div>
-          <p className="text-body-medium text-black-alpha-64 leading-22">
-            Today's semantic analysis flagged a pattern worth a rule.
-          </p>
-          <blockquote className="mt-16 p-16 text-body-medium text-accent-black leading-22 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-30 bg-heat-4">
-            "Migrations edited by hand in{" "}
-            <code className="font-mono text-mono-small bg-heat-12 text-heat-100 px-4 py-2 rounded-4">
-              db/migrations
-            </code>{" "}
-            3× this week — consider a{" "}
-            <code className="font-mono text-mono-small bg-heat-12 text-heat-100 px-4 py-2 rounded-4">
-              migrations-via-generator
-            </code>{" "}
-            rule."
-          </blockquote>
+          {vLoading ? (
+            <Skeleton className="h-40 w-full" />
+          ) : (violations?.length ?? 0) === 0 ? (
+            <EmptyState
+              icon={Sparkle}
+              title="No insights yet"
+              description="Analyze a diff in the AI panel to generate policy suggestions."
+            />
+          ) : (() => {
+            // Derive the top repeated rule pattern from violation data.
+            const ruleCounts = new Map<string, number>();
+            for (const v of violations ?? []) {
+              const r = v.rule_id || "(unknown)";
+              ruleCounts.set(r, (ruleCounts.get(r) ?? 0) + 1);
+            }
+            const topRule = [...ruleCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+            return (
+              <>
+                <p className="text-body-medium text-black-alpha-64 leading-22">
+                  Today's analysis flagged a pattern worth a rule.
+                </p>
+                <blockquote className="mt-16 p-16 text-body-medium text-accent-black leading-22 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-30 bg-heat-4">
+                  The rule{" "}
+                  <code className="font-mono text-mono-small bg-heat-12 text-heat-100 px-4 py-2 rounded-4">
+                    {topRule[0]}
+                  </code>
+                  {" "}was triggered {topRule[1]}× today — review it in the policy and consider
+                  tightening its scope.
+                </blockquote>
+              </>
+            );
+          })()}
           <Link
             to="/dashboard/ai"
             className="mt-16 inline-flex text-label-large text-heat-100 hover:opacity-80 items-center gap-4"
@@ -167,6 +188,41 @@ export function Overview() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function TrialBanner() {
+  const { data: billing } = useBilling();
+  const isPaid = billing?.is_paid ?? false;
+  const isTrial = billing?.is_trial ?? false;
+  const daysRemaining = billing?.days_remaining_in_trial ?? 0;
+
+  if (isPaid && !isTrial) return null;
+
+  return (
+    <Card className="p-24 lg:p-32">
+      <CurvyRect sides="allSides" />
+      <div className="flex items-center gap-8 mb-16">
+        <Gift className="size-5 text-heat-100" />
+        <h3 className="text-label-x-large text-accent-black">
+          {isTrial
+            ? `Free trial — ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} left`
+            : "Unlock the control plane"}
+        </h3>
+      </div>
+
+      <p className="text-body-medium text-black-alpha-64 leading-26 mb-16">
+        {isTrial
+          ? "You're on a free trial. Add a payment method to continue after your trial ends."
+          : "Start a 14-day free trial to unlock AI rule authoring, shared policy versioning, and the audit dashboard."}
+      </p>
+
+      <Link to="/dashboard/billing">
+        <Button trailingIcon>
+          {isTrial ? "Manage billing" : "Start free trial"}
+        </Button>
+      </Link>
+    </Card>
   );
 }
 

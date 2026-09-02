@@ -3,7 +3,7 @@ import type { CiContext, EvaluationOutcome } from "@policyctl/core";
 import { getCiContext } from "../git.js";
 import { findPolicyPath } from "../policy.js";
 import { printOutcome } from "../report.js";
-import { sendReport } from "../hosted.js";
+import { requirePaidPlan, sendReport } from "../hosted.js";
 import { basename } from "node:path";
 
 export interface CheckOptions {
@@ -39,6 +39,7 @@ export async function checkCommand(opts: CheckOptions): Promise<void> {
   }
   printOutcome(out, opts.json);
   if (opts.report && out.results.length > 0) {
+    await requirePaidPlan();
     try {
       await sendReport({
         repo: opts.repo ?? basename(cwd),

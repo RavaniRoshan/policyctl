@@ -1,0 +1,13 @@
+{
+  "name": "@policyctl/types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared API contract types between the policyctl Worker and web SPA.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ]
+}

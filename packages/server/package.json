@@ -11,7 +11,10 @@
     "migrate": "wrangler d1 migrations apply policyctl --remote"
   },
   "dependencies": {
-    "hono": "^4.6.14"
+    "hono": "^4.6.14",
+    "jose": "^6.2.10",
+    "stripe": "^14.0.0",
+    "@policyctl/types": "workspace:^0.1.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.0.0",

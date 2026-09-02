@@ -1,4 +1,5 @@
 import type { Env } from "./types.js";
+import type { AiAnalyzeResult, AiAuthorResult } from "@policyctl/types";
 
 /**
  * Workers AI — semantic policy intelligence.
@@ -29,22 +30,38 @@ interface AiMessage {
   content: string;
 }
 
+/** Compute a SHA-256 cache key for a given AI request payload. */
+async function aiCacheKey(messages: AiMessage[]): Promise<string> {
+  const payload = MODEL + JSON.stringify(messages);
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+  const hex = Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `ai:resp:v1:${hex}`;
+}
+
 async function runAi(env: Env, messages: AiMessage[], maxTokens = 1024): Promise<string> {
+  const key = await aiCacheKey(messages);
+
+  // Check KV cache — same inputs return cached output (saves Workers AI credits).
+  const cached = await env.POLICYCTL_CACHE.get(key, "text");
+  if (cached != null) return cached;
+
   try {
     const res = (await env.AI.run(MODEL, {
       messages,
       max_tokens: maxTokens,
     })) as { response?: string };
-    return res.response ?? "";
+    const response = res.response ?? "";
+
+    // Only cache successful (non-error) results.
+    if (response) {
+      await env.POLICYCTL_CACHE.put(key, response, { expirationTtl: 3600 });
+    }
+    return response;
   } catch (e) {
     return `AI inference failed: ${e instanceof Error ? e.message : String(e)}`;
   }
-}
-
-export interface AnalyzeResult {
-  summary: string;
-  violations: { ruleId?: string; explanation: string }[];
-  suggestedRules: string[];
 }
 
 export async function analyzeDiff(
@@ -52,7 +69,7 @@ export async function analyzeDiff(
   diff: string,
   policy: string,
   repo: string,
-): Promise<AnalyzeResult> {
+): Promise<AiAnalyzeResult> {
   const system = `You are a policy enforcement analyst for coding AI agents.
 Given a git diff, the current policy, and the repo name, you:
 1. Summarize what the diff does in 1-2 sentences.
@@ -81,7 +98,7 @@ Respond as JSON: { "summary": "...", "violations": [{"ruleId": "...", "explanati
   ]);
 
   try {
-    const json = JSON.parse(extractJson(raw)) as AnalyzeResult;
+    const json = JSON.parse(extractJson(raw)) as AiAnalyzeResult;
     return {
       summary: json.summary ?? "",
       violations: json.violations ?? [],
@@ -93,12 +110,7 @@ Respond as JSON: { "summary": "...", "violations": [{"ruleId": "...", "explanati
   }
 }
 
-export interface AuthorResult {
-  rule: string; // YAML snippet
-  explanation: string;
-}
-
-export async function authorRule(env: Env, intent: string): Promise<AuthorResult> {
+export async function authorRule(env: Env, intent: string): Promise<AiAuthorResult> {
   const system = `You are a policy authoring assistant for policyctl, a
 provider-agnostic policy runtime for coding AI agents. Given a user's
 natural-language intent, produce a single .policyctl.yml rule block.
@@ -123,7 +135,7 @@ Respond as JSON.`;
   ]);
 
   try {
-    const json = JSON.parse(extractJson(raw)) as AuthorResult;
+    const json = JSON.parse(extractJson(raw)) as AiAuthorResult;
     return { rule: json.rule ?? "", explanation: json.explanation ?? "" };
   } catch {
     return { rule: raw, explanation: "" };

@@ -14,7 +14,7 @@ export function bearerToken(c: Context): string {
   return (c.req.query("token") ?? "").trim();
 }
 
-/** Resolve an org id from ?org=<id> (must be a membership) or the user's primary org. */
+/** Resolve an org id from ?org=<id>. */
 export function orgQuery(c: Context): number | null {
   const raw = c.req.query("org");
   if (!raw) return null;
@@ -22,7 +22,7 @@ export function orgQuery(c: Context): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-// ── Password hashing (PBKDF2-SHA256, per-Worker Web Crypto) ──────────────
+// ── Password hashing (legacy — retained for CLI magic-link flow) ────────────
 
 const PASSWORD_ITERATIONS = 100_000;
 const SALT_BYTES = 16;
@@ -99,29 +99,4 @@ export async function verifyTurnstile(
   } catch {
     return false;
   }
-}
-
-// ── Session cookies ───────────────────────────────────────────────────────
-
-const COOKIE_NAME = "pc_session";
-const COOKIE_TTL = 60 * 60 * 24 * 30; // 30 days
-
-export function setSessionCookie(c: Context, token: string): void {
-  c.header(
-    "Set-Cookie",
-    `${COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_TTL}`,
-  );
-}
-
-export function clearSessionCookie(c: Context): void {
-  c.header(
-    "Set-Cookie",
-    `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`,
-  );
-}
-
-export function getSessionToken(c: Context): string | null {
-  const cookie = c.req.header("cookie") ?? "";
-  const match = cookie.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
-  return match ? decodeURIComponent(match[1]) : null;
 }

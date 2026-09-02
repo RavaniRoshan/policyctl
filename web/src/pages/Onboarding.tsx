@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, ArrowRight, Terminal, SkipForward } from "@phosphor-icons/react";
+import { Check, ArrowRight, Terminal, SkipForward, WarningCircle } from "@phosphor-icons/react";
+import { useMutation } from "@tanstack/react-query";
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CodeBlock } from "@/components/ui/code-block";
 import { CurvyRect } from "@policyctl/design-system";
+import { api } from "@/lib/api";
+import { useOrgs } from "@/lib/hooks";
 import { motion, AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = "policyctl-onboarding-complete";
@@ -21,13 +24,39 @@ const STEPS = [
 export function Onboarding() {
   const [step, setStep] = useState(0);
   const [orgName, setOrgName] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const { data: orgsData, isLoading: orgsLoading } = useOrgs();
+  const existingOrgs = orgsData?.orgs ?? [];
+
+  // Pre-fill the org name with the auto-provisioned org (created by the Worker
+  // during Auth0 JWT verification via getOrCreateUserByAuth0Sub).
+  useEffect(() => {
+    if (existingOrgs.length > 0 && !orgName) {
+      setOrgName(existingOrgs[0].name);
+    }
+  }, [existingOrgs, orgName]);
+
+  const createOrg = useMutation({
+    mutationFn: (name: string) => api.createOrg(name),
+    onError: (e: any) => setSubmitError(e?.message || "Failed to create workspace."),
+  });
 
   const next = () => setStep((s) => Math.min(STEPS.length - 1, s + 1));
   const back = () => setStep((s) => Math.max(0, s - 1));
 
-  const complete = () => {
+  const complete = async () => {
     localStorage.setItem(STORAGE_KEY, "true");
+    // The user already has an auto-provisioned org from Auth0 login.
+    // Only create a new org if none exist yet.
+    if (existingOrgs.length === 0 && orgName) {
+      try {
+        await createOrg.mutateAsync(orgName);
+      } catch {
+        // Best-effort — the org may already exist server-side. Continue.
+      }
+    }
     navigate("/dashboard", { replace: true });
   };
 
@@ -88,11 +117,22 @@ export function Onboarding() {
                   Continue
                 </Button>
               ) : (
-                <Button onClick={complete} trailingIcon>
-                  Open dashboard
+                <Button
+                  onClick={complete}
+                  trailingIcon
+                  disabled={createOrg.isPending || orgsLoading}
+                  className="min-w-40"
+                >
+                  {createOrg.isPending ? "Creating workspace…" : "Open dashboard"}
                 </Button>
               )}
             </div>
+            {submitError && (
+              <div className="mt-12 text-body-small text-danger flex items-center gap-6">
+                <WarningCircle className="size-3" />
+                {submitError}
+              </div>
+            )}
           </div>
         </div>
       </div>

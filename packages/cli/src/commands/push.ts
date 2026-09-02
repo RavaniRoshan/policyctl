@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { findPolicyPath } from "../policy.js";
-import { loadConfig, serverUrl } from "../hosted.js";
+import { loadConfig, requirePaidPlan, serverUrl } from "../hosted.js";
 import { spinner } from "../ui.js";
 
 export interface PushOptions {
@@ -10,11 +10,8 @@ export interface PushOptions {
 }
 
 export async function pushCommand(opts: PushOptions): Promise<void> {
+  await requirePaidPlan(opts.server);
   const cfg = loadConfig();
-  if (!cfg.token) {
-    console.error("policyctl: not logged in. Run `policyctl login`.");
-    process.exit(3);
-  }
   const policyPath = opts.policy ?? findPolicyPath(opts.cwd ?? process.cwd());
   if (!policyPath) {
     console.error("policyctl: no policy file found (.policyctl.yml).");

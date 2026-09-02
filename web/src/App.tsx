@@ -17,6 +17,7 @@ import { Policies } from "@/pages/dashboard/Policies";
 import { Ai } from "@/pages/dashboard/Ai";
 import { Reports } from "@/pages/dashboard/Reports";
 import { Settings } from "@/pages/dashboard/Settings";
+import { Billing } from "@/pages/dashboard/Billing";
 import { NotFound } from "@/pages/NotFound";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -99,6 +100,7 @@ export function App() {
                         <Route path="ai" element={<Ai />} />
                         <Route path="reports" element={<Reports />} />
                         <Route path="settings" element={<Settings />} />
+                        <Route path="billing" element={<Billing />} />
                         <Route path="sessions" element={<Navigate to="/dashboard/violations" replace />} />
                       </Route>
 

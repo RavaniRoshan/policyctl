@@ -14,6 +14,7 @@ import {
   List,
   X,
   Warning,
+  CreditCard,
 } from "@phosphor-icons/react";
 import { CommandPaletteHost } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
@@ -30,6 +31,7 @@ const titles: Record<string, string> = {
   "/dashboard/ai": "AI rule author",
   "/dashboard/reports": "Reports",
   "/dashboard/settings": "Settings",
+  "/dashboard/billing": "Billing",
 };
 
 const items = [
@@ -38,6 +40,7 @@ const items = [
   { to: "/dashboard/policies", label: "Policies", icon: ShieldCheck },
   { to: "/dashboard/ai", label: "AI", icon: Sparkle },
   { to: "/dashboard/reports", label: "Reports", icon: ChartBar },
+  { to: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { to: "/dashboard/settings", label: "Settings", icon: Gear },
 ];
 
