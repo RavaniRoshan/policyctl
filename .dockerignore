@@ -3,3 +3,12 @@ node_modules
 **/dist
 .git
 *.log
+.github
+web
+docs
+examples
+packages/server
+packages/design-system
+packages/types
+.env*
+*.tgz
