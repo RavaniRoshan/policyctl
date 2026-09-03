@@ -1,1 +1,14 @@
+# Static Docs Redirects & Aliases
+/docs /docs/ 301
+/docs/cli /docs/reference/cli-commands/ 301
+/docs/hooks /docs/reference/agent-hooks/ 301
+/docs/ci /docs/tutorials/ci-pipeline-setup/ 301
+/docs/cloud /docs/reference/api-cloud/ 301
+/docs/rules /docs/how-to/protect-critical-files/ 301
+/docs/skill /docs/reference/skill-manifest/ 301
+/docs/architecture /docs/explanation/architecture/ 301
+/docs/agents /docs/tutorials/claude-code-setup/ 301
+/docs/use-cases /docs/how-to/protect-critical-files/ 301
+
+# SPA catch-all fallback
 /* /index.html 200

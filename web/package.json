@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node -e \"const fs=require('fs'); if(fs.existsSync('../docs/dist')) { fs.rmSync('dist/docs', {recursive:true, force:true}); fs.cpSync('../docs/dist', 'dist/docs', {recursive:true}); }\"",
     "preview": "vite preview"
   },
   "dependencies": {

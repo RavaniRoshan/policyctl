@@ -32,25 +32,25 @@ const PRODUCTS = [
   {
     title: "CLI Runtime Gate",
     desc: "Deterministic hooks inside Claude Code, Codex & Cursor",
-    href: "/docs",
+    href: "/docs/reference/cli-commands/",
     icon: Terminal,
   },
   {
     title: "Cloud Versioning",
     desc: "Centralized policy management across all repositories",
-    href: "/#features",
+    href: "/docs/reference/api-cloud/",
     icon: GitBranch,
   },
   {
     title: "AI Rule Author",
     desc: "Generate enforceable AST rules from natural language",
-    href: "/#features",
+    href: "/docs/how-to/author-rules-with-ai/",
     icon: Sparkle,
   },
   {
     title: "CI Hard Gate",
     desc: "Fail pull requests on block/fail rules in GitHub Actions",
-    href: "/docs",
+    href: "/docs/tutorials/ci-pipeline-setup/",
     icon: ShieldCheck,
   },
 ];
@@ -59,25 +59,25 @@ const RESOURCES = [
   {
     title: "Documentation",
     desc: "Complete engine reference, matchers & CLI commands",
-    href: "/docs",
+    href: "/docs/",
     icon: BookOpen,
   },
   {
     title: "Rule Catalog",
     desc: "Pre-built templates for migrations, secrets & file limits",
-    href: "/docs",
+    href: "/docs/how-to/protect-critical-files/",
     icon: FileCode,
   },
   {
     title: "Agent Guides",
     desc: "Setup guides for Claude Code, Cursor, Windsurf & Codex",
-    href: "/docs",
+    href: "/docs/tutorials/claude-code-setup/",
     icon: Robot,
   },
   {
     title: "Security & Auditing",
     desc: "Local-first policy runtime with deterministic enforcement",
-    href: "/docs",
+    href: "/docs/explanation/security-model/",
     icon: FolderLock,
   },
 ];
@@ -174,13 +174,13 @@ export function MarketingNav() {
                                 Deterministic runtime hooks enforced inside Claude Code, Codex, Cursor, and CI.
                               </p>
                             </div>
-                            <Link
-                              to="/docs"
+                            <a
+                              href="/docs/reference/cli-commands/"
                               className="mt-16 inline-flex items-center gap-6 text-label-small font-medium text-heat-100 hover:underline no-underline"
                             >
                               <span>Explore runtime</span>
                               <span>→</span>
-                            </Link>
+                            </a>
                           </div>
 
                           {/* Right List of Products */}
@@ -188,8 +188,8 @@ export function MarketingNav() {
                             {PRODUCTS.map((item) => (
                               <li key={item.title}>
                                 <NavigationMenuLink asChild>
-                                  <Link
-                                    to={item.href}
+                                  <a
+                                    href={item.href}
                                     className="flex items-start gap-12 p-8 rounded-lg hover:bg-black-alpha-4 transition-colors group/item no-underline"
                                   >
                                     <div className="size-32 rounded-md bg-heat-4 border border-heat-12 flex items-center justify-center text-heat-100 shrink-0 mt-2">
@@ -203,7 +203,7 @@ export function MarketingNav() {
                                         {item.desc}
                                       </div>
                                     </div>
-                                  </Link>
+                                  </a>
                                 </NavigationMenuLink>
                               </li>
                             ))}
@@ -237,8 +237,8 @@ export function MarketingNav() {
                           {RESOURCES.map((item) => (
                             <li key={item.title}>
                               <NavigationMenuLink asChild>
-                                <Link
-                                  to={item.href}
+                                <a
+                                  href={item.href}
                                   className="flex items-start gap-12 p-10 rounded-lg hover:bg-black-alpha-4 transition-colors group/item no-underline"
                                 >
                                   <div className="size-32 rounded-md bg-black-alpha-4 border border-border-faint flex items-center justify-center text-accent-black shrink-0 mt-2">
@@ -252,7 +252,7 @@ export function MarketingNav() {
                                       {item.desc}
                                     </div>
                                   </div>
-                                </Link>
+                                </a>
                               </NavigationMenuLink>
                             </li>
                           ))}
@@ -283,12 +283,12 @@ export function MarketingNav() {
                   {/* Docs Link */}
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
-                      <Link
-                        to="/docs"
+                      <a
+                        href="/docs/"
                         className="inline-flex h-36 items-center px-12 py-6 text-label-medium text-accent-black hover:text-heat-100 hover:bg-black-alpha-4 rounded-md transition-colors no-underline"
                       >
                         Docs
-                      </Link>
+                      </a>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                 </NavigationMenuList>
@@ -360,28 +360,28 @@ export function MarketingNav() {
               [ Products ]
             </div>
             {PRODUCTS.map((p) => (
-              <Link
+              <a
                 key={p.title}
-                to={p.href}
-                className="px-8 py-6 text-label-medium text-accent-black hover:text-heat-100 flex items-center justify-between"
+                href={p.href}
+                className="px-8 py-6 text-label-medium text-accent-black hover:text-heat-100 flex items-center justify-between no-underline"
               >
                 <span>{p.title}</span>
                 <span className="text-black-alpha-40 text-mono-x-small">→</span>
-              </Link>
+              </a>
             ))}
 
             <div className="text-mono-x-small font-mono text-black-alpha-40 uppercase px-8 pt-8 border-t border-border-faint">
               [ Resources ]
             </div>
             {RESOURCES.map((r) => (
-              <Link
+              <a
                 key={r.title}
-                to={r.href}
-                className="px-8 py-6 text-label-medium text-accent-black hover:text-heat-100 flex items-center justify-between"
+                href={r.href}
+                className="px-8 py-6 text-label-medium text-accent-black hover:text-heat-100 flex items-center justify-between no-underline"
               >
                 <span>{r.title}</span>
                 <span className="text-black-alpha-40 text-mono-x-small">→</span>
-              </Link>
+              </a>
             ))}
 
             <div className="border-t border-border-faint pt-8 flex flex-col gap-6">
@@ -391,12 +391,12 @@ export function MarketingNav() {
               >
                 Pricing
               </NavLink>
-              <NavLink
-                to="/docs"
-                className="px-8 py-6 text-label-medium text-accent-black hover:text-heat-100"
+              <a
+                href="/docs/"
+                className="px-8 py-6 text-label-medium text-accent-black hover:text-heat-100 no-underline"
               >
                 Docs
-              </NavLink>
+              </a>
               <a
                 href={GITHUB}
                 target="_blank"

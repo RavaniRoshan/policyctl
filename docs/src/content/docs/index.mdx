@@ -1,0 +1,83 @@
+---
+title: policyctl Documentation
+description: Provider-agnostic policy runtime for coding agents. One .policyctl.yml file enforces deterministic rules across Claude Code, OpenAI Codex, Cursor, and CI pipelines.
+template: splash
+hero:
+  tagline: Deterministic procedural rules for AI coding agents. Intercept tool calls in real time and enforce hard gates in CI.
+  actions:
+    - text: Get Started (5 Min)
+      link: /docs/tutorials/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/RavaniRoshan/policyctl
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## The Four Pillars of policyctl
+
+<CardGrid stagger>
+  <Card title="Tutorials" icon="open-book">
+    Step-by-step, hands-on learning guides. Set up your first `.policyctl.yml`, intercept agent tool calls in **Claude Code** and **Cursor**, and wire up automated **GitHub Actions CI** gating.
+    <br/>
+    [Start the 5-Minute Tutorial &rarr;](/docs/tutorials/getting-started/)
+  </Card>
+
+  <Card title="How-To Guides" icon="puzzle">
+    Problem-oriented recipes for common production challenges. Learn how to protect `package.json`, block hardcoded secrets, mandate companion test files, and author rules with AI.
+    <br/>
+    [Browse How-To Recipes &rarr;](/docs/how-to/protect-critical-files/)
+  </Card>
+
+  <Card title="Reference" icon="document">
+    Exhaustive specifications and technical dictionaries. Discover all 12 CLI commands (`init`, `check`, `eval`, `trace`, `doctor`), the full YAML schema, matchers, and cloud REST APIs.
+    <br/>
+    [Explore the Reference &rarr;](/docs/reference/cli-commands/)
+  </Card>
+
+  <Card title="Explanation" icon="information">
+    Deep architectural discussions and design rationale. Understand why advisory system prompts (`CLAUDE.md`) fail under context pressure, how sub-12ms AST evaluation works, and our local-first security model.
+    <br/>
+    [Read Architecture Deep Dive &rarr;](/docs/explanation/architecture/)
+  </Card>
+</CardGrid>
+
+---
+
+## Quick Installation
+
+The `policyctl` CLI is a single static, local-first binary with zero telemetry and zero external network dependencies:
+
+```bash
+# Initialize policyctl across all detected coding agents
+npx -y @policyctl/cli@latest init --all
+
+# Run a local diagnostic check
+npx -y @policyctl/cli@latest doctor
+```
+
+## How It Works
+
+```
++-------------------+       +-------------------+       +-------------------+
+|    Claude Code    |       |   OpenAI Codex    |       |   Cursor Editor   |
++---------+---------+       +---------+---------+       +---------+---------+
+          |                           |                           |
+          +---------------------------+---------------------------+
+                                      |
+                      PreToolUse Hook / Shell / Edit
+                                      v
+                        +----------------------------+
+                        |  policyctl eval --hook     |
+                        |  Evaluates .policyctl.yml  |
+                        +--------------+-------------+
+                                       |
+                +----------------------+----------------------+
+                |                                             |
+         exit 0 (Allow)                                exit 2 (Deny)
+                v                                             v
+        Tool Call Proceeds                            Operation BLOCKED
+```

@@ -251,11 +251,11 @@ function Hero() {
                 Get started free
               </Button>
             </Link>
-            <Link to="/docs">
+            <a href="/docs/">
               <Button size="lg" variant="tertiary">
                 Read the docs
               </Button>
-            </Link>
+            </a>
           </motion.div>
 
           {/* Micro-proof list */}
@@ -686,9 +686,9 @@ function AgentReady() {
 
           <div className="mt-16 pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
             <span>CLAUDE · CURSOR · CODEX · CI</span>
-            <Link to="/docs" className="text-heat-100 hover:underline flex items-center gap-4">
+            <a href="/docs/tutorials/getting-started/" className="text-heat-100 hover:underline flex items-center gap-4">
               Docs <ArrowUpRight className="size-12" />
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -736,9 +736,9 @@ function AgentReady() {
 
           <div className="mt-16 pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
             <span>AUTONOMOUS CONTEXT SPEC</span>
-            <Link to="/docs" className="text-heat-100 hover:underline flex items-center gap-4">
+            <a href="/docs/reference/skill-manifest/" className="text-heat-100 hover:underline flex items-center gap-4">
               Docs <ArrowUpRight className="size-12" />
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -1086,9 +1086,9 @@ function UseCases() {
           {/* Footer */}
           <div className="pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
             <span>DETERMINISTIC EVALUATION</span>
-            <Link to="/docs" className="text-heat-100 hover:underline flex items-center gap-4">
+            <a href="/docs/how-to/protect-critical-files/" className="text-heat-100 hover:underline flex items-center gap-4">
               Docs <ArrowUpRight className="size-12" />
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -1448,13 +1448,13 @@ function FAQ() {
                 Need help authoring a custom AST matcher or integrating with custom CI runners?
               </p>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-10">
-                <Link
-                  to="/docs"
+                <a
+                  href="/docs/"
                   className="px-14 py-8 rounded-lg bg-surface hover:bg-background-base text-accent-black border border-border-faint text-mono-x-small font-mono flex items-center justify-between gap-6 transition-colors"
                 >
                   <span>Explore Docs</span>
                   <ArrowRight className="size-12 text-heat-100" />
-                </Link>
+                </a>
                 <a
                   href="https://github.com/RavaniRoshan/policyctl/issues"
                   target="_blank"
@@ -1622,13 +1622,13 @@ function CTA() {
                   <ArrowRight className="size-12" weight="bold" />
                 </span>
               </Link>
-              <Link
-                to="/docs"
+              <a
+                href="/docs/"
                 className="inline-flex items-center gap-8 rounded-full bg-surface hover:bg-background-base text-accent-black border border-border-faint px-20 py-12 text-label-medium font-medium transition-colors cursor-pointer"
               >
                 <span>Read documentation</span>
                 <ArrowUpRight className="size-14 text-black-alpha-40" />
-              </Link>
+              </a>
             </div>
 
             {/* Bottom Trust Guarantee Strip */}

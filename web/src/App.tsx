@@ -1,13 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Component, Suspense, type ReactNode } from "react";
+import { useEffect, Component, Suspense, type ReactNode } from "react";
 import { AuthProvider, RequireAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import { ToastProvider } from "@policyctl/design-system";
 import { TurnstileProvider } from "@/components/ui/turnstile";
 import { queryClient } from "@/lib/query";
 import { Landing } from "@/pages/Landing";
-import { Docs } from "@/pages/Docs";
 import { AuthPage } from "@/pages/AuthPage";
 import { Onboarding } from "@/pages/Onboarding";
 import { DashboardShell } from "@/components/layout/DashboardShell";
@@ -51,6 +50,13 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
+function DocsRedirect() {
+  useEffect(() => {
+    window.location.replace("/docs/");
+  }, []);
+  return null;
+}
+
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -71,7 +77,8 @@ export function App() {
                     <Routes>
                       {/* Public */}
                       <Route path="/" element={<Landing />} />
-                      <Route path="/docs" element={<Docs />} />
+                      <Route path="/docs" element={<DocsRedirect />} />
+                      <Route path="/docs/*" element={<DocsRedirect />} />
                       <Route path="/login" element={<AuthPage />} />
                       <Route path="/signup" element={<AuthPage />} />
 
