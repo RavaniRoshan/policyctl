@@ -1,206 +1,287 @@
-# policyctl
+<p align="center">
+  <a href="https://policyctl-web.pages.dev">
+    <img src="docs/src/assets/logo.svg" alt="policyctl logo" width="72" height="72" />
+  </a>
+</p>
 
-<div align="left">
-  <a href="https://policyctl.pages.dev">
-    <img alt="site" src="https://img.shields.io/badge/site-policyctl.dev-0D9373?style=for-the-badge" />
-  </a>
-  <a href="https://policyctl.pages.dev/docs">
-    <img alt="docs" src="https://img.shields.io/badge/docs-read-02241e?style=for-the-badge&labelColor=065040" />
-  </a>
-  <a href="https://github.com/RavaniRoshan/policyctl">
-    <img alt="github" src="https://img.shields.io/github/stars/RavaniRoshan/policyctl?style=for-the-badge" />
-  </a>
-  <a href="https://www.npmjs.com/package/@policyctl/cli">
-    <img alt="npm" src="https://img.shields.io/npm/v/@policyctl/cli?style=for-the-badge" />
-  </a>
-  <a href="https://dash.policyctl.io">
-    <img alt="dashboard" src="https://img.shields.io/badge/dashboard-4F6EF7?style=for-the-badge" />
-  </a>
-</div>
+<h1 align="center">policyctl</h1>
+
+<p align="center">
+  <strong>Provider-agnostic deterministic policy runtime for coding agents.</strong>
+</p>
+
+<p align="center">
+  One <code>.policyctl.yml</code> specification enforced inside Claude Code, OpenAI Codex, Cursor, and CI pipelines.
+</p>
+
+<p align="center">
+  <a href="https://policyctl-web.pages.dev"><img alt="Website" src="https://img.shields.io/badge/website-policyctl--web.pages.dev-fa5d19?style=flat-square" /></a>
+  <a href="https://policyctl-web.pages.dev/docs/"><img alt="Documentation" src="https://img.shields.io/badge/docs-Starlight-000000?style=flat-square" /></a>
+  <a href="https://github.com/RavaniRoshan/policyctl/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/RavaniRoshan/policyctl/ci.yml?branch=main&style=flat-square&label=ci" /></a>
+  <a href="https://www.npmjs.com/package/@policyctl/cli"><img alt="npm" src="https://img.shields.io/npm/v/@policyctl/cli?style=flat-square&color=fa5d19" /></a>
+  <a href="https://github.com/RavaniRoshan/policyctl/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" /></a>
+</p>
 
 ---
 
-## Make your coding agents obey the rules.
+## Overview
 
-One `.policyctl.yml`, enforced inside **Claude Code**, **Codex**, and **Cursor** at tool-call time — and again as a hard gate in **CI**. Not prompt text. Not a vendor denylist.
+Prompt-based advisory instructions (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`) degrade as context windows fill up. Autonomous coding agents frequently overlook prompt rules, rewrite protected configuration files, leak secrets into diffs, or execute unauthorized commands.
 
-> **Provider-agnostic policy runtime for coding agents.** Free CLI. MIT licensed. Local-first, with an optional hosted control plane for audit trails and cross-repo policy versioning.
+**policyctl** provides a deterministic policy runtime that sits between the agent and your codebase. It intercepts tool calls at execution time, validates changes against compiled AST rules and pattern tables in under 12ms, and rejects prohibited operations before files are modified on disk.
 
-### The gap
+```
+                  ┌────────────────────────┐
+                  │ Autonomous Agent       │
+                  │ (Claude / Cursor / CI) │
+                  └───────────┬────────────┘
+                              │ Pre-execution tool call
+                              ▼
+                  ┌────────────────────────┐
+                  │ policyctl runtime      │
+                  │ (.policyctl.yml)       │
+                  └───────────┬────────────┘
+                              │
+               ┌──────────────┴──────────────┐
+               ▼                             ▼
+        [ ALLOW (exit 0) ]            [ BLOCK (exit 2) ]
+        Action executed on disk       Interception feedback injected
+                                      into agent prompt to self-correct
+```
 
-Prompt files (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`) are advisory and routinely ignored — **32 violations over 56 days despite 8 configured guardrail mechanisms**. Vendor denylists are per-model and coarse. There is no shared, deterministic policy layer across agents.
+> [!NOTE]
+> `policyctl` runs 100% locally, emits zero telemetry, requires no network calls, and operates entirely offline. An optional Cloud tier is available for teams needing shared policy versioning, live compliance feeds, and audit trails.
 
-policyctl is the missing layer: a tiny local engine + generated hook adapters per provider + a git-diff CI gate. **One rule file, every agent, every repo.**
+---
 
-### Install
+## Key Features
+
+- **Zero LLM Drift:** Pure deterministic evaluation. The same input produces the exact same verdict every time.
+- **Sub-Millisecond Evaluation:** Compiled AST matchers and pattern tables evaluate in `<12ms`, introducing zero perceptible latency to agent prompt loops.
+- **Pre-Tool-Call Interception:** Intercepts file writes and shell executions *before* they touch the filesystem, preventing hallucinated bugs or secrets from ever being staged.
+- **Single Source of Truth:** Author rules once in `.policyctl.yml`. The engine enforces them across Claude Code, Cursor, Codex, and CI.
+- **Automated Hook Generation:** `policyctl gen <provider>` automatically writes the native hook configuration files for each supported agent.
+- **Self-Guarding Policy:** Automatically creates an immutable rule blocking agents from modifying `.policyctl.yml` or hook settings.
+- **CI Hard Gate:** The identical engine runs in GitHub Actions, GitLab CI, and custom Docker runners, failing pull requests on blocking violations.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js `18.0.0` or higher
+- Git `2.30.0` or higher
+
+### Installation
+
+Install the CLI globally or run it on demand with `npx`:
 
 ```bash
+# Global install via npm
 npm install -g @policyctl/cli
-# or, no install:
-npx @policyctl/cli check
+
+# Or run directly with npx
+npx @policyctl/cli init
 ```
 
-### Quick start
+### Quickstart in 60 Seconds
 
-```bash
-policyctl init --template full              # scaffold .policyctl.yml
-policyctl list                              # show your rules
-policyctl gen claude                       # wire hooks into .claude/settings.json (+ pre-commit gate)
-policyctl gen codex                         # wire Starlark exec-policy
-policyctl gen cursor                        # wire hooks.json
-policyctl check                             # run the CI/diff gate against the current diff
-```
+1. **Scaffold a starter policy:**
 
-Add the CI gate to GitHub Actions:
+   ```bash
+   policyctl init --all
+   ```
 
-```yaml
-# .github/workflows/policy.yml
-- run: npx policyctl check
-```
+   This inspects your workspace, detects configured agents (Claude, Cursor, Codex), generates `.policyctl.yml`, and configures native hooks.
+
+2. **Verify your setup:**
+
+   ```bash
+   policyctl doctor
+   ```
+
+3. **Simulate an enforcement check:**
+
+   ```bash
+   policyctl check --demo
+   ```
+
+4. **Integrate with GitHub Actions CI:**
+
+   Add the policy check step to your workflow file (`.github/workflows/policy.yml`):
+
+   ```yaml
+   name: Policy Gate
+   on: [pull_request, push]
+
+   jobs:
+     verify:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+           with:
+             fetch-depth: 0
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 22
+         - run: npx @policyctl/cli check --fail-on block,fail
+   ```
 
 ---
 
-## How it works
+## Policy Configuration (`.policyctl.yml`)
 
-A policy rule has three parts: `when` (matchers), `enforce` (`block` | `fail` | `warn`), and `scope` (`hook` | `ci` | `both`).
-
-| Surface | How | Exit code |
-| --- | --- | --- |
-| **Hook** | `policyctl eval --hook` (called by each agent's pre-tool hook) | `2` block · `1` warn · `0` allow |
-| **CI** | `policyctl check` (parses `git diff`, including untracked files) | non-zero on violation |
-
-`gen` writes the exact glue for each provider — native hook where supported, plus a `pre-commit` gate everywhere — so you never hand-write a per-model plugin again.
-
-### Example: migrations only via the generator
+The `.policyctl.yml` file lives at the root of your repository.
 
 ```yaml
+version: 1
+
 rules:
+  # Rule 1: Protect database migrations
   - id: migrations-via-generator
-    description: "DB migrations must come from `make migrate`, never handwritten."
+    description: "Database migrations must be generated via CLI, never handwritten."
     scope: both
+    enforce: block
     when:
       path: "db/migrations/**"
-      diff_not_contains: "! Generated by make migrate -- do not edit by hand."
+    message: |
+      Migration files cannot be authored directly by agents.
+      Please run `make migration name=<name>` instead.
+
+  # Rule 2: Intercept leaked credentials
+  - id: no-secrets-in-diff
+    description: "Block hardcoded API keys and credentials in code diffs."
+    scope: diff
     enforce: block
+    when:
+      diff_regex: "(AKIA[0-9A-Z]{16}|ghp_[a-zA-Z0-9]{36}|sk-proj-[a-zA-Z0-9]{20,})"
+    message: "Potential secret detected in diff. Use environment variables instead."
+
+  # Rule 3: Require tests for core library modifications
+  - id: require-companion-tests
+    description: "Modifications to src/ must be accompanied by updates in test/."
+    scope: diff
+    enforce: fail
+    when:
+      diff_paths_glob: "src/**"
+      diff_paths_not_glob: "test/**"
+    message: "Source changes require companion test coverage in test/."
+
+  # Rule 4: Self-guarding runtime configuration
+  - id: guard-policy-files
+    description: "Prevent autonomous agents from modifying policyctl configuration."
+    scope: hook
+    enforce: block
+    when:
+      path: "{.policyctl.yml,.claude/**,.cursor/**}"
+    message: "Modifying policyctl configuration files requires human authorization."
 ```
 
 ---
 
-## Rules reference
+## Enforcement Levels
 
-| Matcher | Mode | Meaning |
-| --- | --- | --- |
-| `path` | hook + ci | Glob over the file the tool touches (hook) or changed files (ci) |
-| `command` | hook | Regex over a shell command (e.g. the Bash tool) |
-| `tool` | hook | Tool name (exact, or `/regex/`) |
-| `diff_contains` | ci | Substring that **must** be present in the diff |
-| `diff_not_contains` | ci | Substring that must be **absent** (e.g. a generator signature) |
-| `diff_regex` | ci | Regex over the full diff text |
-| `diff_paths_glob` | ci | Glob that must match ≥1 changed file |
-| `diff_paths_not_glob` | ci | Glob that must match **no** changed file |
+Each rule specifies an `enforce` level that determines how the runtime handles a violation:
 
-All matchers in a rule are ANDed. A `both` rule fires on the matchers relevant to whichever surface is active.
+| Level | Exit Code | Hook Behavior (Claude / Cursor) | CI Behavior (GitHub Actions) | Use Case |
+|---|---|---|---|---|
+| `block` | `2` | **Blocks tool call immediately.** Injects remediation message into prompt. | Fails workflow run | Critical file protection, secrets, destructive commands |
+| `fail` | `1` | Allows tool call during prompt iteration. | Fails workflow run | Missing companion tests, PR-level style requirements |
+| `warn` | `0` | Displays advisory warning to agent prompt. | Logs warning (passes build) | Deprecation notices, non-blocking guidelines |
+| `ignore` | `0` | Evaluated in debug traces only; no action taken. | Passes build | Rule testing and staging |
 
 ---
 
-## Provider coverage
+## Matchers Reference
 
-| Provider | Hook type | Enforcement |
-| --- | --- | --- |
-| **Claude Code** | `PreToolUse` hook via `.claude/settings.json` | Exit-2 blocks the tool call before it runs |
-| **OpenAI Codex** | Starlark `.rules` via `exec-policy` | Pre-execution allow/prompt/forbidden |
-| **Cursor** | `preToolUse` via `.cursor/hooks.json` | Exit-2 blocks with `failClosed` support |
-| **CI** (GitHub Actions, GitLab, etc.) | `policyctl check` | Fails the build on blocking rules |
+`policyctl` includes 8 deterministic matchers that can be combined within any rule:
 
-> Every provider gets the **same YAML**. The `gen` command writes the provider-specific glue — you never maintain three copies of the same rule.
+| Matcher | Scope | Description | Example |
+|---|---|---|---|
+| `path` | `hook`, `both` | Glob pattern matching the target file path. | `path: "packages/core/**"` |
+| `command` | `hook` | Regex matching shell commands in agent terminal tools. | `command: "^(rm -rf|dropdb)"` |
+| `tool` | `hook` | Matches specific tool calls by name or regex. | `tool: "Bash"` |
+| `diff_contains` | `diff`, `both` | Matches literal text that must appear in the diff. | `diff_contains: "TODO: remove"` |
+| `diff_not_contains` | `diff`, `both` | Requires a required substring to be present. | `diff_not_contains: "Generated by"` |
+| `diff_regex` | `diff`, `both` | Regular expression evaluated against diff hunks. | `diff_regex: "AKIA[0-9A-Z]{16}"` |
+| `diff_paths_glob` | `diff`, `both` | Asserts that files matching the glob were modified. | `diff_paths_glob: "src/**"` |
+| `diff_paths_not_glob` | `diff`, `both` | Asserts that NO files matching the glob were touched. | `diff_paths_not_glob: "test/**"` |
+
+> [!TIP]
+> When multiple matchers are defined under `when`, they are evaluated using logical **AND**. All conditions must match for the rule to fire.
 
 ---
 
-## Pricing
+## Agent Hook Adapters
 
-| | Local CLI | Cloud control plane |
-| --- | --- | --- |
-| **Cost** | Free (MIT) | $5 / seat / month (14-day free trial) |
-| Enforcement | ✅ Full hooks + CI gate | ✅ Full hooks + CI gate |
-| Policy versioning | ❌ | ✅ Immutable versions + rollback |
-| Audit dashboard | ❌ | ✅ Live violation feed + CSV export |
-| Off-line | ✅ | ✅ CLI works offline; sync when online |
+`policyctl` integrates directly into the execution lifecycles of leading agent tools:
 
-The CLI is complete on its own. The hosted plane is what teams pay for: one policy, enforced across every agent and repo, with an audit trail.
+### Claude Code
+Interception hooks run via the `PreToolUse` lifecycle in `.claude/settings.json`. When `policyctl eval` returns exit code `2`, Claude Code halts the tool call before file execution and passes the error text into Claude's reasoning context.
 
 ```bash
-policyctl login --email you@company.com          # authenticate (token saved locally)
-policyctl push                                   # publish this repo's policy as a new version
-policyctl pull --force                           # fetch the team policy into any repo/agent
-policyctl check --report                         # CI gate that also reports to the feed
+policyctl gen claude
 ```
 
-> **Live instance:** https://policyctl-server.shivamkumar10958.workers.dev
-> Point the CLI at it with `policyctl login --server <url>`, or set `POLICYCTL_SERVER`.
-
----
-
-## What makes it different
-
-| | Prompt files | Vendor denylists | **policyctl** |
-| --- | --- | --- | --- |
-| Cross-agent | ❌ One provider | ❌ One provider | ✅ Claude + Codex + Cursor + CI |
-| Deterministic | ❌ Advisory | ✅ One vendor | ✅ Every agent + CI |
-| CI gate | ❌ | ❌ | ✅ Same engine, same YAML |
-| Audit trail | ❌ | ❌ | ✅ (optional cloud) |
-| Free / open-source | ✅ | ❌ | ✅ MIT |
-| Procedural rules | ❌ | ❌ | ✅ Migrations, README, secrets, tests |
-
----
-
-## Links
-
-| Resource | URL |
-| --- | --- |
-| **Marketing / landing** | https://policyctl.pages.dev |
-| **Documentation** | https://policyctl.pages.dev/docs |
-| **GitHub** | https://github.com/RavaniRoshan/policyctl |
-| **npm (`@policyctl/cli`)** | https://www.npmjs.com/package/@policyctl/cli |
-| **Hosted API + dashboard** | https://policyctl-server.shivamkumar10958.workers.dev |
-| **API spec / OpenAPI** | https://github.com/RavaniRoshan/policyctl/blob/main/packages/server/API.md |
-
----
-
-## Architecture
-
-- **Runtime:** Cloudflare Workers (V8 isolates, no cold-start server) — `packages/server`.
-- **Database:** Cloudflare D1 (SQLite at the edge) for orgs, members, policy versions, and the violation feed.
-- **Cache:** KV namespace (`POLICYCTL_CACHE`) for sub-ms policy, session, and JWKS lookups.
-- **Object storage:** None — CSV exports stream directly from the Worker response.
-- **AI:** Workers AI binding for semantic policy intelligence (Phase D, paid tier).
-- **Dashboard:** React + Tailwind SPA (`web/`) consuming the Worker API via Auth0 RS256 JWT bearer tokens.
-- **Security:** Cloudflare Turnstile on all auth endpoints, Auth0-managed sessions, RS256 JWT verification via `jose` + cached JWKS, KV-cached AI response caching.
-
-### Phase roadmap
-
-| Phase | Scope | Status |
-| --- | --- | --- |
-| **Phase A** — Local-first runtime (engine, generated hooks, CI gate) | Shipped — `@policyctl/cli` + `@policyctl/core` on npm | ✅ |
-| **Phase B** — Hosted control plane (auth, orgs, policy versioning, violation feed, dashboard) | Shipped — Cloudflare Workers + D1 + KV | ✅ |
-| **Phase C** — Analytics & fleet (agent-vs-human attribution, repeat offenders, CSV export, Turnstile on auth) | Shipped | ✅ |
-| **Phase D** — AI + real-time sessions (Workers AI rule authoring, Durable Objects live streaming) | Shipped (core); AI gated behind paid plan | ✅ |
-
----
-
-## Development
+### Cursor
+Native integration via `.cursor/hooks.json` and `.cursor/rules/policy.mdc`. Tool operations evaluate before agent execution, respecting `failClosed` security semantics.
 
 ```bash
-pnpm install
-pnpm --filter @policyctl/core test     # engine unit tests
-pnpm --filter @policyctl/cli test      # check/eval regression tests
-pnpm --filter @policyctl/server build  # control-plane API + dashboard (type-check + inline CSS)
-pnpm --filter policyctl-web dev        # React+Tailwind dev server
+policyctl gen cursor
 ```
 
-The web app (`web/`) is a React + Tailwind SPA that serves both the landing page and the dashboard. It deploys to Cloudflare Pages as `policyctl-web`.
+### OpenAI Codex
+Starlark rules generated for Codex environments via `exec-policy`:
+
+```bash
+policyctl gen codex
+```
 
 ---
 
-## License
+## CLI Commands
 
-MIT.
+| Command | Syntax | Description |
+|---|---|---|
+| `init` | `policyctl init [--all]` | Scaffolds `.policyctl.yml` and generates agent hooks. |
+| `check` | `policyctl check [--fail-on <levels>]` | Evaluates rules against git diff. Exits non-zero on violations. |
+| `eval` | `policyctl eval --provider <agent>` | Evaluates a single tool call from stdin payload in `<12ms`. |
+| `list` | `policyctl list` | Prints loaded rules, active scopes, and matchers. |
+| `gen` | `policyctl gen <claude\|cursor\|codex>` | Generates provider hook configuration files. |
+| `doctor` | `policyctl doctor` | Diagnostic audit verifying hook paths and CLI installation. |
+| `trace` | `policyctl trace <path>` | Dry-run trace explaining which rules match a given file or tool call. |
+| `test` | `policyctl test` | Runs assertion test suites against custom rule fixtures. |
+| `login` | `policyctl login` | Authenticates with the hosted control plane. |
+| `push` | `policyctl push` | Publishes local `.policyctl.yml` to shared cloud versioning. |
+| `pull` | `policyctl pull` | Syncs the team policy from the cloud into the local repository. |
+| `report` | `policyctl report` | Emits violation event metadata to the team audit feed. |
+
+---
+
+## Cloud Control Plane
+
+For engineering organizations managing policies across dozens of repositories:
+
+- **Cross-Repo Policy Versioning:** Maintain immutable, auditable policy versions with rollback capabilities.
+- **Audit Feed & Live Sessions:** Real-time visibility into agent tool calls, blocked actions, and remediation outcomes.
+- **Compliance Reports:** Daily compliance digests and CSV export streaming directly from Cloudflare Workers edge.
+- **AI Rule Authoring:** Natural language prompt analysis that generates valid, typed `.policyctl.yml` AST rules.
+
+```bash
+# Connect local repository to team workspace
+policyctl login
+policyctl push
+```
+
+---
+
+## Documentation & Community
+
+- **Complete Documentation:** [policyctl-web.pages.dev/docs](https://policyctl-web.pages.dev/docs/)
+  - [Tutorials: Getting Started](https://policyctl-web.pages.dev/docs/tutorials/getting-started/)
+  - [How-To: Intercept Secrets](https://policyctl-web.pages.dev/docs/how-to/intercept-secrets/)
+  - [Reference: CLI Commands](https://policyctl-web.pages.dev/docs/reference/cli-commands/)
+  - [Explanation: Architecture](https://policyctl-web.pages.dev/docs/explanation/architecture/)
+- **Bug Tracker & Issues:** [GitHub Issues](https://github.com/RavaniRoshan/policyctl/issues)
+- **Web Platform:** [policyctl-web.pages.dev](https://policyctl-web.pages.dev)
