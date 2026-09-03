@@ -99,7 +99,20 @@ export function evaluatePolicy(
 ): EvaluationOutcome {
   const vars = policy.vars ?? {};
   const results: EvaluationResult[] = [];
-  for (const rule of policy.rules) {
+  
+  // Sort rules by priority (high → low), then by id for deterministic ordering
+  const sortedRules = [...policy.rules].sort((a, b) => {
+    // Handle undefined priority (treat as "low")
+    const priorityA = a.priority ?? "low";
+    const priorityB = b.priority ?? "low";
+    if (priorityA !== priorityB) {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[priorityA] - priorityOrder[priorityB];
+    }
+    return a.id.localeCompare(b.id);
+  });
+  
+  for (const rule of sortedRules) {
     if (rule.scope !== "both" && rule.scope !== mode) continue;
     const resolved = resolveWhen(rule.when, vars);
     if (evaluateWhen(resolved, ctx, mode)) {
@@ -112,13 +125,17 @@ export function evaluatePolicy(
     }
   }
   const finalResults = applyExceptions(results, policy, ctx, mode);
-  const hasDeny = finalResults.some(
+  
+  // Filter out rules with enforce: "ignore" — they are suppressed entirely.
+  const visibleResults = finalResults.filter((r) => r.enforce !== "ignore");
+  
+  const hasDeny = visibleResults.some(
     (r) => r.enforce === "block" || r.enforce === "fail",
   );
   const exitCode: 0 | 1 | 2 = hasDeny
     ? 2
-    : finalResults.some((r) => r.enforce === "warn")
+    : visibleResults.some((r) => r.enforce === "warn")
       ? 1
       : 0;
-  return { results: finalResults, exitCode };
+  return { results: visibleResults, exitCode };
 }

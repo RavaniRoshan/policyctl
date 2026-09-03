@@ -10,12 +10,17 @@ import { listCommand } from "./commands/list.js";
 import { initCommand } from "./commands/init.js";
 import { genCommand } from "./commands/gen.js";
 import { loginCommand } from "./commands/login.js";
+import { logoutCommand } from "./commands/logout.js";
+import { whoamiCommand } from "./commands/whoami.js";
+import { configCommand, configSetCommand, configGetCommand } from "./commands/config.js";
 import { pushCommand } from "./commands/push.js";
 import { pullCommand } from "./commands/pull.js";
 import { reportCommand } from "./commands/report.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { traceCommand, traceCommandAsync } from "./commands/trace.js";
 import { testCommand } from "./commands/test.js";
+import { authorCommand } from "./commands/author.js";
+import { orgListCommand, orgMembersCommand, orgInviteCommand } from "./commands/org.js";
 import { TEMPLATE_NAMES } from "./templates.js";
 
 const program = new Command();
@@ -41,6 +46,7 @@ program
   .option("--policy <path>", "policy file path")
   .option("--json", "emit JSON")
   .option("--report", "send violations to the hosted feed (requires `policyctl login`)")
+  .option("--report-strict", "exit non-zero if the report upload itself fails")
   .option("--repo <name>", "repo label for the hosted report")
   .action(checkCommand);
 
@@ -88,16 +94,47 @@ program
 
 program
   .command("login")
-  .description("Authenticate with the hosted control plane.")
-  .requiredOption("--email <email>", "your email")
+  .description("Authenticate with the hosted control plane via Auth0 device flow.")
   .option("--server <url>", "control-plane URL (or POLICYCTL_SERVER)")
   .action(loginCommand);
+
+program
+  .command("logout")
+  .description("Clear local credentials and log out of the control plane.")
+  .action(logoutCommand);
+
+program
+  .command("whoami")
+  .description("Show the currently authenticated user and org.")
+  .option("--server <url>", "control-plane URL (or POLICYCTL_SERVER)")
+  .action(whoamiCommand);
+
+program
+  .command("config")
+  .description("View, set, or get local configuration.")
+  .argument("[key]", "config key to get (or use with --set/--list)")
+  .action(configCommand);
+
+program
+  .command("config:set")
+  .description("Set a config value (key: server | email | orgId).")
+  .argument("<key>", "config key")
+  .argument("<value>", "config value")
+  .action(configSetCommand);
+
+program
+  .command("config:get")
+  .description("Get a config value (key: server | email | orgId).")
+  .argument("<key>", "config key")
+  .action(configGetCommand);
 
 program
   .command("push")
   .description("Push the local policy to the hosted control plane.")
   .option("--policy <path>", "policy file path")
   .option("--server <url>", "control-plane URL")
+  .option("--dry-run", "validate and show what would be published without uploading")
+  .option("--note <text>", "optional description for this version")
   .action(pushCommand);
 
 program
@@ -106,6 +143,7 @@ program
   .option("--policy <path>", "output policy path")
   .option("--force", "overwrite an existing file")
   .option("--server <url>", "control-plane URL")
+  .option("--dry-run", "validate and print the policy without writing to disk")
   .action(pullCommand);
 
 program
@@ -115,5 +153,40 @@ program
   .option("--agent <name>", "agent label (default: ci)")
   .option("--server <url>", "control-plane URL")
   .action(reportCommand);
+
+program
+  .command("author <prompt>")
+  .description("Generate a policy rule from a natural-language prompt (paid tier required).")
+  .option("--server <url>", "control-plane URL")
+  .action(authorCommand);
+
+program
+  .command("org")
+  .description("Manage organizations (list, members, invite).")
+  .action(() => {
+    console.error("policyctl: see `policyctl org --help` for subcommands.");
+    process.exit(3);
+  });
+
+program
+  .command("org:list")
+  .description("List organizations for the authenticated user.")
+  .option("--server <url>", "control-plane URL")
+  .action(orgListCommand);
+
+program
+  .command("org:members <orgId>")
+  .description("List members of an organization.")
+  .option("--server <url>", "control-plane URL")
+  .action(orgMembersCommand);
+
+program
+  .command("org:invite <orgId> <email>")
+  .description("Invite a member to an organization.")
+  .option("--role <role>", "member role (owner | admin | member | viewer)", "member")
+  .option("--server <url>", "control-plane URL")
+  .action((orgId: string, email: string, opts: { role?: string; server?: string }) =>
+    orgInviteCommand(orgId, email, opts.role ?? "member", { server: opts.server })
+  );
 
 program.parseAsync(process.argv);

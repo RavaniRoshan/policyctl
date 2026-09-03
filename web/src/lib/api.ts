@@ -10,6 +10,8 @@ import type {
   AiAuthorResult,
   DailyReport,
   Org,
+  OrgMember,
+  Role,
   BillingStatus,
   CheckoutSession,
 } from "@policyctl/types";
@@ -62,6 +64,12 @@ export const api = {
   me: () => request<Session | null>("/api/me"),
   analytics: () => request<Analytics>("/api/analytics"),
   violations: () => request<Violation[]>("/api/violations"),
+  violation: (id: string) => request<Violation & { diff?: string }>(`/api/violations/${id}`),
+  dismissViolation: (id: string, reason: string) =>
+    request<{ ok: boolean }>("/api/violations/" + id + "/dismiss", {
+      method: "POST",
+      body: JSON.stringify({ reason }),
+    }),
   policyVersions: () => request<PolicyVersion[]>("/api/policy/versions"),
   publishPolicy: (yaml: string, note?: string) =>
     request<{ ok: boolean; version: number; id: string }>("/api/policy", {
@@ -76,6 +84,21 @@ export const api = {
   resendReport: () => request<{ ok: boolean; message?: string }>("/api/report/daily/resend", { method: "POST" }),
   orgs: () => request<{ orgs: Org[] }>("/api/orgs"),
   createOrg: (name: string) => request<{ org: Org }>("/api/orgs", { method: "POST", body: JSON.stringify({ name }) }),
+  members: (orgId: string) => request<OrgMember[]>(`/api/orgs/${orgId}/members`),
+  inviteMember: (orgId: string, email: string, role: Role) =>
+    request<{ ok: boolean }>("/api/orgs/" + orgId + "/members", {
+      method: "POST",
+      body: JSON.stringify({ email, role }),
+    }),
+  updateMember: (orgId: string, userId: string, role: Role) =>
+    request<{ ok: boolean }>("/api/orgs/" + orgId + "/members/" + userId, {
+      method: "PATCH",
+      body: JSON.stringify({ role }),
+    }),
+  removeMember: (orgId: string, userId: string) =>
+    request<{ ok: boolean }>("/api/orgs/" + orgId + "/members/" + userId, {
+      method: "DELETE",
+    }),
   aiAnalyze: (diff: string, opts?: { policy?: string; repo?: string }) =>
     request<AiAnalyzeResult>("/api/ai/analyze", {
       method: "POST",
@@ -127,6 +150,7 @@ export type {
   AiAuthorResult,
   DailyReport,
   Org,
+  OrgMember,
   BillingStatus,
   CheckoutSession,
 };

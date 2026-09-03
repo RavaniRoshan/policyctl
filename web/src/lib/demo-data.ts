@@ -1,4 +1,4 @@
-import type { Analytics, Violation, PolicyVersion, DailyReport, Org } from "./api";
+import type { Analytics, Violation, PolicyVersion, DailyReport, Org, OrgMember } from "./api";
 
 /**
  * Demo data for the dashboard when the Worker isn't reachable.
@@ -25,6 +25,10 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "OpenAI API key pattern detected in src/config/llm.ts — redaction required before merge.",
     agent: "claude",
     created_at: new Date(NOW - 2 * HOUR).toISOString(),
+    session_id: "sess_001",
+    commit_sha: "abc1234",
+    diff_context:
+      "- const API_KEY = process.env.OPENAI_KEY;\n+ const API_KEY = process.env.OPENAI_KEY?.slice(0, 4) + '...';",
   },
   {
     id: "v_002",
@@ -34,6 +38,10 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "Direct edit to db/migrations/0007_add_audit.sql — must be generated via `pnpm db:gen add-audit`.",
     agent: "cursor",
     created_at: new Date(NOW - 5 * HOUR).toISOString(),
+    session_id: "sess_002",
+    commit_sha: "def5678",
+    diff_context:
+      "--- a/db/migrations/0007_add_audit.sql\n+++ b/db/migrations/0007_add_audit.sql\n@@ -1,3 +1,4 @@\n CREATE TABLE audit (...);",
   },
   {
     id: "v_003",
@@ -43,6 +51,10 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "Agent attempted to modify .github/workflows/deploy.yml — protected path.",
     agent: "claude",
     created_at: new Date(NOW - 14 * HOUR).toISOString(),
+    session_id: "sess_003",
+    commit_sha: "ghi9012",
+    diff_context:
+      "--- a/.github/workflows/deploy.yml\n+++ b/.github/workflows/deploy.yml\n@@ -10,6 +10,8 @@\n   run: pnpm deploy",
   },
   {
     id: "v_004",
@@ -52,6 +64,10 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "src/screens/Profile.tsx changed without a matching __tests__/Profile.test.tsx update.",
     agent: "codex",
     created_at: new Date(NOW - 1 * DAY).toISOString(),
+    session_id: "sess_004",
+    commit_sha: "jkl3456",
+    diff_context:
+      "--- a/src/screens/Profile.tsx\n+++ b/src/screens/Profile.tsx\n@@ -25,7 +25,7 @@\n export default function Profile() {",
   },
   {
     id: "v_005",
@@ -61,6 +77,10 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "console.log() in src/utils/debug.ts:42 — replace with logger.debug() before merge.",
     agent: "claude",
     created_at: new Date(NOW - 1 * DAY - 3 * HOUR).toISOString(),
+    session_id: "sess_005",
+    commit_sha: "mno7890",
+    diff_context:
+      "- console.log('debug state', state);\n+ logger.debug('debug state', state);",
   },
   {
     id: "v_006",
@@ -70,6 +90,10 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "AWS access key pattern (AKIA…) detected in src/aws/credentials.json.",
     agent: "claude",
     created_at: new Date(NOW - 2 * DAY).toISOString(),
+    session_id: "sess_006",
+    commit_sha: "pqr1234",
+    diff_context:
+      "--- a/src/aws/credentials.json\n+++ b/src/aws/credentials.json\n@@ -1,2 +1,2 @@\n-{\n-  \"access_key\": \"AKIA...\"\n+{\n+  \"access_key\": \"<REDACTED>\"",
   },
   {
     id: "v_007",
@@ -79,6 +103,10 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "Direct migration edit blocked: db/migrations/0008_add_metrics.sql.",
     agent: "cursor",
     created_at: new Date(NOW - 2 * DAY - 6 * HOUR).toISOString(),
+    session_id: "sess_007",
+    commit_sha: "stu5678",
+    diff_context:
+      "--- a/db/migrations/0008_add_metrics.sql\n+++ b/db/migrations/0008_add_metrics.sql\n@@ -1,3 +1,4 @@\n CREATE TABLE metrics (...);",
   },
   {
     id: "v_008",
@@ -88,6 +116,9 @@ export const DEMO_VIOLATIONS: Violation[] = [
     message: "PR to main is missing a required CODEOWNERS reviewer.",
     agent: "ci",
     created_at: new Date(NOW - 3 * DAY).toISOString(),
+    session_id: "sess_008",
+    commit_sha: "vwx9012",
+    diff_context: "No diff context available for CI-generated violation.",
   },
 ];
 
@@ -160,6 +191,45 @@ export const DEMO_ORGS: Org[] = [
   },
 ];
 
+export const DEMO_MEMBERS: OrgMember[] = [
+  {
+    id: "u_001",
+    email: "ada@acme.dev",
+    display_name: "Ada Lovelace",
+    role: "owner",
+    invited_at: new Date(NOW - 30 * DAY).toISOString(),
+    accepted_at: new Date(NOW - 30 * DAY).toISOString(),
+    is_billable: true,
+  },
+  {
+    id: "u_002",
+    email: "lin@acme.dev",
+    display_name: "Lin Chen",
+    role: "admin",
+    invited_at: new Date(NOW - 20 * DAY).toISOString(),
+    accepted_at: new Date(NOW - 19 * DAY).toISOString(),
+    is_billable: true,
+  },
+  {
+    id: "u_003",
+    email: "miguel@acme.dev",
+    display_name: "Miguel Torres",
+    role: "member",
+    invited_at: new Date(NOW - 5 * DAY).toISOString(),
+    accepted_at: new Date(NOW - 4 * DAY).toISOString(),
+    is_billable: true,
+  },
+  {
+    id: "u_004",
+    email: "pending+invite@acme.dev",
+    display_name: null,
+    role: "viewer",
+    invited_at: new Date(NOW - 1 * HOUR).toISOString(),
+    accepted_at: null,
+    is_billable: false,
+  },
+];
+
 export const DEMO_SESSIONS = DEMO_VIOLATIONS.map((v, i) => ({
   ...v,
   session_id: `sess_${i.toString().padStart(3, "0")}`,
@@ -181,4 +251,5 @@ export const DEMO_DAILY_REPORT: DailyReport = {
     { rule_id: "no-secrets-in-commits", repo: "acme-platform/api-gateway", count: 3 },
     { rule_id: "migrations-via-generator", repo: "acme-platform/web", count: 2 },
   ],
+  aiInsights: 2,
 };

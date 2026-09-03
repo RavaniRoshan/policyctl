@@ -1,7 +1,9 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { api } from "./api";
-import type { BillingStatus } from "@policyctl/types";
+import { api, API_BASE } from "./api";
+import type { BillingStatus, Role } from "@policyctl/types";
 import { DEMO_ANALYTICS, DEMO_VIOLATIONS, DEMO_POLICIES, DEMO_DAILY_REPORT, DEMO_ORGS } from "./demo-data";
+import { useState, useRef, useCallback, useEffect } from "react";
+import type { SessionViolation, UseSessionStreamOptions } from "./hooks.types";
 
 /**
  * Build-mode detection:
@@ -179,4 +181,151 @@ export function useResendReport() {
   return useMutation({
     mutationFn: () => api.resendReport(),
   });
+}
+
+// ── Org members ──────────────────────────────────────────────────────────────
+
+export function useOrgMembers(orgId: string | undefined) {
+  return useQuery({
+    queryKey: ["orgMembers", orgId],
+    queryFn: () => (orgId ? api.members(orgId) : []),
+    staleTime: 60_000,
+    enabled: !!orgId,
+  });
+}
+
+export function useInviteMember() {
+  return useMutation({
+    mutationFn: ({ orgId, email, role }: { orgId: string; email: string; role: Role }) =>
+      api.inviteMember(orgId, email, role),
+  });
+}
+
+export function useUpdateMember() {
+  return useMutation({
+    mutationFn: ({ orgId, userId, role }: { orgId: string; userId: string; role: Role }) =>
+      api.updateMember(orgId, userId, role),
+  });
+}
+
+export function useRemoveMember() {
+  return useMutation({
+    mutationFn: ({ orgId, userId }: { orgId: string; userId: string }) =>
+      api.removeMember(orgId, userId),
+  });
+}
+
+// ── Live sessions (WebSocket to Durable Object) ────────────────────────────
+
+/**
+ * Connect to a live enforcement session via WebSocket.
+ *
+ * The Worker exposes `/api/session/:key/stream` which upgrades to a WebSocket
+ * connection to the Durable Object. This hook manages the connection lifecycle
+ * and streams violations as they arrive.
+ */
+export function useSessionStream(
+  sessionKey: string | null,
+  options: UseSessionStreamOptions = {},
+): {
+  connected: boolean;
+  lastViolation: SessionViolation | null;
+  reconnect: () => void;
+  disconnect: () => void;
+} {
+  const {
+    onViolation,
+    onOpen,
+    onClose,
+    onError,
+    autoReconnect = true,
+    maxRetries = 10,
+  } = options;
+
+  const [connected, setConnected] = useState(false);
+  const [lastViolation, setLastViolation] = useState<SessionViolation | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const retriesRef = useRef(0);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
+  const connect = useCallback(() => {
+    if (!sessionKey) return;
+
+    const apiBase = API_BASE.replace(/^https/, "wss").replace(/^http/, "ws");
+    const url = `${apiBase}/api/session/${encodeURIComponent(sessionKey)}/stream`;
+
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      setConnected(true);
+      retriesRef.current = 0;
+      optionsRef.current.onOpen?.();
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "violation" && data.violation) {
+          const v: SessionViolation = {
+            id: data.violation.id ?? `${Date.now()}`,
+            ruleId: data.violation.ruleId ?? "unknown",
+            enforce: data.violation.enforce ?? "warn",
+            message: data.violation.message ?? "",
+            repo: data.violation.repo ?? "",
+            agent: data.violation.agent ?? "ci",
+            timestamp: data.violation.timestamp ?? Date.now(),
+          };
+          setLastViolation(v);
+          optionsRef.current.onViolation?.(v);
+        }
+      } catch {
+        /* ignore malformed messages */
+      }
+    };
+
+    ws.onclose = () => {
+      setConnected(false);
+      optionsRef.current.onClose?.();
+      if (autoReconnect && retriesRef.current < maxRetries) {
+        retriesRef.current++;
+        const delay = Math.min(1000 * 2 ** retriesRef.current, 10000);
+        reconnectTimerRef.current = setTimeout(connect, delay);
+      }
+    };
+
+    ws.onerror = (err) => {
+      optionsRef.current.onError?.(new Error("WebSocket connection failed"));
+    };
+  }, [sessionKey, autoReconnect, maxRetries]);
+
+  const disconnect = useCallback(() => {
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+    if (wsRef.current) {
+      wsRef.current.onclose = null;
+      wsRef.current?.close();
+      wsRef.current = null;
+    }
+    setConnected(false);
+  }, []);
+
+  const reconnect = useCallback(() => {
+    disconnect();
+    retriesRef.current = 0;
+    connect();
+  }, [connect, disconnect]);
+
+  useEffect(() => {
+    connect();
+    return () => {
+      disconnect();
+    };
+  }, [connect, disconnect]);
+
+  return { connected, lastViolation, reconnect, disconnect };
 }

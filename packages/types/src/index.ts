@@ -46,6 +46,28 @@ export interface Org {
   plan?: BillingPlan | null;
 }
 
+/** A member of an organization, joined from the users table. */
+export interface OrgMember {
+  id: string;           // user id (from users table)
+  email: string;
+  display_name: string | null;
+  role: Role;
+  invited_at: string;   // ISO timestamp
+  accepted_at: string | null;
+  /** Whether this member counts as a billable seat (non-viewer). */
+  is_billable: boolean;
+}
+
+/** An invitation token sent to a potential member. */
+export interface InviteToken {
+  id: string;
+  email: string;
+  role: Role;
+  /** ISO timestamp when the invite expires. */
+  expires_at: string;
+  used_at: string | null;
+}
+
 // ── Billing ───────────────────────────────────────────────────────────────────
 
 export type BillingTier = "free" | "paid";
@@ -101,6 +123,22 @@ export interface Violation {
   message: string;
   agent: string;
   created_at: string;
+  /** Correlation ID linking CLI report to dashboard session. */
+  session_id?: string | null;
+  /** Git commit SHA where the violation was detected. */
+  commit_sha?: string | null;
+  /** Git branch where the violation was detected. */
+  branch?: string | null;
+  /** Link to the CI run (if available). */
+  ci_url?: string | null;
+  /** ISO timestamp when dismissed, if dismissed. */
+  dismissed_at?: string | null;
+  /** User who dismissed the violation. */
+  dismissed_by?: string | null;
+  /** Reason for dismissal (false positive, accepted risk, etc.). */
+  dismiss_reason?: string | null;
+  /** Unified diff context around the violation. */
+  diff_context?: string | null;
 }
 
 // ── Policy ───────────────────────────────────────────────────────────────────
@@ -162,4 +200,5 @@ export interface DailyReport {
   total: number;
   byActor: DailyReportActor[];
   repeatOffenders: DailyReportOffender[];
+  aiInsights: number;
 }

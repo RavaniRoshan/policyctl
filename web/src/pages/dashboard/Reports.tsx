@@ -130,6 +130,9 @@ export function Reports() {
                   <p className="mt-4 text-body-small text-black-alpha-56">
                     Total violations: <span className="text-accent-black font-mono">{report.total}</span>
                   </p>
+                  <p className="mt-4 text-body-small text-black-alpha-56">
+                    AI insights: <span className="text-accent-black font-mono">{report.aiInsights}</span>
+                  </p>
                   {report.byActor.length > 0 && (
                     <div className="mt-12">
                       <span className="text-mono-x-small text-black-alpha-32 uppercase">By agent</span>

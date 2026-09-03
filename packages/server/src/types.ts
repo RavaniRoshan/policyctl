@@ -20,6 +20,8 @@ export interface Env {
   AUTH0_DOMAIN?: string;
   /** Auth0 API audience / client ID to validate tokens against. */
   AUTH0_AUDIENCE?: string;
+  /** Auth0 client_id for CLI device-flow login (public, may be same as SPA client_id). */
+  AUTH0_CLI_CLIENT_ID?: string;
   // ── Legacy OAuth (CLI magic-link flow — kept for backward compat) ──
   OAUTH_GOOGLE_CLIENT_ID?: string;
   OAUTH_GOOGLE_CLIENT_SECRET?: string;
@@ -32,12 +34,8 @@ export interface Env {
   STRIPE_WEBHOOK_SECRET?: string;
   /** Stripe price ID for Growth monthly subscription ($5/seat/month). */
   STRIPE_PRICE_ID_GROWTH_MONTHLY?: string;
-  /** Stripe price ID for Growth annual subscription ($54/seat/year). */
+  /** Stripe price ID for Growth annual subscription ($50/seat/year). */
   STRIPE_PRICE_ID_GROWTH_ANNUAL?: string;
-  /** Stripe price ID for Pro monthly subscription ($12/seat/month). */
-  STRIPE_PRICE_ID_PRO_MONTHLY?: string;
-  /** Stripe price ID for Pro annual subscription ($120/seat/year). */
-  STRIPE_PRICE_ID_PRO_ANNUAL?: string;
 
   // ── CORS ──
   /** Comma-separated list of origins allowed to call the Worker API. */

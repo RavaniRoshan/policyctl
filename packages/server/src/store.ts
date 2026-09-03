@@ -636,7 +636,7 @@ export const SUBSCRIPTION_STATUSES = ["free", "trialing", "active", "past_due", 
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 export const BILLING_TIERS = ["free", "paid"] as const;
 export type BillingTier = (typeof BILLING_TIERS)[number];
-export const BILLING_PLANS = ["free", "growth", "pro"] as const;
+export const BILLING_PLANS = ["free", "growth"] as const;
 export type BillingPlan = (typeof BILLING_PLANS)[number];
 
 /** Select all billing columns for an org. */
@@ -826,6 +826,77 @@ export async function verifyApiKey(db: D1Database, key: string): Promise<number 
 }
 
 // ── Org deletion (cascading) ───────────────────────────────────────────────
+
+
+/** List all members of an org with their roles. */
+export async function listMembers(db: D1Database, orgId: number): Promise<OrgMemberRow[]> {
+  const rows = (await db
+    .prepare(
+      `SELECT om.user_id AS id, u.email, u.display_name, om.role, om.created_at AS invited_at, om.accepted_at
+       FROM org_members om
+       JOIN users u ON u.id = om.user_id
+       WHERE om.org_id = ?
+       ORDER BY om.role DESC, u.email ASC`,
+    )
+    .bind(orgId)
+    .all()) as unknown as { results: OrgMemberRow[] };
+  return rows.results;
+}
+
+/** Update a member's role. Requires requester to be owner or admin. */
+export async function updateMemberRole(
+  db: D1Database,
+  orgId: number,
+  requesterId: number,
+  userId: number,
+  role: Role,
+): Promise<{ ok: boolean; error?: string }> {
+  const requester = (await db
+    .prepare("SELECT role FROM org_members WHERE org_id = ? AND user_id = ?")
+    .bind(orgId, requesterId)
+    .first()) as { role: Role } | null;
+  if (!requester || (requester.role !== "owner" && requester.role !== "admin")) {
+    return { ok: false, error: "forbidden" };
+  }
+  if (!["owner", "admin", "member", "viewer"].includes(role)) {
+    return { ok: false, error: "invalid role" };
+  }
+  await db
+    .prepare("UPDATE org_members SET role = ? WHERE org_id = ? AND user_id = ?")
+    .bind(role, orgId, userId)
+    .run();
+  return { ok: true };
+}
+
+/** Remove a member from an org. Requires requester to be owner or admin. */
+export async function removeMember(
+  db: D1Database,
+  orgId: number,
+  requesterId: number,
+  userId: number,
+): Promise<{ ok: boolean; error?: string }> {
+  const requester = (await db
+    .prepare("SELECT role FROM org_members WHERE org_id = ? AND user_id = ?")
+    .bind(orgId, requesterId)
+    .first()) as { role: Role } | null;
+  if (!requester || (requester.role !== "owner" && requester.role !== "admin")) {
+    return { ok: false, error: "forbidden" };
+  }
+  await db
+    .prepare("DELETE FROM org_members WHERE org_id = ? AND user_id = ?")
+    .bind(orgId, userId)
+    .run();
+  return { ok: true };
+}
+
+interface OrgMemberRow {
+  id: number;
+  email: string;
+  display_name: string | null;
+  role: string;
+  invited_at: number;
+  accepted_at: number | null;
+}
 
 /**
  * Permanently delete an org and all associated data.

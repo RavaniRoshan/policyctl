@@ -140,7 +140,7 @@ export function Billing() {
             <CurvyRect sides="allSides" />
             <h3 className="text-label-x-large text-accent-black mb-16">Subscription details</h3>
             <div className="grid gap-1 sm:grid-cols-2 -mt-1">
-              <PlanRow label="Plan" value={billing?.plan === "pro" ? "Pro" : "Growth"} />
+              <PlanRow label="Plan" value={billing?.plan === "growth" ? "Growth" : "Free"} />
               <PlanRow label="Status" value={billing?.subscription?.status ?? "unknown"} />
               <PlanRow
                 label="Seats"

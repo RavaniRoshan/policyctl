@@ -2,11 +2,13 @@ import { basename } from "node:path";
 import { readStdin } from "../stdin.js";
 import { sendReport, type ReportBody } from "../hosted.js";
 import { spinner, c } from "../ui.js";
+import { formatError, exitCodeOf } from "../lib/errors.js";
 
 export interface ReportOptions {
   server?: string;
   repo?: string;
   agent?: string;
+  json?: boolean;
 }
 
 export async function reportCommand(opts: ReportOptions): Promise<void> {
@@ -29,8 +31,8 @@ export async function reportCommand(opts: ReportOptions): Promise<void> {
     await sendReport(body, opts.server);
   } catch (e) {
     spin.stop("failed");
-    console.error(`policyctl: ${e instanceof Error ? e.message : String(e)}`);
-    process.exit(1);
+    console.error(formatError(e, opts.json ?? false));
+    process.exit(exitCodeOf(e));
     return;
   }
   spin.stop(`for ${c.muted(body.repo ?? "")}`);

@@ -2,8 +2,8 @@
 
 export type Scope = "hook" | "ci" | "both";
 
-// "block" = deny at hook time; "fail" = fail the build at CI time; "warn" = non-blocking.
-export type Enforce = "block" | "fail" | "warn";
+// "block" = deny at hook time; "fail" = fail the build at CI time; "warn" = non-blocking; "ignore" = suppressed by exception.
+export type Enforce = "block" | "fail" | "warn" | "ignore";
 
 export interface Matchers {
   /** Glob matched against a file path. Hook: the file the tool touches. CI: any changed file. */
@@ -33,6 +33,8 @@ export interface WhenGroup {
 /** A rule fires on either a single matcher set (implicit AND) or a WhenGroup. */
 export type When = Matchers | WhenGroup;
 
+export type Priority = "high" | "medium" | "low";
+
 export interface Rule {
   id: string;
   description?: string;
@@ -44,6 +46,8 @@ export interface Rule {
   tags?: string[];
   /** Custom violation message; `{{ruleId}} {{path}} {{tool}}` are interpolated. */
   message?: string;
+  /** Priority for rule execution and dashboard display */
+  priority?: Priority;
 }
 
 /** A sanctioned bypass: downgrades or suppresses a matched violation without editing the main policy. */

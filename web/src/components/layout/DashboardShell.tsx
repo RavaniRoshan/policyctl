@@ -15,14 +15,18 @@ import {
   X,
   Warning,
   CreditCard,
+  Buildings,
+  CaretDown,
 } from "@phosphor-icons/react";
 import { CommandPaletteHost } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
+import { useOrgs } from "@/lib/hooks";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
 import { __isDemoMode } from "@/lib/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 const titles: Record<string, string> = {
   "/dashboard": "Overview",
@@ -32,6 +36,7 @@ const titles: Record<string, string> = {
   "/dashboard/reports": "Reports",
   "/dashboard/settings": "Settings",
   "/dashboard/billing": "Billing",
+  "/dashboard/team": "Team",
 };
 
 const items = [
@@ -41,6 +46,7 @@ const items = [
   { to: "/dashboard/ai", label: "AI", icon: Sparkle },
   { to: "/dashboard/reports", label: "Reports", icon: ChartBar },
   { to: "/dashboard/billing", label: "Billing", icon: CreditCard },
+  { to: "/dashboard/team", label: "Team", icon: Buildings },
   { to: "/dashboard/settings", label: "Settings", icon: Gear },
 ];
 
@@ -152,6 +158,17 @@ function Header({ title }: { title: string }) {
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [orgMenu, setOrgMenu] = useState(false);
+  const { data: orgsData } = useOrgs();
+  const queryClient = useQueryClient();
+
+  const orgs = orgsData?.orgs ?? [];
+  const currentOrgId = queryClient.getQueryData<string>(["currentOrgId"]) ?? orgs[0]?.id;
+
+  const onOrgChange = (orgId: string) => {
+    queryClient.setQueryData(["currentOrgId"], orgId);
+    setOrgMenu(false);
+  };
 
   const onLogout = async () => {
     await logout();
@@ -175,6 +192,37 @@ function Header({ title }: { title: string }) {
       </h1>
 
       <div className="ml-auto flex items-center gap-4">
+        {/* Org selector */}
+        <div className="relative">
+          <button
+            onClick={() => setOrgMenu((m) => !m)}
+            className="hidden sm:inline-flex items-center gap-4 rounded-md px-10 py-6 text-mono-small text-accent-black hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
+            aria-haspopup="menu"
+            aria-expanded={orgMenu}
+            aria-label="Switch organization"
+          >
+            <Buildings className="size-4" />
+            <span className="truncate max-w-160">{orgs.find((o) => o.id === currentOrgId)?.name ?? "My org"}</span>
+            <CaretDown className="size-3" />
+          </button>
+          {orgMenu && (
+            <div className="absolute right-0 top-48 z-50 w-240 rounded-md bg-surface border border-border-faint shadow-lg p-8 -mt-1">
+              <div className="px-8 py-4 text-mono-x-small text-black-alpha-32 uppercase">Organizations</div>
+              {orgs.map((o) => (
+                <button
+                  key={o.id}
+                  onClick={() => onOrgChange(o.id)}
+                  className={`w-full text-left px-8 py-8 text-mono-small rounded-4 flex items-center justify-between ${
+                    o.id === currentOrgId ? "text-heat-100" : "text-accent-black hover:bg-black-alpha-4"
+                  }`}
+                >
+                  <span className="truncate">{o.name}</span>
+                  {o.id === currentOrgId && <span className="text-heat-100">●</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           className="hidden lg:inline-flex items-center gap-4 rounded-md px-10 py-6 text-mono-small text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
           aria-label="Open command palette"

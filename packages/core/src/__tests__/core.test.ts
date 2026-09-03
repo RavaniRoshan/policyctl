@@ -117,8 +117,9 @@ describe("evaluatePolicy exit codes", () => {
   const policy: Policy = {
     version: 1,
     rules: [
-      { id: "deny", when: { tool: "Bash" }, enforce: "block", scope: "hook" },
-      { id: "warn", when: { path: "README.md" }, enforce: "warn", scope: "hook" },
+      { id: "deny", when: { tool: "Bash" }, enforce: "block", scope: "hook", priority: "high" },
+      { id: "warn", when: { path: "README.md" }, enforce: "warn", scope: "hook", priority: "low" },
+      { id: "ignore_rule", when: { tool: "Edit" }, enforce: "ignore", scope: "hook", priority: "medium" },
     ],
   };
 
@@ -138,6 +139,34 @@ describe("evaluatePolicy exit codes", () => {
     const out = evaluatePolicy(policy, { tool: "Edit", file_path: "src/x.ts" } as HookContext, "hook");
     expect(out.exitCode).toBe(0);
     expect(out.results).toHaveLength(0);
+  });
+
+  it("ignores rules with 'ignore' enforcement level", () => {
+    const policyWithIgnore: Policy = {
+      version: 1,
+      rules: [
+        { id: "block_rule", when: { tool: "Bash" }, enforce: "block", scope: "hook", priority: "high" },
+        { id: "ignore_rule", when: { tool: "Edit" }, enforce: "ignore", scope: "hook", priority: "low" },
+      ],
+    };
+    const out = evaluatePolicy(policyWithIgnore, { tool: "Edit", file_path: "src/x.ts" } as HookContext, "hook");
+    expect(out.exitCode).toBe(0);
+    expect(out.results).toHaveLength(0);
+  });
+
+  it("sorts rules by priority (high → low) then by id", () => {
+    const policy: Policy = {
+      version: 1,
+      rules: [
+        { id: "z_low", when: { tool: "Bash" }, enforce: "warn", scope: "hook", priority: "low" },
+        { id: "a_high", when: { tool: "Bash" }, enforce: "block", scope: "hook", priority: "high" },
+        { id: "m_medium", when: { tool: "Bash" }, enforce: "warn", scope: "hook", priority: "medium" },
+        { id: "a_low", when: { tool: "Bash" }, enforce: "block", scope: "hook", priority: "low" },
+      ],
+    };
+    const out = evaluatePolicy(policy, { tool: "Bash" } as HookContext, "hook");
+    expect(out.exitCode).toBe(2);
+    expect(out.results.map(r => r.ruleId)).toEqual(["a_high", "m_medium", "a_low", "z_low"]);
   });
 });
 

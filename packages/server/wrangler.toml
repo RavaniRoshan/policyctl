@@ -44,6 +44,9 @@ TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
 # via Universal Login; the Worker only verifies the resulting JWT bearer token.
 AUTH0_DOMAIN = "dev-wyyyhy36ogxygyky.us.auth0.com"
 AUTH0_AUDIENCE = "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I"
+# Auth0 client_id for CLI device-flow login (public). Enable "Device Code"
+# in the Auth0 app settings. Falls back to AUTH0_AUDIENCE if unset.
+AUTH0_CLI_CLIENT_ID = ""
 # Comma-separated list of origins allowed to call the Worker API.
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:4173,https://policyctl-web.pages.dev"
 
@@ -58,8 +61,6 @@ ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:4173,https://policyctl
 # auto-update this file. Until then, checkout will return 503.
 STRIPE_PRICE_ID_GROWTH_MONTHLY = "price_1_placeholder_set_me"
 STRIPE_PRICE_ID_GROWTH_ANNUAL = "price_1_placeholder_set_me"
-STRIPE_PRICE_ID_PRO_MONTHLY = "price_1_placeholder_set_me"
-STRIPE_PRICE_ID_PRO_ANNUAL = "price_1_placeholder_set_me"
 # Structured logs to the Workers Observability platform.
 [observability]
 enabled = true

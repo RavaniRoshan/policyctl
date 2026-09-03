@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import Stripe from "stripe";
-import type { Env, ReportResult, Role, User, Org, Subscription } from "./types.js";
-import type { User as WebUser } from "@policyctl/types";
+import type { Env, ReportResult, Role, User, Org, Subscription, Violation } from "./types.js";
+import type { User as WebUser, OrgMember } from "@policyctl/types";
 import type { BillingStatus } from "@policyctl/types";
 import { bearerToken, orgQuery, verifyTurnstile } from "./auth.js";
 import { verifyAuth0Token } from "./auth0.js";
@@ -15,6 +15,7 @@ import {
   getUserByToken,
   getOrCreateUserByAuth0Sub,
   listOrgs,
+  listMembers,
   listVersions,
   listViolations,
   pushPolicy,
@@ -34,6 +35,8 @@ import {
   upsertSubscription,
   updateOrgSubscription,
   getSubscriptionByStripeId,
+  updateMemberRole,
+  removeMember,
 } from "./store.js";
 import { cacheGetPolicy, cacheGetUser, cacheInvalidatePolicy, cachePutPolicy, cachePutUser, cacheGetUserBySub, cachePutUserBySub } from "./cache.js";
 import { analyzeDiff, authorRule } from "./ai.js";
@@ -84,6 +87,18 @@ app.options(`${API}/*`, (c) => {
 // Map a server-side User row to the web app's User shape (string id, camelCase).
 function toWebUser(u: User): WebUser {
   return { id: String(u.id), email: u.email, displayName: u.display_name, provider: u.provider };
+}
+
+function toWebOrgMember(row: { id: number; email: string; display_name: string | null; role: string; invited_at: number; accepted_at: number | null }): OrgMember {
+  return {
+    id: String(row.id),
+    email: row.email,
+    display_name: row.display_name,
+    role: row.role as OrgMember["role"],
+    invited_at: new Date(row.invited_at).toISOString(),
+    accepted_at: row.accepted_at ? new Date(row.accepted_at).toISOString() : null,
+    is_billable: row.role !== "viewer",
+  };
 }
 
 // Extract the auth token from Authorization header or ?token= query param.
@@ -161,6 +176,22 @@ app.get(`${API}/me`, async (c) => {
   return c.json({ user: toWebUser(user) });
 });
 
+// ── Public: Auth0 device-flow config for the CLI ───────────────────────
+// Returns the Auth0 tenant domain, a public client_id (device-flow enabled),
+// and the API audience so the CLI can run `device/code` → `oauth/token` without
+// hardcoding tenant details. No auth required — all values are public.
+app.get(`${API}/auth0/config`, async (c) => {
+  const domain = c.env.AUTH0_DOMAIN;
+  const audience = c.env.AUTH0_AUDIENCE;
+  if (!domain || !audience) {
+    return c.json({ error: "Auth0 not configured on the server" }, 503);
+  }
+  // The CLI uses its own device-flow client_id. Fall back to the SPA's client
+  // if the server hasn't been given a separate CLI client_id.
+  const clientId = c.env.AUTH0_CLI_CLIENT_ID ?? audience;
+  return c.json({ domain, client_id: clientId, audience });
+});
+
 // Simple KV-based rate limiter keyed by IP. Used for AI endpoints (Phase D).
 async function rateLimited(c: { env: Env; req: { header: (k: string) => string | undefined } }, key: string, limit = 10, window = 60): Promise<boolean> {
   const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -189,13 +220,8 @@ function isOrgActive(org: Org | null): boolean {
 }
 
 /** Map a Stripe price ID to our internal plan name. */
-function priceIdToPlan(env: Env, priceId: string | null): "growth" | "pro" {
+function priceIdToPlan(env: Env, priceId: string | null): "growth" {
   if (!priceId) return "growth";
-  if (
-    priceId === env.STRIPE_PRICE_ID_PRO_MONTHLY ||
-    priceId === env.STRIPE_PRICE_ID_PRO_ANNUAL
-  )
-    return "pro";
   return "growth";
 }
 
@@ -282,6 +308,30 @@ app.get(`${API}/violations`, async (c) => {
   if (!org) return c.json({ error: "no org" }, 400);
   const rows = await listViolations(c.env.DB, org.id);
   return c.json(rows.map(toWebViolation));
+});
+
+app.get(`${API}/violations/:id`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const id = Number(c.req.param("id"));
+  const row = (await c.env.DB.prepare("SELECT * FROM violations WHERE id = ? AND org_id = ?").bind(id, org.id).first()) as Violation | null;
+  if (!row) return c.json({ error: "not found" }, 404);
+  return c.json(toWebViolation(row));
+});
+
+app.post(`${API}/violations/:id/dismiss`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  if (!org) return c.json({ error: "no org" }, 400);
+  const id = Number(c.req.param("id"));
+  const body = (await c.req.json<{ reason?: string }>().catch(() => ({}))) as { reason?: string };
+  await c.env.DB.prepare("UPDATE violations SET dismissed_at = ?, dismissed_by = ?, dismiss_reason = ? WHERE id = ? AND org_id = ?")
+    .bind(Date.now(), user.id, body.reason ?? "", id, org.id)
+    .run();
+  return c.json({ ok: true });
 });
 
 // ── Phase C: analytics ───────────────────────────────────────────────
@@ -395,6 +445,46 @@ app.post(`${API}/orgs/:id/members`, async (c) => {
   return c.json({ ok: true, seats });
 });
 
+app.get(`${API}/orgs/:id/members`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const orgId = Number(c.req.param("id"));
+  // Verify membership.
+  const member = await resolveOrg(c.env.DB, user.id, orgId);
+  if (!member || member.id !== orgId) return c.json({ error: "forbidden" }, 403);
+  const rows = await listMembers(c.env.DB, orgId);
+  return c.json({ members: rows.map(toWebOrgMember) });
+});
+
+app.patch(`${API}/orgs/:id/members/:userId`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const orgId = Number(c.req.param("id"));
+  const targetId = Number(c.req.param("userId"));
+  const body = (await c.req.json<{ role?: Role }>().catch(() => ({}))) as { role?: Role };
+  if (!body.role) return c.json({ error: "role required" }, 400);
+  const res = await updateMemberRole(c.env.DB, orgId, user.id, targetId, body.role);
+  if (!res.ok) return c.json({ error: res.error }, 403);
+  return c.json({ ok: true });
+});
+
+app.delete(`${API}/orgs/:id/members/:userId`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const orgId = Number(c.req.param("id"));
+  const targetId = Number(c.req.param("userId"));
+  const res = await removeMember(c.env.DB, orgId, user.id, targetId);
+  if (!res.ok) return c.json({ error: res.error }, 403);
+
+  // Recalculate billable seats.
+  const seats = await getSeatCount(c.env.DB, orgId);
+  await c.env.DB
+    .prepare("UPDATE orgs SET seat_count = ? WHERE id = ?")
+    .bind(seats, orgId)
+    .run();
+  return c.json({ ok: true, seats });
+});
+
 // ── Billing: subscription status ───────────────────────────────────────────
 app.get(`${API}/billing/status`, async (c) => {
   const user = await requireUser(c);
@@ -413,8 +503,8 @@ app.get(`${API}/billing/status`, async (c) => {
     days_remaining = Math.max(0, Math.ceil((orgRow.trial_ends_at - Date.now()) / 86400000));
   }
 
-  const plan = (orgRow.plan as "free" | "growth" | "pro") ||
-    (subscription?.plan as "free" | "growth" | "pro") || "free";
+  const plan = (orgRow.plan as "free" | "growth") ||
+    (subscription?.plan as "free" | "growth") || "free";
 
   const status: BillingStatus = {
     subscription: subscription
@@ -423,7 +513,7 @@ app.get(`${API}/billing/status`, async (c) => {
           stripe_sub_id: subscription.stripe_sub_id,
           status: subscription.status as any,
           tier: subscription.tier as any,
-          plan: subscription.plan as "growth" | "pro",
+          plan: subscription.plan as "growth",
           seat_count: subscription.seat_count,
           price_id: subscription.price_id,
           current_period_start: subscription.current_period_start,
@@ -500,16 +590,12 @@ app.post(`${API}/billing/checkout`, async (c) => {
     plan?: string;
     interval?: string;
   };
-  const plan = (body.plan === "pro" ? "pro" : "growth") as "growth" | "pro";
+  const plan = "growth" as "growth";
   const interval = body.interval === "annual" ? "annual" : "monthly";
   const priceId =
-    plan === "pro"
-      ? interval === "annual"
-        ? c.env.STRIPE_PRICE_ID_PRO_ANNUAL
-        : c.env.STRIPE_PRICE_ID_PRO_MONTHLY
-      : interval === "annual"
-        ? c.env.STRIPE_PRICE_ID_GROWTH_ANNUAL
-        : c.env.STRIPE_PRICE_ID_GROWTH_MONTHLY;
+    interval === "annual"
+      ? c.env.STRIPE_PRICE_ID_GROWTH_ANNUAL
+      : c.env.STRIPE_PRICE_ID_GROWTH_MONTHLY;
   if (!priceId) {
     return c.json({ error: "No price configured for this plan. Contact support." }, 503);
   }
@@ -680,8 +766,7 @@ app.post(`${API}/webhook/stripe`, async (c) => {
 
       const priceId = sub.items.data[0]?.price?.id ?? null;
       const customerId = sub.customer as string;
-      const plan = (sub.metadata?.policyctl_plan as "growth" | "pro") ||
-        priceIdToPlan(c.env, priceId);
+      const plan = "growth" as "growth";
 
       await updateOrgSubscription(c.env.DB, orgId, {
         stripe_customer_id: customerId,

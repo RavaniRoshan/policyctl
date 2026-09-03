@@ -1,27 +1,103 @@
-import { useState } from "react";
-import { CheckCircle, Funnel, ArrowClockwise, X } from "@phosphor-icons/react";
-import { useViolations } from "@/lib/hooks";
+import { useState, useEffect } from "react";
+import { CheckCircle, Funnel, ArrowClockwise, X, CheckSquare, Square } from "@phosphor-icons/react";
+import { useViolations, useSessionStream } from "@/lib/hooks";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Card } from "@/components/ui/card";
-import { Sheet, CurvyRect } from "@policyctl/design-system";
+import { Button } from "@/components/ui/button";
+import { Sheet, CurvyRect, Modal, useToast } from "@policyctl/design-system";
 import { Skeleton, EmptyState, MonoAnnotation } from "@/components/shared/EmptyState";
 import { Callout } from "@/components/ui/callout";
-import { useQueryClient } from "@tanstack/react-query";
-import type { Violation } from "@/lib/api";
+import type { Violation } from "@policyctl/types";
+import type { SessionViolation, UseSessionStreamOptions } from "@/lib/hooks.types";
+import { api } from "@/lib/api";
 
 export function Sessions() {
   const { data, isLoading, error, refetch } = useViolations();
   const queryClient = useQueryClient();
+  const { push } = useToast();
   const [provider, setProvider] = useState<string>("All");
   const [enforce, setEnforce] = useState<string>("All");
   const [open, setOpen] = useState<Violation | null>(null);
+  const [sessionKey] = useState<string>("live");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
+  const { connected, lastViolation } = useSessionStream(
+    sessionKey,
+    {
+      onViolation: (v: SessionViolation) => {
+        console.log("New violation received:", v);
+        queryClient.invalidateQueries({ queryKey: ["violations"] });
+      },
+    } as UseSessionStreamOptions
+  );
+
+  const dismissMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => api.dismissViolation(id, reason),
+    onSuccess: () => {
+      push({ title: "Violation dismissed", description: "The violation has been marked as dismissed." });
+      queryClient.invalidateQueries({ queryKey: ["violations"] });
+    },
+  });
+
+  const [dismissModal, setDismissModal] = useState<{ open: boolean; violation: Violation | null }>({ open: false, violation: null });
+  const [dismissReason, setDismissReason] = useState("");
+
+  // Show connection status
+  useEffect(() => {
+    if (connected) {
+      console.log("WebSocket connected");
+    } else {
+      console.log("WebSocket disconnected");
+    }
+  }, [connected]);
 
   const filtered = (data ?? []).filter((v) => {
     if (provider !== "All" && v.agent?.toLowerCase() !== provider.toLowerCase()) return false;
     if (enforce !== "All" && v.enforce !== enforce) return false;
     return true;
   });
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((v) => v.id)));
+    }
+  };
+
+  const handleBulkDismiss = () => {
+    if (selectedIds.size === 0) return;
+    // For bulk dismiss, we use a simple reason
+    const reason = "Bulk dismiss by user";
+    selectedIds.forEach((id) => {
+      dismissMutation.mutate({ id, reason });
+    });
+    setSelectedIds(new Set());
+    setBulkMenuOpen(false);
+  };
+
+  const handleDismiss = (violation: Violation) => {
+    setDismissModal({ open: true, violation });
+    setDismissReason("");
+  };
+
+  const confirmDismiss = () => {
+    if (!dismissModal.violation || !dismissReason.trim()) return;
+    dismissMutation.mutate({ id: dismissModal.violation.id, reason: dismissReason });
+    setDismissModal({ open: false, violation: null });
+    setDismissReason("");
+  };
 
   const retry = () => {
     queryClient.invalidateQueries({ queryKey: ["violations"] });
@@ -30,13 +106,47 @@ export function Sessions() {
 
   return (
     <div className="space-y-24">
-      <div className="flex items-center justify-between -mt-1">
+      {/* Connection status banner */}
+      <div className={`p-12 rounded-md -mt-1 ${connected ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>        <div className="flex items-center gap-8">
+          <span className={`size-8 rounded-full ${connected ? "bg-success" : "bg-warning"}`} />
+          <span className="font-medium">
+            {connected
+              ? "Live enforcement session connected"
+              : "Live enforcement session disconnected - attempting to reconnect..."}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between -mt-1 border-b border-border-faint pb-12 flex-wrap gap-8">
         <MonoAnnotation>[ violations / {filtered.length} records ]</MonoAnnotation>
         <div className="flex items-center gap-8">
           <SelectPill value={provider} onChange={setProvider} options={["All", "claude", "codex", "cursor", "ci"]} label="provider" />
           <SelectPill value={enforce} onChange={setEnforce} options={["All", "block", "fail", "warn", "log"]} label="enforce" />
         </div>
       </div>
+
+      {/* Bulk actions toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between p-16 bg-heat-4 border border-heat-12 rounded-md -mt-1">
+          <span className="text-label-medium text-accent-black">
+            {selectedIds.size} violation{selectedIds.size === 1 ? "" : "s"} selected
+          </span>
+          <div className="flex items-center gap-8">
+            <button
+              onClick={handleBulkDismiss}
+              className="text-label-small text-danger hover:text-danger/80 transition-colors"
+            >
+              Dismiss selected
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-label-small text-black-alpha-72 hover:text-accent-black transition-colors"
+            >
+              Clear selection
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && (
         <Callout type="danger" title="Failed to load violations" className="p-16">
@@ -99,6 +209,11 @@ export function Sessions() {
             <table className="w-full text-body-medium min-w-600">
               <thead>
                 <tr className="border-b border-border-faint text-left text-mono-x-small text-black-alpha-32 uppercase">
+                  <th scope="col" className="p-16 w-48">
+                    <button onClick={toggleSelectAll} className="flex items-center justify-center w-full">
+                      {selectedIds.size === filtered.length && filtered.length > 0 ? <CheckSquare className="size-4" /> : <Square className="size-4" />}
+                    </button>
+                  </th>
                   <th scope="col" className="p-16">enforce</th>
                   <th scope="col" className="p-16">rule_id</th>
                   <th scope="col" className="p-16">repo</th>
@@ -116,6 +231,14 @@ export function Sessions() {
                     role="button"
                     className="border-b border-border-faint hover:bg-black-alpha-4 transition-colors cursor-pointer focus-visible:bg-black-alpha-4"
                   >
+                    <td className="p-16" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => toggleSelect(v.id)}
+                        className="flex items-center justify-center w-full"
+                      >
+                        {selectedIds.has(v.id) ? <CheckSquare className="size-4 text-heat-100" /> : <Square className="size-4 text-black-alpha-32" />}
+                      </button>
+                    </td>
                     <td className="p-16">
                       <Badge tone={v.enforce === "block" ? "danger" : v.enforce === "fail" ? "accent" : "muted"}>
                         {v.enforce}
@@ -136,7 +259,8 @@ export function Sessions() {
         </>
       )}
 
-      <Sheet open={!!open} onClose={() => setOpen(null)} title="Session detail" width={520}>
+      {/* Violation detail sheet */}
+      <Sheet open={!!open} onClose={() => setOpen(null)} title="Violation detail" width={640}>
         {open && (
           <div className="space-y-24">
             <div>
@@ -165,9 +289,43 @@ export function Sessions() {
                 <li className="flex justify-between"><span className="text-black-alpha-56">ID</span><span className="font-mono text-mono-small text-accent-black">{open.id}</span></li>
               </ul>
             </div>
+
+            <div className="flex items-center gap-8 pt-8 border-t border-border-faint">
+              <Button variant="secondary" size="sm" onClick={() => handleDismiss(open)}>
+                Dismiss
+              </Button>
+            </div>
           </div>
         )}
       </Sheet>
+
+      {/* Dismiss modal */}
+      <Modal open={dismissModal.open} onClose={() => setDismissModal({ open: false, violation: null })} title="Dismiss violation" maxWidth={420}>
+        {dismissModal.violation && (
+          <div className="space-y-16">
+            <p className="text-body-medium text-black-alpha-72 leading-22">
+              Mark this violation as dismissed. This will hide it from the default view but keep it in the audit log.
+            </p>
+            <div>
+              <label className="block text-label-small text-black-alpha-56 mb-8">Reason</label>
+              <textarea
+                value={dismissReason}
+                onChange={(e) => setDismissReason(e.target.value)}
+                placeholder="e.g. false positive, accepted risk, won't fix"
+                className="w-full min-h-80 font-mono text-mono-small text-accent-black bg-surface border border-border-faint rounded-lg px-12 py-8 outline-none focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20 resize-y"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-8 pt-8">
+              <Button variant="tertiary" onClick={() => setDismissModal({ open: false, violation: null })}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={confirmDismiss} disabled={!dismissReason.trim() || dismissMutation.isPending}>
+                {dismissMutation.isPending ? "Dismissing…" : "Dismiss"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
