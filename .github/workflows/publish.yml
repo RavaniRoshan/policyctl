@@ -29,7 +29,7 @@ jobs:
           done
           echo "pinned @policyctl/core to ^${VERSION} in cli package.json"
 
-      # ── Publish to npmjs.org ────────────────────────────────────────────────
+      # ── Publish to npmjs.org (primary registry) ─────────────────────────────
       - name: Publish @policyctl/core → npmjs.org
         run: |
           cd packages/core
@@ -52,9 +52,13 @@ jobs:
             npm publish --provenance --access public
           fi
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}\
 
-      # ── Publish to GitHub Packages ──────────────────────────────────────────
+      # ── Publish to GitHub Packages (best-effort) ────────────────────────────
+      # NOTE: GitHub Packages npm registry requires the package scope (@policyctl)
+      # to match a GitHub user or org. If the repo owner (RavaniRoshan) doesn't
+      # own the @policyctl GitHub org, this step will produce a 403 and be skipped.
+      # The primary release is on npmjs.org above — this is supplemental.
       - name: Switch registry to GitHub Packages
         uses: actions/setup-node@v4
         with:
@@ -75,6 +79,7 @@ jobs:
           done
 
       - name: Publish @policyctl/core → GitHub Packages
+        continue-on-error: true
         run: |
           cd packages/core
           npm publish --access public
@@ -82,6 +87,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish @policyctl/cli → GitHub Packages
+        continue-on-error: true
         run: |
           cd packages/cli
           npm publish --access public
@@ -90,9 +96,14 @@ jobs:
 
       # ── GitHub Release with tarball ─────────────────────────────────────────
       - name: Pack the CLI tarball (for the release asset)
-        run: cd packages/cli && npm pack --pack-destination .
+        if: always() && github.event_name != 'workflow_dispatch'
+        run: |
+          # Restore npmjs registry before packing (registry was switched above)
+          npm config set registry https://registry.npmjs.org
+          cd packages/cli && npm pack --pack-destination .
 
       - name: Create a GitHub release
+        if: always() && github.event_name != 'workflow_dispatch' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: packages/cli/policyctl-cli-*.tgz
