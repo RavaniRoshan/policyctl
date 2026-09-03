@@ -120,12 +120,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract version
-        id: version
+      - name: Extract version and lowercase owner
+        id: meta
         run: |
           VERSION=$(node -e "console.log(require('./packages/cli/package.json').version)")
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building ghcr.io/${{ github.repository_owner }}/policyctl:$VERSION"
+          echo "owner=$OWNER" >> $GITHUB_OUTPUT
+          echo "Building ghcr.io/$OWNER/policyctl:$VERSION"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -133,12 +135,12 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/policyctl:latest
-            ghcr.io/${{ github.repository_owner }}/policyctl:${{ steps.version.outputs.version }}
+            ghcr.io/${{ steps.meta.outputs.owner }}/policyctl:latest
+            ghcr.io/${{ steps.meta.outputs.owner }}/policyctl:${{ steps.meta.outputs.version }}
           labels: |
             org.opencontainers.image.title=policyctl
             org.opencontainers.image.description=Provider-agnostic policy runtime for coding agents
-            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
             org.opencontainers.image.url=https://policyctl-web.pages.dev
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.licenses=MIT
