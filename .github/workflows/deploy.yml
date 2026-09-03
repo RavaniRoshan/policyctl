@@ -52,10 +52,17 @@ jobs:
           command: deploy
           secrets: |
             TURNSTILE_SECRET_SITE
-            STRIPE_SECRET_KEY
-            STRIPE_WEBHOOK_SECRET
         env:
           TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
+      - name: Upload Stripe secrets (if configured in GitHub)
+        if: env.STRIPE_SECRET_KEY != ''
+        working-directory: packages/server
+        run: |
+          echo "$STRIPE_SECRET_KEY" | npx wrangler secret put STRIPE_SECRET_KEY
+          echo "$STRIPE_WEBHOOK_SECRET" | npx wrangler secret put STRIPE_WEBHOOK_SECRET
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
 
@@ -81,9 +88,5 @@ jobs:
           command: deploy --name policyctl-server-staging
           secrets: |
             TURNSTILE_SECRET_SITE
-            STRIPE_SECRET_KEY
-            STRIPE_WEBHOOK_SECRET
         env:
           TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
