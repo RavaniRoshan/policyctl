@@ -69,7 +69,12 @@ jobs:
             j.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'public' };
             fs.writeFileSync('package.json', JSON.stringify(j, null, 2) + '\n');
           "
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > .npmrc
+          echo "@${OWNER_LOWER}:registry=https://npm.pkg.github.com" >> .npmrc
+          if [ -n "$NPM_CONFIG_USERCONFIG" ]; then
+            echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> "$NPM_CONFIG_USERCONFIG"
+            echo "@${OWNER_LOWER}:registry=https://npm.pkg.github.com" >> "$NPM_CONFIG_USERCONFIG"
+          fi
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
