@@ -36,8 +36,8 @@ importers:
   packages/cli:
     dependencies:
       '@policyctl/core':
-        specifier: ^0.1.6
-        version: 0.1.6
+        specifier: workspace:^
+        version: link:../core
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -1803,10 +1803,6 @@ packages:
     peerDependencies:
       react: '>= 16.8'
       react-dom: '>= 16.8'
-
-  '@policyctl/core@0.1.6':
-    resolution: {integrity: sha512-HrXt/8I91ITP1aH4By/wjJWMXD3Ppoe9fZ+C9jIHQPqpQZASnfOzHpL/8gfHzlMZIc4iLzLWfxpqzboincuKXg==}
-    engines: {node: '>=20'}
 
   '@poppinss/colors@4.1.6':
     resolution: {integrity: sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==}
@@ -6096,11 +6092,6 @@ snapshots:
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-
-  '@policyctl/core@0.1.6':
-    dependencies:
-      picomatch: 4.0.7
-      yaml: 2.9.0
 
   '@poppinss/colors@4.1.6':
     dependencies:

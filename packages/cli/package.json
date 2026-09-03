@@ -37,7 +37,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@policyctl/core": "^0.1.7",
+    "@policyctl/core": "workspace:^",
     "commander": "^12.1.0",
     "yaml": "^2.6.1"
   },
