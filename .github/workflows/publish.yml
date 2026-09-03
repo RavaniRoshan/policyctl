@@ -10,6 +10,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      packages: write
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -18,6 +19,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @policyctl/core build
       - run: pnpm --filter @policyctl/cli build
+
       - name: Switch workspace deps to real versions
         run: |
           VERSION=$(node -e "console.log(require('./packages/cli/package.json').version)")
@@ -25,30 +27,70 @@ jobs:
             node -e "const fs=require('fs');const p='$pkg/package.json';const j=JSON.parse(fs.readFileSync(p,'utf8'));if(j.dependencies)for(const k of Object.keys(j.dependencies))if(typeof j.dependencies[k]==='string'&&j.dependencies[k].startsWith('workspace:'))j.dependencies[k]='^${VERSION}';fs.writeFileSync(p,JSON.stringify(j,null,2)+'\n')"
           done
           echo "pinned @policyctl/core to ^${VERSION} in cli package.json"
-      - name: Publish @policyctl/core
+
+      # ── Publish to npmjs.org ────────────────────────────────────────────────
+      - name: Publish @policyctl/core → npmjs.org
         run: |
           cd packages/core
           VERSION=$(node -e "console.log(require('./package.json').version)")
           if npm view "@policyctl/core@$VERSION" version >/dev/null 2>&1; then
-            echo "core@$VERSION already on registry — skipping publish"
+            echo "core@$VERSION already on npm registry — skipping"
           else
             npm publish --access public
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish @policyctl/cli
+
+      - name: Publish @policyctl/cli → npmjs.org
         run: |
           cd packages/cli
           VERSION=$(node -e "console.log(require('./package.json').version)")
           if npm view "@policyctl/cli@$VERSION" version >/dev/null 2>&1; then
-            echo "cli@$VERSION already on registry — skipping publish"
+            echo "cli@$VERSION already on npm registry — skipping"
           else
             npm publish --provenance --access public
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ── Publish to GitHub Packages ──────────────────────────────────────────
+      - name: Switch registry to GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: "@policyctl"
+
+      - name: Add publishConfig for GitHub Packages
+        run: |
+          for pkg in packages/core packages/cli; do
+            node -e "
+              const fs = require('fs');
+              const p = '$pkg/package.json';
+              const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+              j.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'public' };
+              fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
+            "
+          done
+
+      - name: Publish @policyctl/core → GitHub Packages
+        run: |
+          cd packages/core
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish @policyctl/cli → GitHub Packages
+        run: |
+          cd packages/cli
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── GitHub Release with tarball ─────────────────────────────────────────
       - name: Pack the CLI tarball (for the release asset)
         run: cd packages/cli && npm pack --pack-destination .
+
       - name: Create a GitHub release
         uses: softprops/action-gh-release@v2
         with:

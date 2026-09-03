@@ -1,6 +1,6 @@
 {
   "name": "@policyctl/core",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": false,
   "type": "module",
   "description": "Shared policy schema, matchers, and evaluation engine for policyctl.",

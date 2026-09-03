@@ -165,7 +165,7 @@ export function MarketingNav() {
                             <div>
                               <div className="inline-flex items-center gap-6 px-8 py-3 rounded-md bg-surface border border-border-faint text-mono-x-small font-mono text-heat-100 uppercase tracking-wider mb-10">
                                 <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
-                                <span>v0.1.0 RUNTIME</span>
+                                <span>v0.1.7 RUNTIME</span>
                               </div>
                               <h4 className="text-label-large font-semibold text-accent-black mb-6">
                                 .policyctl.yml

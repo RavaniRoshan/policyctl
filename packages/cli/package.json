@@ -1,6 +1,6 @@
 {
   "name": "@policyctl/cli",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
   "description": "Provider-agnostic policy runtime for coding agents.",
   "bin": {
@@ -37,7 +37,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@policyctl/core": "^0.1.6",
+    "@policyctl/core": "^0.1.7",
     "commander": "^12.1.0",
     "yaml": "^2.6.1"
   },
