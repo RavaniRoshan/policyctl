@@ -48,7 +48,12 @@ const stagger = { visible: { transition: { staggerChildren: 0.06 } } };
 
 export function Landing() {
   return (
-    <div className="min-h-screen bg-background-base text-accent-black overflow-x-clip">
+    <div className="min-h-screen bg-background-base text-accent-black overflow-x-clip relative">
+      {/* Persistent Blueprint Background Grid & Geometry */}
+      <div
+        className="fixed inset-0 pointer-events-none -z-20 bg-[linear-gradient(to_right,var(--border-faint)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-faint)_1px,transparent_1px)] bg-[size:40px_40px] opacity-40 [mask-image:radial-gradient(ellipse_80%_80%_at_50%_20%,#000_65%,transparent_100%)]"
+        aria-hidden="true"
+      />
       <MarketingNav />
       <main id="main-content" tabIndex={-1} className="focus:outline-none">
       <Hero />
@@ -280,48 +285,69 @@ function Hero() {
           initial={{ opacity: 0, y: 32, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 0.8, delay: 0.35, ease: [0.32, 0.72, 0, 1] }}
-          className="relative mx-auto max-w-552"
+          className="relative mx-auto max-w-556"
         >
-          <div className="relative rounded-xl bg-surface border border-border-faint shadow-hero-card p-16 lg:p-20">
-            <CurvyRect sides="allSides" color="var(--border-muted)" />
-            <div className="flex items-center justify-between border-b border-border-faint pb-12 mb-16">
-              <div className="flex items-center gap-8">
-                <div className="flex gap-4">
-                  <span className="size-8 rounded-full bg-border-faint border border-black-alpha-12" />
-                  <span className="size-8 rounded-full bg-border-faint border border-black-alpha-12" />
-                  <span className="size-8 rounded-full bg-border-faint border border-black-alpha-12" />
+          {/* Double-Bezel Architecture */}
+          <div className="p-2 rounded-xl bg-background-base border border-border-faint shadow-hero-card">
+            <div className="relative rounded-lg bg-surface border border-border-faint p-16 lg:p-20">
+              <CurvyRect sides="allSides" color="var(--border-muted)" />
+              
+              {/* Technical Schematic Header */}
+              <div className="flex items-center justify-between border-b border-border-faint pb-12 mb-16">
+                <div className="flex items-center gap-10">
+                  <div className="flex gap-4">
+                    <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                    <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                    <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                  </div>
+                  <div className="h-12 w-1 bg-border-faint" />
+                  <Scramble
+                    text=".policyctl.yml"
+                    randomizeChance={0.6}
+                    className="font-mono text-mono-small text-accent-black font-semibold"
+                  />
                 </div>
-                <Scramble
-                  text=".policyctl.yml"
-                  randomizeChance={0.6}
-                  className="font-mono text-mono-small text-accent-black font-semibold ml-6"
-                />
+                <div className="flex items-center gap-6">
+                  <span className="font-mono text-mono-x-small text-black-alpha-40 hidden sm:inline">[ FIG 1.0 ]</span>
+                  <span className="font-mono text-mono-x-small px-8 py-2 rounded bg-heat-4 border border-heat-12 text-heat-100 uppercase tracking-tight font-semibold">
+                    AST INTERCEPTOR
+                  </span>
+                </div>
               </div>
-              <span className="font-mono text-mono-x-small px-6 py-1 rounded bg-heat-4 border border-heat-12 text-heat-100 uppercase tracking-tight font-medium">
-                active policy
-              </span>
-            </div>
 
-            <pre className="font-mono text-mono-medium leading-22 text-accent-black">
-              <span className="text-black-alpha-32"># runtime: cross-agent</span>{"\n"}
-              <span className="text-heat-100">rules</span>:{"\n"}
-              {"  "}- <span className="text-heat-100">id</span>: migrations-via-generator{"\n"}
-              {"    "}<span className="text-heat-100">match</span>:{" "}
-              <span className="text-black-alpha-72">path:db/migrations/*</span>{"\n"}
-              {"    "}<span className="text-heat-100">enforce</span>: block{"\n"}
-              {"  "}- <span className="text-heat-100">id</span>: no-secrets-in-commits{"\n"}
-              {"    "}<span className="text-heat-100">match</span>:{" "}
-              <span className="text-black-alpha-72">regex:(AKIA|ghp_)</span>{"\n"}
-              {"    "}<span className="text-heat-100">enforce</span>: fail
-            </pre>
+              {/* Code Pre with Real Policy Schema */}
+              <pre className="font-mono text-mono-medium leading-22 text-accent-black overflow-x-auto m-0">
+                <span className="text-black-alpha-32"># runtime: cross-agent policy engine</span>{"\n"}
+                <span className="text-heat-100">version</span>: <span className="text-accent-black font-semibold">1</span>{"\n"}
+                <span className="text-heat-100">rules</span>:{"\n"}
+                {"  "}- <span className="text-heat-100">id</span>: migrations-via-generator{"\n"}
+                {"    "}<span className="text-heat-100">scope</span>: both{"\n"}
+                {"    "}<span className="text-heat-100">enforce</span>: block{"\n"}
+                {"    "}<span className="text-heat-100">when</span>:{"\n"}
+                {"      "}<span className="text-heat-100">path</span>: <span className="text-black-alpha-72 font-semibold">db/migrations/*</span>{"\n"}
+                {"  "}- <span className="text-heat-100">id</span>: no-secrets-in-diff{"\n"}
+                {"    "}<span className="text-heat-100">scope</span>: diff{"\n"}
+                {"    "}<span className="text-heat-100">enforce</span>: block{"\n"}
+                {"    "}<span className="text-heat-100">when</span>:{"\n"}
+                {"      "}<span className="text-heat-100">diff_regex</span>: <span className="text-black-alpha-72 font-semibold">'(AKIA|ghp_|sk-proj-)'</span>
+              </pre>
 
-            {/* Diagram telemetry footer */}
-            <div className="mt-16 pt-12 border-t border-border-faint flex items-center justify-between font-mono text-mono-x-small">
-              <div className="flex items-center gap-8 text-black-alpha-56">
-                <span className="text-heat-100 animate-pulse">●</span>
-                <span>INTERCEPT: claude.write_file</span>
+              {/* Technical Schematic Signal Flow */}
+              <div className="mt-16 pt-12 border-t border-border-faint space-y-8">
+                <div className="flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40 uppercase">
+                  <span>// REAL-TIME INTERCEPTION TRACE</span>
+                  <span className="text-heat-100 font-semibold">[ LATENCY: 0.38ms ]</span>
+                </div>
+                <div className="p-10 rounded-md bg-background-base border border-border-faint font-mono text-mono-x-small flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
+                  <div className="flex items-center gap-6 min-w-0">
+                    <span className="size-6 rounded-full bg-heat-100 animate-pulse shrink-0" />
+                    <span className="text-black-alpha-72 truncate">IN: claude.write_file("db/migrations/002.sql")</span>
+                  </div>
+                  <span className="px-8 py-3 rounded bg-heat-4 border border-heat-12 text-heat-100 font-semibold shrink-0">
+                    BLOCKED: EXIT 2
+                  </span>
+                </div>
               </div>
-              <span className="text-heat-100 font-semibold">[ BLOCKED by rule 01 ]</span>
             </div>
           </div>
         </motion.div>
@@ -379,38 +405,41 @@ const SAMPLES = [
     id: "rule",
     index: "01",
     label: "Author rules",
-    badge: "SPEC",
+    badge: "SCHEMA",
     tag: "DETERMINISTIC",
-    desc: "Declarative .policyctl.yml schema with path, regex, and AST matchers without prompt drift.",
+    desc: "Declarative .policyctl.yml specification with AST, regex, and path matchers without prompt drift.",
     filename: ".policyctl.yml",
     lang: "yaml",
     icon: FileCode,
-    code: `rules:
+    code: `version: 1
+rules:
   - id: migrations-via-generator
-    match:
-      path: db/migrations/*
+    scope: both
     enforce: block
+    when:
+      path: db/migrations/*
     message: |
       Migration files must be generated by the CLI.
       Run \`policyctl gen migration <name>\` instead.
   - id: no-secrets-in-commits
-    match:
-      regex: '(AKIA|ghp_|sk-|xox[abp]-)'
-    enforce: fail`,
+    scope: diff
+    enforce: block
+    when:
+      diff_regex: '(AKIA|ghp_|sk-proj-|xox[abp]-)'`,
   },
   {
     id: "hook",
     index: "02",
     label: "Tool-call hooks",
-    badge: "HOOK",
+    badge: "INTERCEPT",
     tag: "<12ms LATENCY",
     desc: "Zero-latency interception hooks run inside Claude Code, Codex, and Cursor before file execution.",
     filename: "hook.sh",
     lang: "bash",
     icon: Terminal,
     code: `#!/usr/bin/env bash
-# Auto-injected at agent tool-call execution time
-exec policyctl check \\
+# Injected at agent tool-call execution time
+exec policyctl eval \\
   --provider claude \\
   --tool "$TOOL_NAME" \\
   --input "$TOOL_INPUT"`,
@@ -419,9 +448,9 @@ exec policyctl check \\
     id: "ci",
     index: "03",
     label: "Gate in CI",
-    badge: "GATE",
-    tag: "FAIL ON BLOCK",
-    desc: "Strict compliance gate for GitHub Actions and CI runners. Exits with status code 1 on violation.",
+    badge: "HARD GATE",
+    tag: "FAIL ON VIOLATION",
+    desc: "Strict compliance gate for GitHub Actions and CI runners. Non-zero exit code blocks PR merge.",
     filename: ".github/workflows/policy.yml",
     lang: "yaml",
     icon: ShieldCheck,
@@ -429,7 +458,6 @@ exec policyctl check \\
   run: |
     npx -y @policyctl/cli check \\
       --policy .policyctl.yml \\
-      --report json \\
       --fail-on block,fail`,
   },
 ];
@@ -575,7 +603,7 @@ function DeveloperFirst() {
               {[
                 { k: "Matchers", v: "8 Built-in", tag: "AST & regex" },
                 { k: "Providers", v: "4 Agents", tag: "Claude, Codex..." },
-                { k: "Latency", v: "<12 ms", tag: "Rust core" },
+                { k: "Latency", v: "<12 ms", tag: "Deterministic" },
                 { k: "Telemetry", v: "Zero", tag: "Local-first" },
               ].map((m) => (
                 <div
@@ -643,10 +671,10 @@ function AgentReady() {
           <div>
             <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
               <div className="flex items-center gap-8">
-                <div className="flex items-center gap-6">
-                  <span className="size-10 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]/40" />
-                  <span className="size-10 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]/40" />
-                  <span className="size-10 rounded-full bg-[#27c93f]/80 border border-[#1aab29]/40" />
+                <div className="flex items-center gap-4">
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
                 </div>
                 <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
                 <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// one command</span>
@@ -671,13 +699,13 @@ function AgentReady() {
               </div>
               <div className="h-4" />
               <div className="text-black-alpha-72 flex items-center gap-6">
-                <span className="text-[#22c55e] font-bold">✓</span> Detected agents: claude, codex, cursor
+                <span className="text-heat-100 font-bold">✓</span> Detected agents: claude, codex, cursor
               </div>
               <div className="text-black-alpha-72 flex items-center gap-6">
-                <span className="text-[#22c55e] font-bold">✓</span> Wrote .policyctl.yml
+                <span className="text-heat-100 font-bold">✓</span> Wrote .policyctl.yml
               </div>
               <div className="text-black-alpha-72 flex items-center gap-6">
-                <span className="text-[#22c55e] font-bold">✓</span> Generated native hooks &amp; CI stub
+                <span className="text-heat-100 font-bold">✓</span> Generated native hooks &amp; CI stub
               </div>
               <div className="h-4" />
               <div className="text-heat-100 font-medium">Done. Try: policyctl check --demo</div>
@@ -698,10 +726,10 @@ function AgentReady() {
           <div>
             <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
               <div className="flex items-center gap-8">
-                <div className="flex items-center gap-6">
-                  <span className="size-10 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]/40" />
-                  <span className="size-10 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]/40" />
-                  <span className="size-10 rounded-full bg-[#27c93f]/80 border border-[#1aab29]/40" />
+                <div className="flex items-center gap-4">
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
                 </div>
                 <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
                 <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// agent skill</span>
@@ -818,10 +846,10 @@ function BuiltForTrust() {
           <div>
             <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
               <div className="flex items-center gap-8">
-                <div className="flex items-center gap-6">
-                  <span className="size-10 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]/40" />
-                  <span className="size-10 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]/40" />
-                  <span className="size-10 rounded-full bg-[#27c93f]/80 border border-[#1aab29]/40" />
+                <div className="flex items-center gap-4">
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
+                  <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
                 </div>
                 <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
                 <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// open source</span>
@@ -857,10 +885,10 @@ function BuiltForTrust() {
               </div>
               <div className="h-4" />
               <div className="text-black-alpha-72 flex items-center gap-6">
-                <span className="text-[#22c55e] font-bold">✓</span> 117 tests pass (unit + integration)
+                <span className="text-heat-100 font-bold">✓</span> 117 tests pass (unit + integration)
               </div>
               <div className="text-black-alpha-72 flex items-center gap-6">
-                <span className="text-[#22c55e] font-bold">✓</span> 0 network calls emitted
+                <span className="text-heat-100 font-bold">✓</span> 0 network calls emitted
               </div>
               <div className="h-4" />
               <div className="text-heat-100 font-medium">Ready for air-gapped runners &amp; CI.</div>
@@ -1031,13 +1059,7 @@ function UseCases() {
                   </span>
                 </div>
               </div>
-              <span
-                className={`text-mono-x-small font-mono px-6 py-2 rounded font-semibold ${
-                  current.enforce === "WARN"
-                    ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-                    : "bg-heat-4 text-heat-100 border border-heat-12"
-                }`}
-              >
+              <span className="text-mono-x-small font-mono px-8 py-3 rounded-md bg-heat-4 text-heat-100 border border-heat-12 font-semibold">
                 ENFORCE: {current.enforce}
               </span>
             </div>
@@ -1063,13 +1085,7 @@ function UseCases() {
               <div className="rounded-lg bg-background-base border border-border-faint p-12 flex flex-col justify-between">
                 <div className="flex items-center justify-between pb-8 mb-8 border-b border-border-faint text-mono-x-small font-mono text-black-alpha-40 uppercase">
                   <span>// runtime verdict</span>
-                  <span
-                    className={
-                      current.verdictType === "warn"
-                        ? "text-amber-600 font-semibold"
-                        : "text-heat-100 font-semibold"
-                    }
-                  >
+                  <span className="text-heat-100 font-semibold">
                     {current.enforce}
                   </span>
                 </div>
@@ -1281,7 +1297,7 @@ function TestimonialCard({
 
 function Pricing() {
   return (
-    <section id="pricing" className="pcl-section--compact -scroll-mt-80 py-80 lg:py-143 relative -mt-1">
+    <section id="pricing" className="pcl-section--compact -scroll-mt-80 py-80 lg:py-120 relative -mt-1">
       <CurvyRect sides="allSides" />
       <div className="pcl-container">
         <div className="text-center mb-40">
@@ -1293,73 +1309,96 @@ function Pricing() {
             Start free. Upgrade when your team needs shared policy versioning and an audit feed.
           </p>
         </div>
-        <div className="grid lg:grid-cols-2 gap-16 -mt-1">
-          <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
-            <CurvyRect sides="allSides" />
-            <div className="text-mono-x-small text-black-alpha-32 uppercase">// cli</div>
-            <h3 className="mt-12 text-title-h4 text-accent-black">Free forever</h3>
-            <div className="mt-12 text-title-h2 text-accent-black">
-              $0
-              <span className="text-body-large text-black-alpha-48 ml-8">/ forever</span>
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 -mt-1 items-stretch">
+          {/* Tier 1: Free Open Source */}
+          <div className="p-2 rounded-2xl bg-background-base border border-border-faint shadow-2xs">
+            <div className="rounded-xl bg-surface border border-border-faint p-24 lg:p-36 relative flex flex-col justify-between h-full">
+              <CurvyRect sides="allSides" />
+              <div>
+                <div className="flex items-center justify-between pb-12 mb-16 border-b border-border-faint text-mono-x-small font-mono text-black-alpha-40 uppercase">
+                  <span>[ TIER 01 // RUNTIME ]</span>
+                  <span className="text-black-alpha-72 font-semibold">LOCAL-FIRST</span>
+                </div>
+                <h3 className="text-title-h4 text-accent-black font-semibold">Free forever</h3>
+                <div className="mt-8 text-title-h2 text-accent-black font-bold">
+                  $0
+                  <span className="text-body-large text-black-alpha-48 ml-8 font-normal">/ forever</span>
+                </div>
+                <ul className="mt-28 space-y-12 text-body-large text-black-alpha-72">
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>All 12 CLI commands</span>
+                  </li>
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>Hooks for Claude Code, Codex, Cursor</span>
+                  </li>
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>CI merge gate + 8 AST matchers</span>
+                  </li>
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>MIT licensed, zero telemetry</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-32 pt-16 border-t border-border-faint">
+                <Link to="/signup" className="block">
+                  <Button variant="secondary" className="w-full justify-center">
+                    Get started free
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <ul className="mt-32 space-y-12 text-body-large text-black-alpha-72">
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                All 12 CLI commands
-              </li>
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                Hooks for Claude, Codex, Cursor
-              </li>
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                CI gate + 8 matchers
-              </li>
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                MIT licensed, no telemetry
-              </li>
-            </ul>
-            <Link to="/signup" className="mt-32 block">
-              <Button variant="secondary" className="w-full">
-                Get started free
-              </Button>
-            </Link>
           </div>
-          <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
-            <CurvyRect sides="allSides" />
-            <div className="text-mono-x-small text-black-alpha-32 uppercase">// cloud</div>
-            <h3 className="mt-12 text-title-h4 text-accent-black">Control plane</h3>
-            <div className="mt-12 text-title-h2 text-accent-black">
-              $5
-              <span className="text-body-large text-black-alpha-48 ml-8">/ seat / month</span>
+
+          {/* Tier 2: Cloud Control Plane */}
+          <div className="p-2 rounded-2xl bg-background-base border border-border-faint shadow-2xs">
+            <div className="rounded-xl bg-surface border border-border-faint p-24 lg:p-36 relative flex flex-col justify-between h-full">
+              <CurvyRect sides="allSides" />
+              <div>
+                <div className="flex items-center justify-between pb-12 mb-16 border-b border-border-faint text-mono-x-small font-mono text-black-alpha-40 uppercase">
+                  <span>[ TIER 02 // GOVERNANCE ]</span>
+                  <span className="px-8 py-2 rounded bg-heat-4 border border-heat-12 text-heat-100 font-semibold">
+                    14-DAY TRIAL
+                  </span>
+                </div>
+                <h3 className="text-title-h4 text-accent-black font-semibold">Control plane</h3>
+                <div className="mt-8 text-title-h2 text-accent-black font-bold">
+                  $5
+                  <span className="text-body-large text-black-alpha-48 ml-8 font-normal">/ seat / month</span>
+                </div>
+                <p className="mt-6 text-body-small text-black-alpha-56 font-mono">
+                  Annual: $50 / seat / year (2 months free).
+                </p>
+                <ul className="mt-24 space-y-12 text-body-large text-black-alpha-72">
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>Cross-repo policy versioning</span>
+                  </li>
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>Live enforcement sessions &amp; audit feed</span>
+                  </li>
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>AI rule author + PR diff analyzer</span>
+                  </li>
+                  <li className="flex gap-10 items-start">
+                    <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
+                    <span>Daily compliance reports &amp; CSV export</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="mt-32 pt-16 border-t border-border-faint">
+                <Link to="/signup?plan=trial" className="block">
+                  <Button className="w-full justify-center" trailingIcon>
+                    Start free trial
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <p className="mt-8 text-body-small text-black-alpha-56">
-              Annual: $50 / seat / year — two months free.
-            </p>
-            <ul className="mt-32 space-y-12 text-body-large text-black-alpha-72">
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                Cross-repo policy versioning
-              </li>
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                Live enforcement sessions
-              </li>
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                AI rule author + diff analyzer
-              </li>
-              <li className="flex gap-8">
-                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
-                Daily compliance report + CSV export
-              </li>
-            </ul>
-            <Link to="/signup?plan=trial" className="mt-32 block">
-              <Button className="w-full" trailingIcon>
-                Start free trial
-              </Button>
-            </Link>
           </div>
         </div>
       </div>
@@ -1439,31 +1478,33 @@ function FAQ() {
             </div>
 
             {/* Support / Help Blueprint Card */}
-            <div className="p-20 rounded-xl bg-surface border border-border-faint relative shadow-2xs">
-              <CurvyRect sides="allSides" />
-              <div className="text-mono-x-small font-mono text-black-alpha-40 uppercase mb-8">
-                // STILL HAVE QUESTIONS?
-              </div>
-              <p className="text-body-small text-black-alpha-64 leading-relaxed mb-16">
-                Need help authoring a custom AST matcher or integrating with custom CI runners?
-              </p>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-10">
-                <a
-                  href="/docs/"
-                  className="px-14 py-8 rounded-lg bg-surface hover:bg-background-base text-accent-black border border-border-faint text-mono-x-small font-mono flex items-center justify-between gap-6 transition-colors"
-                >
-                  <span>Explore Docs</span>
-                  <ArrowRight className="size-12 text-heat-100" />
-                </a>
-                <a
-                  href="https://github.com/RavaniRoshan/policyctl/issues"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-14 py-8 rounded-lg bg-surface hover:bg-background-base text-black-alpha-72 hover:text-accent-black border border-border-faint text-mono-x-small font-mono flex items-center justify-between gap-6 transition-colors"
-                >
-                  <span>GitHub Issues</span>
-                  <ArrowUpRight className="size-12" />
-                </a>
+            <div className="p-2 rounded-xl bg-background-base border border-border-faint shadow-2xs">
+              <div className="p-20 rounded-lg bg-surface border border-border-faint relative">
+                <CurvyRect sides="allSides" />
+                <div className="text-mono-x-small font-mono text-black-alpha-40 uppercase mb-8">
+                  // STILL HAVE QUESTIONS?
+                </div>
+                <p className="text-body-small text-black-alpha-64 leading-relaxed mb-16">
+                  Need help authoring a custom AST matcher or integrating with custom CI runners?
+                </p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-10">
+                  <a
+                    href="/docs/"
+                    className="px-14 py-8 rounded-md bg-surface hover:bg-background-base text-accent-black border border-border-faint text-mono-x-small font-mono flex items-center justify-between gap-6 transition-colors no-underline"
+                  >
+                    <span>Explore Docs</span>
+                    <ArrowRight className="size-12 text-heat-100" />
+                  </a>
+                  <a
+                    href="https://github.com/RavaniRoshan/policyctl/issues"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-14 py-8 rounded-md bg-surface hover:bg-background-base text-black-alpha-72 hover:text-accent-black border border-border-faint text-mono-x-small font-mono flex items-center justify-between gap-6 transition-colors no-underline"
+                  >
+                    <span>GitHub Issues</span>
+                    <ArrowUpRight className="size-12" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -1611,20 +1652,20 @@ function CTA() {
               </div>
             </div>
 
-            {/* CTAs with Button-in-Button kinetic interaction */}
+            {/* CTAs with precision-milled blueprint geometry */}
             <div className="mt-24 flex flex-wrap items-center justify-center gap-12">
               <Link
                 to="/signup"
-                className="group relative inline-flex items-center gap-10 rounded-full bg-heat-100 hover:bg-heat-90 text-accent-white px-20 py-12 text-label-medium font-medium transition-all duration-200 active:scale-[0.98] shadow-sm cursor-pointer"
+                className="group relative inline-flex items-center gap-10 rounded-lg bg-heat-100 hover:bg-heat-90 text-accent-white px-24 py-12 text-label-medium font-medium transition-all duration-150 active:scale-[0.98] shadow-sm cursor-pointer"
               >
                 <span>Start free trial</span>
-                <span className="size-20 rounded-full bg-white/20 flex items-center justify-center transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5">
+                <span className="size-20 rounded-md bg-white/20 flex items-center justify-center transition-transform duration-150 group-hover:translate-x-1">
                   <ArrowRight className="size-12" weight="bold" />
                 </span>
               </Link>
               <a
                 href="/docs/"
-                className="inline-flex items-center gap-8 rounded-full bg-surface hover:bg-background-base text-accent-black border border-border-faint px-20 py-12 text-label-medium font-medium transition-colors cursor-pointer"
+                className="inline-flex items-center gap-8 rounded-lg bg-surface hover:bg-background-base text-accent-black border border-border-faint px-20 py-12 text-label-medium font-medium transition-colors cursor-pointer"
               >
                 <span>Read documentation</span>
                 <ArrowUpRight className="size-14 text-black-alpha-40" />
