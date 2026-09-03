@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   Eye,
@@ -25,11 +25,21 @@ interface FormData {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMPTY_TOUCHED: Record<keyof FormData, boolean> = {
+  firstName: false,
+  lastName: false,
+  email: false,
+  password: false,
+  terms: false,
+};
 
 export function AuthPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { loginWithRedirect, isLoading, error, isAuthenticated, logout } = useAuth0();
-  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [mode, setMode] = useState<"signup" | "login">(
+    location.pathname === "/login" ? "login" : "signup",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
   const [form, setForm] = useState<FormData>({
@@ -39,14 +49,16 @@ export function AuthPage() {
     password: "",
     terms: false,
   });
-  const [touched, setTouched] = useState<Record<keyof FormData, boolean>>({
-    firstName: false,
-    lastName: false,
-    email: false,
-    password: false,
-    terms: false,
-  });
+  const [touched, setTouched] = useState<Record<keyof FormData, boolean>>(EMPTY_TOUCHED);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Keep the form mode aligned with the route and never carry validation state
+  // into the other account journey.
+  useEffect(() => {
+    setMode(location.pathname === "/login" ? "login" : "signup");
+    setTouched(EMPTY_TOUCHED);
+    setSubmitError(null);
+  }, [location.pathname]);
 
   // Redirect authenticated users straight to the dashboard.
   useEffect(() => {
@@ -75,19 +87,25 @@ export function AuthPage() {
       : undefined,
   };
 
-  const isFormValid =
-    EMAIL_RE.test(form.email) &&
-    form.password.length >= 8 &&
-    (mode === "login" ||
-      (form.firstName.trim().length >= 2 &&
-        form.lastName.trim().length >= 2 &&
-        form.terms));
+  const firstInvalidField = (): keyof FormData | null => {
+    if (mode === "signup" && form.firstName.trim().length < 2) return "firstName";
+    if (mode === "signup" && form.lastName.trim().length < 2) return "lastName";
+    if (!EMAIL_RE.test(form.email)) return "email";
+    if (form.password.length < 8) return "password";
+    if (mode === "signup" && !form.terms) return "terms";
+    return null;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched({ firstName: true, lastName: true, email: true, password: true, terms: true });
     setSubmitError(null);
-    if (!isFormValid || isLoading) return;
+    const invalidField = firstInvalidField();
+    if (invalidField) {
+      setTouched((current) => ({ ...current, [invalidField]: true }));
+      document.getElementById(invalidField)?.focus();
+      return;
+    }
+    if (isLoading) return;
     loginWithRedirect({
       authorizationParams: {
         redirect_uri: REDIRECT_URI,
@@ -131,36 +149,36 @@ export function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Panel - Auth Card (single desktop page, no scroll) */}
-      <div className="flex-1 lg:w-1/2 bg-surface flex flex-col justify-center p-6 sm:p-8 lg:p-12 xl:p-16">
+      <div className="flex-1 lg:w-1/2 bg-surface flex flex-col justify-center p-16 sm:p-24 lg:p-48 xl:p-64">
         <div className="w-full max-w-md mx-auto">
-          <div className="flex items-center justify-between mb-6 lg:mb-8">
+          <div className="flex items-center justify-between gap-16 mb-24 lg:mb-32">
             <Link
               to="/"
-              className="flex items-center gap-2 text-accent-black no-underline group"
+              className="flex items-center gap-8 text-accent-black no-underline group"
               aria-label="policyctl home"
             >
-              <span className="inline-flex size-8 items-center justify-center text-heat-100 group-hover:scale-105 transition-transform duration-200">
+              <span className="inline-flex size-32 shrink-0 items-center justify-center text-heat-100 group-hover:scale-105 transition-transform duration-200">
                 <PolicyctlMark size={28} />
               </span>
               <span className="text-label-large font-medium tracking-tight text-accent-black">
                 policyctl
               </span>
             </Link>
-            <button
-              onClick={() => setMode(mode === "signup" ? "login" : "signup")}
-              className="text-body-small text-black-alpha-56 hover:text-accent-black transition-colors"
+            <Link
+              to={mode === "signup" ? "/login" : "/signup"}
+              className="inline-flex min-h-44 items-center px-8 -mr-8 text-body-small text-black-alpha-56 hover:text-accent-black transition-colors"
             >
-              {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
-              <span className="text-heat-100 font-medium">
+              <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>
+              <span className="ml-4 text-heat-100 font-medium">
                 {mode === "signup" ? "Sign in" : "Sign up"}
               </span>
-            </button>
+            </Link>
           </div>
 
           <h1 className="text-title-h3 text-accent-black tracking-tight">
             {mode === "signup" ? "Create your account" : "Welcome back"}
           </h1>
-          <p className="mt-2 text-body-medium text-black-alpha-72">
+          <p className="mt-8 text-body-medium text-black-alpha-72">
             {mode === "signup"
               ? "Define guardrails, enforce policies across systems."
               : "Sign in to manage your policies."}
@@ -174,17 +192,17 @@ export function AuthPage() {
             </div>
           )}
 
-          <div className="mt-6 space-y-2">
+          <div className="mt-24 space-y-8">
             <button
               type="button"
               onClick={() => handleSocialLogin("github")}
               disabled={isLoading}
-              className="flex w-full h-10 items-center justify-center gap-2 rounded-lg border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
+              className="flex w-full h-44 items-center justify-center gap-8 rounded-md border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
             >
               {isLoading ? (
-                <span className="size-4 border-2 border-border-faint border-t-heat-100 rounded-full animate-spin" />
+                <span className="size-20 border-2 border-border-faint border-t-heat-100 rounded-full animate-spin" />
               ) : (
-                <GithubLogo className="size-4" weight="bold" />
+                <GithubLogo className="size-20" weight="bold" />
               )}
               {mode === "signup" ? "Sign up with GitHub" : "Sign in with GitHub"}
             </button>
@@ -192,28 +210,28 @@ export function AuthPage() {
               type="button"
               onClick={() => handleSocialLogin("google-oauth2")}
               disabled={isLoading}
-              className="flex w-full h-10 items-center justify-center gap-2 rounded-lg border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
+              className="flex w-full h-44 items-center justify-center gap-8 rounded-md border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
             >
               {isLoading ? (
-                <span className="size-4 border-2 border-border-faint border-t-heat-100 rounded-full animate-spin" />
+                <span className="size-20 border-2 border-border-faint border-t-heat-100 rounded-full animate-spin" />
               ) : (
-                <GoogleLogo className="size-4" weight="bold" />
+                <GoogleLogo className="size-20" weight="bold" />
               )}
               {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
             </button>
           </div>
 
-          <div className="flex items-center gap-3 my-4">
+          <div className="flex items-center gap-12 my-20">
             <div className="flex-1 h-px bg-border-faint" />
             <span className="text-mono-x-small text-black-alpha-32 uppercase">or</span>
             <div className="flex-1 h-px bg-border-faint" />
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-3">
+          <form onSubmit={handleSubmit} noValidate className="space-y-16">
             {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-12">
                 <div>
-                  <label htmlFor="firstName" className="text-label-small text-accent-black block mb-1">
+                  <label htmlFor="firstName" className="text-label-small text-accent-black block mb-6">
                     First Name
                   </label>
                   <input
@@ -225,17 +243,17 @@ export function AuthPage() {
                     placeholder="Ada"
                     aria-invalid={errors.firstName ? "true" : undefined}
                     aria-describedby={errors.firstName ? "firstName-error" : undefined}
-                    className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                    className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
                   />
                   {errors.firstName && (
-                    <p id="firstName-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
-                      <WarningCircle className="size-3" />
+                    <p id="firstName-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                      <WarningCircle className="size-16" />
                       {errors.firstName}
                     </p>
                   )}
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="text-label-small text-accent-black block mb-1">
+                  <label htmlFor="lastName" className="text-label-small text-accent-black block mb-6">
                     Last Name
                   </label>
                   <input
@@ -247,11 +265,11 @@ export function AuthPage() {
                     placeholder="Lovelace"
                     aria-invalid={errors.lastName ? "true" : undefined}
                     aria-describedby={errors.lastName ? "lastName-error" : undefined}
-                    className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                    className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
                   />
                   {errors.lastName && (
-                    <p id="lastName-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
-                      <WarningCircle className="size-3" />
+                    <p id="lastName-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                      <WarningCircle className="size-16" />
                       {errors.lastName}
                     </p>
                   )}
@@ -260,7 +278,7 @@ export function AuthPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="text-label-small text-accent-black block mb-1">
+              <label htmlFor="email" className="text-label-small text-accent-black block mb-6">
                 Work Email
               </label>
               <input
@@ -273,18 +291,18 @@ export function AuthPage() {
                 required
                 aria-invalid={errors.email ? "true" : undefined}
                 aria-describedby={errors.email ? "email-error" : undefined}
-                className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
               />
               {errors.email && (
-                <p id="email-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
-                  <WarningCircle className="size-3" />
+                <p id="email-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                  <WarningCircle className="size-16" />
                   {errors.email}
                 </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="text-label-small text-accent-black block mb-1">
+              <label htmlFor="password" className="text-label-small text-accent-black block mb-6">
                 Password
               </label>
               <div className="relative">
@@ -299,20 +317,20 @@ export function AuthPage() {
                   minLength={8}
                   aria-invalid={errors.password ? "true" : undefined}
                   aria-describedby={errors.password ? "password-error" : undefined}
-                  className="w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 pr-9 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                  className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 pr-44 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-black-alpha-48 hover:text-accent-black transition-colors p-1"
+                  className="absolute right-0 top-0 size-44 inline-flex items-center justify-center text-black-alpha-48 hover:text-accent-black transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeSlash className="size-4" /> : <Eye className="size-4" />}
+                  {showPassword ? <EyeSlash className="size-20" /> : <Eye className="size-20" />}
                 </button>
               </div>
               {errors.password && (
-                <p id="password-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
-                  <WarningCircle className="size-3" />
+                <p id="password-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                  <WarningCircle className="size-16" />
                   {errors.password}
                 </p>
               )}
@@ -320,7 +338,7 @@ export function AuthPage() {
 
             {mode === "signup" && (
               <div>
-                <label className="flex items-start gap-2 cursor-pointer pt-1">
+                <label className="flex min-h-44 items-center gap-8 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.terms}
@@ -328,15 +346,15 @@ export function AuthPage() {
                     onBlur={() => setTouched((t) => ({ ...t, terms: true }))}
                     aria-invalid={errors.terms ? "true" : undefined}
                     aria-describedby={errors.terms ? "terms-error" : undefined}
-                    className="size-4 mt-0.5 rounded border-border-faint text-heat-100 focus:ring-heat-100"
+                    className="size-20 shrink-0 rounded border-border-faint text-heat-100 focus:ring-heat-100"
                   />
-                  <span className="text-mono-small text-black-alpha-56 leading-4">
+                  <span className="text-mono-small text-black-alpha-64 leading-20">
                     I agree to the Terms of Service and Privacy Policy
                   </span>
                 </label>
                 {errors.terms && (
-                  <p id="terms-error" role="alert" className="mt-1 text-mono-small text-danger flex items-center gap-1">
-                    <WarningCircle className="size-3" />
+                  <p id="terms-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
+                    <WarningCircle className="size-16" />
                     {errors.terms}
                   </p>
                 )}
@@ -346,11 +364,11 @@ export function AuthPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-10 mt-2"
+              className="w-full h-44 mt-8"
               size="lg"
             >
               {isLoading ? (
-                <span className="size-4 border-2 border-accent-white/30 border-t-accent-white rounded-full animate-spin" />
+                <span className="size-20 border-2 border-accent-white/30 border-t-accent-white rounded-full animate-spin" />
               ) : (
                 <>{mode === "signup" ? "Get started free" : "Sign in"}</>
               )}

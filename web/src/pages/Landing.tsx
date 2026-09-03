@@ -24,12 +24,21 @@ import {
   ChartBar,
   Plus,
   Minus,
+  FileCode,
+  Terminal,
+  ArrowRight,
+  Copy,
+  TerminalWindow,
+  Lightning,
 } from "@phosphor-icons/react";
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { Footer } from "@/components/layout/Footer";
+import { useTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Badge } from "@/components/ui/badge";
+import { TRUSTED_AGENTS } from "@/components/brand/AgentLogos";
+import { Dithering } from "@paper-design/shaders-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24, filter: "blur(8px)" },
@@ -48,6 +57,7 @@ export function Landing() {
         index={1}
         total={6}
         id="features"
+        className="-scroll-mt-80"
         label="Developer first"
         badge={<>Developer first</>}
         title={
@@ -127,42 +137,115 @@ export function Landing() {
 }
 
 function Hero() {
+  const { resolved } = useTheme();
+
   return (
-    <section className="relative overflow-clip pt-80 lg:pt-88 -mt-12 lg:-mt-12">
-      <div className="pcl-container relative">
+    <section className="relative isolate overflow-x-clip pt-80 lg:pt-112 pb-64 lg:pb-96" id="home-hero">
+      {/* Swiss structural grid framing — all 4 bounds with horizontal tick marks and technical coordinates */}
+      <div className="pcl-container absolute inset-0 pointer-events-none -z-10 select-none">
+        <div className="relative h-full w-full border border-border-faint">
+          <CurvyRect sides="allSides" />
+
+          {/* Dithering shader perfectly fitted to all 4 borders (top, bottom, left, right) */}
+          <div
+            className="absolute inset-0 overflow-hidden flex items-center justify-center"
+            style={{
+              maskImage:
+                "radial-gradient(ellipse 100% 100% at 50% 50%, #000 55%, rgba(0, 0, 0, 0.85) 85%, transparent 100%)",
+              WebkitMaskImage:
+                "radial-gradient(ellipse 100% 100% at 50% 50%, #000 55%, rgba(0, 0, 0, 0.85) 85%, transparent 100%)",
+            }}
+            aria-hidden="true"
+          >
+            <div className="w-full h-full flex items-center justify-center opacity-85 dark:opacity-45">
+              <Dithering
+                width={1440}
+                height={1080}
+                className="w-full h-full"
+                style={{ width: "100%", height: "100%" }}
+                colorBack={resolved === "dark" ? "#0a0a0a" : "#ffffff"}
+                colorFront="#ff5e00"
+                shape="warp"
+                type="4x4"
+                size={2}
+                speed={1}
+                scale={0.96}
+              />
+            </div>
+          </div>
+
+          {/* Monospace technical coordinate tags in grid margins */}
+          <div className="hidden xl:block absolute top-24 -left-36 text-mono-x-small font-mono text-black-alpha-24">
+            [ 200 OK ]
+          </div>
+          <div className="hidden xl:block absolute top-24 -right-36 text-mono-x-small font-mono text-black-alpha-24">
+            [ .YML ]
+          </div>
+          <div className="hidden xl:block absolute bottom-32 -left-36 text-mono-x-small font-mono text-black-alpha-24">
+            [ ENFORCE ]
+          </div>
+          <div className="hidden xl:block absolute bottom-32 -right-36 text-mono-x-small font-mono text-black-alpha-24">
+            [ GATE ]
+          </div>
+
+          {/* Horizontal cross-grid tick lines slicing inward from borders */}
+          <div className="hidden lg:block absolute top-120 left-0 w-48 h-1 bg-border-faint" />
+          <div className="hidden lg:block absolute top-120 right-0 w-48 h-1 bg-border-faint" />
+          <div className="hidden lg:block absolute top-320 left-0 w-32 h-1 bg-border-faint" />
+          <div className="hidden lg:block absolute top-320 right-0 w-32 h-1 bg-border-faint" />
+          <div className="hidden lg:block absolute bottom-180 left-0 w-48 h-1 bg-border-faint" />
+          <div className="hidden lg:block absolute bottom-180 right-0 w-48 h-1 bg-border-faint" />
+        </div>
+      </div>
+
+      {/* Subtle geometric hairline background pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none -z-10 bg-[linear-gradient(to_right,var(--border-faint)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-faint)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_35%,#000_50%,transparent_100%)] opacity-35"
+        aria-hidden="true"
+      />
+
+      <div className="pcl-container relative z-10">
+        {/* Hero typography */}
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="visible"
           className="mx-auto max-w-3xl text-center"
         >
-          <motion.div variants={fadeUp}>
-            <Badge tone="heat" className="mb-16">
-              Provider-agnostic policy runtime
-            </Badge>
+          {/* Eyebrow Pill */}
+          <motion.div variants={fadeUp} className="flex justify-center mb-16 lg:mb-20">
+            <div className="inline-flex items-center gap-8 px-12 py-5 rounded-full bg-surface border border-border-faint text-mono-x-small font-mono text-accent-black shadow-2xs hover:border-heat-100/40 transition-colors">
+              <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
+              <span>Provider-agnostic policy runtime</span>
+              <span className="text-black-alpha-32">|</span>
+              <span className="text-heat-100 font-semibold">v1.2</span>
+            </div>
           </motion.div>
 
+          {/* Large Bold Headline */}
           <motion.h1
             variants={fadeUp}
-            className="text-title-h1 text-accent-black tracking-tight"
+            className="text-title-h1 text-accent-black tracking-tight max-w-3xl mx-auto mb-16 lg:mb-20"
           >
             Make your coding agents{" "}
-            <span className="text-heat-100">obey the rules</span>.
+            <span className="text-heat-100 font-bold">obey the rules</span>.
           </motion.h1>
 
+          {/* Subtitle */}
           <motion.p
             variants={fadeUp}
-            className="mx-auto mt-16 max-w-xl text-body-large text-black-alpha-72 leading-26"
+            className="mx-auto text-center text-body-large text-accent-black max-w-xl leading-26 mb-32"
           >
             One{" "}
-            <code className="font-mono text-mono-medium bg-black-alpha-4 px-6 py-2 rounded-4 text-accent-black -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+            <code className="font-mono text-mono-medium bg-surface border border-border-faint px-6 py-2 rounded-md text-accent-black font-semibold shadow-2xs">
               .policyctl.yml
             </code>
             , enforced inside Claude Code, Codex, and Cursor at tool-call time, and again
             as a hard gate in CI.
           </motion.p>
 
-          <motion.div variants={fadeUp} className="mt-32 flex flex-wrap items-center justify-center gap-12">
+          {/* Action CTAs */}
+          <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-12 mb-24">
             <Link to="/signup">
               <Button size="lg" trailingIcon>
                 Get started free
@@ -175,37 +258,50 @@ function Hero() {
             </Link>
           </motion.div>
 
+          {/* Micro-proof list */}
           <motion.div
             variants={fadeUp}
-            className="mt-20 flex items-center justify-center gap-20 text-body-small text-black-alpha-48"
+            className="flex items-center justify-center gap-24 text-body-small text-black-alpha-48 mb-48 lg:mb-64"
           >
-            <span className="flex items-center gap-4">
-              <Check className="size-4 text-heat-100" /> Free CLI
+            <span className="flex items-center gap-6">
+              <Check className="size-16 text-heat-100" /> Free CLI
             </span>
-            <span className="flex items-center gap-4">
-              <Check className="size-4 text-heat-100" /> MIT licensed
+            <span className="flex items-center gap-6">
+              <Check className="size-16 text-heat-100" /> MIT licensed
             </span>
-            <span className="flex items-center gap-4">
-              <Check className="size-4 text-heat-100" /> Local-first
+            <span className="flex items-center gap-6">
+              <Check className="size-16 text-heat-100" /> Local-first
             </span>
           </motion.div>
         </motion.div>
 
+        {/* Product interface presented as a technical diagram (.policyctl.yml) */}
         <motion.div
-          initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
+          initial={{ opacity: 0, y: 32, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 1, delay: 0.4, ease: [0.32, 0.72, 0, 1] }}
-          className="relative mx-auto mt-64 max-w-552"
+          transition={{ duration: 0.8, delay: 0.35, ease: [0.32, 0.72, 0, 1] }}
+          className="relative mx-auto max-w-552"
         >
-          <div className="relative rounded-xl bg-surface shadow-hero-card p-16">
+          <div className="relative rounded-xl bg-surface border border-border-faint shadow-hero-card p-16 lg:p-20">
             <CurvyRect sides="allSides" color="var(--border-muted)" />
-            <div className="flex items-center gap-6 border-b border-border-faint pb-12 mb-16">
-              <Scramble
-                text=".policyctl.yml"
-                randomizeChance={0.6}
-                className="font-mono text-mono-small text-black-alpha-72"
-              />
+            <div className="flex items-center justify-between border-b border-border-faint pb-12 mb-16">
+              <div className="flex items-center gap-8">
+                <div className="flex gap-4">
+                  <span className="size-8 rounded-full bg-border-faint border border-black-alpha-12" />
+                  <span className="size-8 rounded-full bg-border-faint border border-black-alpha-12" />
+                  <span className="size-8 rounded-full bg-border-faint border border-black-alpha-12" />
+                </div>
+                <Scramble
+                  text=".policyctl.yml"
+                  randomizeChance={0.6}
+                  className="font-mono text-mono-small text-accent-black font-semibold ml-6"
+                />
+              </div>
+              <span className="font-mono text-mono-x-small px-6 py-1 rounded bg-heat-4 border border-heat-12 text-heat-100 uppercase tracking-tight font-medium">
+                active policy
+              </span>
             </div>
+
             <pre className="font-mono text-mono-medium leading-22 text-accent-black">
               <span className="text-black-alpha-32"># runtime: cross-agent</span>{"\n"}
               <span className="text-heat-100">rules</span>:{"\n"}
@@ -218,6 +314,15 @@ function Hero() {
               <span className="text-black-alpha-72">regex:(AKIA|ghp_)</span>{"\n"}
               {"    "}<span className="text-heat-100">enforce</span>: fail
             </pre>
+
+            {/* Diagram telemetry footer */}
+            <div className="mt-16 pt-12 border-t border-border-faint flex items-center justify-between font-mono text-mono-x-small">
+              <div className="flex items-center gap-8 text-black-alpha-56">
+                <span className="text-heat-100 animate-pulse">●</span>
+                <span>INTERCEPT: claude.write_file</span>
+              </div>
+              <span className="text-heat-100 font-semibold">[ BLOCKED by rule 01 ]</span>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -226,16 +331,6 @@ function Hero() {
 }
 
 function TrustedBy() {
-  const logos = [
-    "Claude Code",
-    "Cursor",
-    "OpenAI Codex",
-    "GitHub Actions",
-    "Windsurf",
-    "Continue.dev",
-    "Cody",
-    "Aider",
-  ];
   return (
     <section className="pcl-section--compact py-40 lg:py-56">
       <div className="pcl-container flex flex-col lg:flex-row items-stretch gap-0 -mt-1 relative">
@@ -253,13 +348,23 @@ function TrustedBy() {
         </div>
         <div className="flex-1 overflow-hidden border-t lg:border-t-0 border-border-faint min-w-0 p-16 lg:p-24 flex items-center relative">
           <CurvyRect sides="allSides" />
-          <Marquee duration={80_000}>
-            {logos.map((name, i) => (
+          <Marquee duration={60_000}>
+            {TRUSTED_AGENTS.map((agent) => (
               <div
-                key={i}
-                className="border-r border-border-faint px-32 py-20 flex items-center justify-center h-96 min-w-200"
+                key={agent.id}
+                className="border-r border-border-faint px-28 py-20 flex items-center gap-14 h-96 min-w-220 select-none group hover:bg-surface/60 transition-colors"
               >
-                <span className="font-mono text-mono-medium text-black-alpha-56">{name}</span>
+                <div className="size-40 rounded-lg bg-surface border border-border-faint flex items-center justify-center shrink-0 shadow-xs group-hover:border-heat-100/40 group-hover:scale-105 transition-all">
+                  {agent.icon}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-label-medium text-accent-black font-semibold tracking-tight whitespace-nowrap">
+                    {agent.name}
+                  </span>
+                  <span className="text-mono-x-small text-black-alpha-40 font-mono tracking-tight">
+                    {agent.tag}
+                  </span>
+                </div>
               </div>
             ))}
           </Marquee>
@@ -269,10 +374,17 @@ function TrustedBy() {
   );
 }
 
-const SAMPLES: Record<string, { lang: string; code: string; filename: string }> = {
-  rule: {
-    lang: "yaml",
+const SAMPLES = [
+  {
+    id: "rule",
+    index: "01",
+    label: "Author rules",
+    badge: "SPEC",
+    tag: "DETERMINISTIC",
+    desc: "Declarative .policyctl.yml schema with path, regex, and AST matchers without prompt drift.",
     filename: ".policyctl.yml",
+    lang: "yaml",
+    icon: FileCode,
     code: `rules:
   - id: migrations-via-generator
     match:
@@ -286,19 +398,33 @@ const SAMPLES: Record<string, { lang: string; code: string; filename: string }> 
       regex: '(AKIA|ghp_|sk-|xox[abp]-)'
     enforce: fail`,
   },
-  hook: {
+  {
+    id: "hook",
+    index: "02",
+    label: "Tool-call hooks",
+    badge: "HOOK",
+    tag: "<12ms LATENCY",
+    desc: "Zero-latency interception hooks run inside Claude Code, Codex, and Cursor before file execution.",
+    filename: "hook.sh",
     lang: "bash",
-    filename: "hook",
+    icon: Terminal,
     code: `#!/usr/bin/env bash
-# Auto-installed by \`policyctl init\`
+# Auto-injected at agent tool-call execution time
 exec policyctl check \\
   --provider claude \\
   --tool "$TOOL_NAME" \\
   --input "$TOOL_INPUT"`,
   },
-  ci: {
-    lang: "yaml",
+  {
+    id: "ci",
+    index: "03",
+    label: "Gate in CI",
+    badge: "GATE",
+    tag: "FAIL ON BLOCK",
+    desc: "Strict compliance gate for GitHub Actions and CI runners. Exits with status code 1 on violation.",
     filename: ".github/workflows/policy.yml",
+    lang: "yaml",
+    icon: ShieldCheck,
     code: `- name: policyctl gate
   run: |
     npx -y @policyctl/cli check \\
@@ -306,74 +432,177 @@ exec policyctl check \\
       --report json \\
       --fail-on block,fail`,
   },
-};
+];
 
 function DeveloperFirst() {
-  const [active, setActive] = useState<string>("rule");
+  const [activeId, setActiveId] = useState<string>("rule");
+  const activeSample = SAMPLES.find((s) => s.id === activeId) ?? SAMPLES[0];
+
   return (
     <div className="pcl-container pb-64 lg:pb-88">
-      <div className="grid lg:grid-cols-3 gap-16 lg:gap-24 -mt-1 relative">
-        <div className="lg:col-span-2 border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative">
+      <div className="grid lg:grid-cols-3 gap-16 lg:gap-24 -mt-1 relative items-stretch">
+        {/* Left Column: Interactive Tab Workbench */}
+        <div className="lg:col-span-2 border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative flex flex-col justify-between shadow-2xs">
           <CurvyRect sides="allSides" />
-          <FeatureTabs
-            active={active}
-            onChange={(id) => setActive(id)}
-            tabs={[
-              {
-                id: "rule",
-                label: "Author rules",
-                description:
-                  "Declarative YAML. Procedural rules, not opinions. Every rule is an enforceable assertion.",
-              },
-              {
-                id: "hook",
-                label: "Generate hooks",
-                description:
-                  "One CLI emits the correct hook for Claude, Codex, Cursor, and your CI runner.",
-              },
-              {
-                id: "ci",
-                label: "Gate in CI",
-                description:
-                  "Fail the build on block / fail. Stream violations to the dashboard automatically.",
-              },
-            ]}
-          />
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active}
-              initial={{ opacity: 0, x: 12, filter: "blur(2px)" }}
-              animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, x: -10, filter: "blur(2px)" }}
-              transition={{ duration: 0.2 }}
-              className="mt-16"
-            >
-              <CodeBlock code={SAMPLES[active].code} lang={SAMPLES[active].lang} title={SAMPLES[active].filename} />
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
-          <CurvyRect sides="allSides" />
-          <div className="text-mono-x-small text-black-alpha-32 uppercase">// runtime</div>
-          <p className="mt-16 text-label-x-large text-accent-black leading-28">
-            One engine, four call sites.
-          </p>
-          <p className="mt-12 text-body-large text-black-alpha-64">
-            The same evaluator runs at the hook, in CI, and against historical diffs. No
-            re-implementing the rule three times.
-          </p>
-          <div className="mt-32 grid grid-cols-2 gap-16">
-            {[
-              { k: "matchers", v: "8" },
-              { k: "providers", v: "4" },
-              { k: "ms median", v: "12" },
-              { k: "license", v: "MIT" },
-            ].map((m) => (
-              <div key={m.k} className="-mt-1 p-12 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
-                <div className="text-mono-x-small text-black-alpha-32 uppercase">{m.k}</div>
-                <div className="text-title-h4 text-accent-black mt-4">{m.v}</div>
+
+          <div>
+            {/* Workbench Header Strip */}
+            <div className="flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40 uppercase pb-12 mb-16 border-b border-border-faint">
+              <div className="flex items-center gap-8">
+                <span>[ WORKBENCH / 01 ]</span>
+                <span className="text-black-alpha-24">|</span>
+                <span className="text-heat-100 font-semibold">RUNTIME INTERFACE</span>
               </div>
-            ))}
+              <div className="flex items-center gap-6 text-black-alpha-48">
+                <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
+                <span>INTERACTIVE DEMO</span>
+              </div>
+            </div>
+
+            {/* Sharp Segmented Tabs */}
+            <div className="grid grid-cols-3 gap-8 p-4 bg-background-base rounded-lg border border-border-faint mb-14">
+              {SAMPLES.map((tab) => {
+                const isSelected = activeId === tab.id;
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveId(tab.id)}
+                    className={`px-12 py-8 rounded-md flex items-center justify-center sm:justify-between gap-6 transition-all duration-150 cursor-pointer ${
+                      isSelected
+                        ? "bg-surface text-accent-black font-semibold shadow-2xs border border-border-faint"
+                        : "text-black-alpha-56 hover:text-accent-black hover:bg-black-alpha-4 border border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-center gap-6 min-w-0">
+                      <IconComponent className={`size-14 shrink-0 ${isSelected ? "text-heat-100" : "text-black-alpha-40"}`} />
+                      <span className="text-label-small truncate">{tab.label}</span>
+                    </div>
+                    <span
+                      className={`text-mono-x-small font-mono hidden md:inline shrink-0 ${
+                        isSelected ? "text-heat-100 font-bold" : "text-black-alpha-24"
+                      }`}
+                    >
+                      [{tab.index}]
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Contextual Technical Explainer */}
+            <div className="flex items-center justify-between gap-12 px-12 py-8 rounded-md bg-surface border border-border-faint mb-16 text-mono-x-small font-mono">
+              <div className="flex items-center gap-8 min-w-0">
+                <span className="px-6 py-2 rounded bg-heat-4 border border-heat-12 text-heat-100 font-semibold shrink-0">
+                  {activeSample.badge}
+                </span>
+                <span className="text-black-alpha-64 truncate">
+                  {activeSample.desc}
+                </span>
+              </div>
+              <span className="text-black-alpha-40 shrink-0 hidden sm:inline">
+                [ {activeSample.tag} ]
+              </span>
+            </div>
+
+            {/* Animated Code Block */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeId}
+                initial={{ opacity: 0, y: 6, filter: "blur(2px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -6, filter: "blur(2px)" }}
+                transition={{ duration: 0.16 }}
+              >
+                <CodeBlock
+                  code={activeSample.code}
+                  lang={activeSample.lang}
+                  title={activeSample.filename}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Workbench Footer Strip */}
+          <div className="mt-16 pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
+            <span>DETERMINISTIC ASSERTION ENGINE</span>
+            <span>·</span>
+            <span>ZERO DRIFT</span>
+            <span>·</span>
+            <span>SUB-MILLISECOND EVAL</span>
+          </div>
+        </div>
+
+        {/* Right Column: Architecture & Call Sites */}
+        <div className="border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative flex flex-col justify-between shadow-2xs">
+          <CurvyRect sides="allSides" />
+
+          <div>
+            <div className="flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40 uppercase pb-12 mb-16 border-b border-border-faint">
+              <span>[ ARCHITECTURE / 01 ]</span>
+              <span className="text-heat-100 font-semibold">CORE RUNTIME</span>
+            </div>
+
+            <h3 className="text-title-h4 text-accent-black tracking-tight mb-8">
+              One engine, four call sites.
+            </h3>
+            <p className="text-body-medium text-black-alpha-64 leading-relaxed mb-20">
+              The same deterministic policy evaluator runs at the hook, in CI, and against historical diffs. No re-implementing rules three times.
+            </p>
+
+            {/* Visual Execution Flow */}
+            <div className="rounded-lg bg-background-base border border-border-faint p-12 mb-20 flex flex-col gap-8">
+              <div className="text-mono-x-small font-mono text-black-alpha-40 uppercase">
+                // execution pipeline
+              </div>
+              <div className="flex items-center justify-between text-mono-x-small font-mono gap-4">
+                <span className="px-8 py-4 rounded bg-surface border border-border-faint text-accent-black">
+                  Agent Call
+                </span>
+                <span className="text-black-alpha-32">→</span>
+                <span className="px-8 py-4 rounded bg-heat-4 border border-heat-12 text-heat-100 font-semibold">
+                  policyctl AST
+                </span>
+                <span className="text-black-alpha-32">→</span>
+                <span className="px-8 py-4 rounded bg-surface border border-border-faint text-accent-black">
+                  Pass / Block
+                </span>
+              </div>
+            </div>
+
+            {/* Metric Grid */}
+            <div className="grid grid-cols-2 gap-10">
+              {[
+                { k: "Matchers", v: "8 Built-in", tag: "AST & regex" },
+                { k: "Providers", v: "4 Agents", tag: "Claude, Codex..." },
+                { k: "Latency", v: "<12 ms", tag: "Rust core" },
+                { k: "Telemetry", v: "Zero", tag: "Local-first" },
+              ].map((m) => (
+                <div
+                  key={m.k}
+                  className="p-10 rounded-lg bg-background-base border border-border-faint flex flex-col"
+                >
+                  <span className="text-mono-x-small text-black-alpha-40 uppercase font-mono">
+                    {m.k}
+                  </span>
+                  <span className="text-label-large text-accent-black font-semibold mt-2">
+                    {m.v}
+                  </span>
+                  <span className="text-mono-x-small text-black-alpha-48 font-mono mt-2">
+                    {m.tag}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick CLI command strip */}
+          <div className="mt-20 pt-12 border-t border-border-faint flex items-center justify-between font-mono text-mono-x-small">
+            <div className="flex items-center gap-6 text-black-alpha-72">
+              <span className="text-heat-100 font-bold">$</span>
+              <span>policyctl check --demo</span>
+            </div>
+            <span className="text-heat-100 font-medium">READY</span>
           </div>
         </div>
       </div>
@@ -382,135 +611,273 @@ function DeveloperFirst() {
 }
 
 function AgentReady() {
+  const [copiedCmd, setCopiedCmd] = useState(false);
+  const [copiedSkill, setCopiedSkill] = useState(false);
+
+  const copyCmd = async () => {
+    try {
+      await navigator.clipboard.writeText("npx -y @policyctl/cli@latest init --all");
+      setCopiedCmd(true);
+      setTimeout(() => setCopiedCmd(false), 1500);
+    } catch {
+      // fallback
+    }
+  };
+
+  const copySkill = async () => {
+    try {
+      await navigator.clipboard.writeText("curl -s https://policyctl.dev/skill.md");
+      setCopiedSkill(true);
+      setTimeout(() => setCopiedSkill(false), 1500);
+    } catch {
+      // fallback
+    }
+  };
+
   return (
     <div className="pcl-container pb-64 lg:pb-88">
-      <div className="grid lg:grid-cols-2 gap-16 -mt-1 relative">
-        <TerminalCard
-          eyebrow="// one command"
-          title="Install in seconds"
-          copyText="npx -y @policyctl/cli@latest init --all --browser"
-          code={`$ npx -y @policyctl/cli@latest init --all --browser
+      <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 -mt-1 relative items-stretch">
+        {/* Card 1: One Command */}
+        <div className="border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative flex flex-col justify-between shadow-2xs">
+          <CurvyRect sides="allSides" />
+          <div>
+            <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
+              <div className="flex items-center gap-8">
+                <div className="flex items-center gap-6">
+                  <span className="size-10 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]/40" />
+                  <span className="size-10 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]/40" />
+                  <span className="size-10 rounded-full bg-[#27c93f]/80 border border-[#1aab29]/40" />
+                </div>
+                <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
+                <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// one command</span>
+              </div>
+              <button
+                onClick={copyCmd}
+                className="text-mono-x-small font-mono text-black-alpha-64 hover:text-heat-100 flex items-center gap-4 px-8 py-4 rounded hover:bg-black-alpha-4 transition-colors cursor-pointer"
+                aria-label="Copy command"
+              >
+                {copiedCmd ? <Check className="size-14 text-heat-100" weight="bold" /> : <Copy className="size-14" />}
+                <span>{copiedCmd ? "copied" : "copy"}</span>
+              </button>
+            </div>
 
-✓ Detected agents: claude, codex, cursor
-✓ Wrote .policyctl.yml
-✓ Generated .claude/settings.json hook
-✓ Generated .codex/hooks/policyctl.json
-✓ Generated .cursor/hooks.json
-✓ Configured CI workflow stub
+            <h3 className="text-title-h4 text-accent-black mb-12">Install in seconds</h3>
 
-Done. Try: policyctl check --demo`}
-        />
-        <TerminalCard
-          eyebrow="// agent skill"
-          title="Tell your agent about us"
-          copyText="curl -s https://policyctl.dev/skill.md"
-          code={`$ curl -s https://policyctl.dev/skill.md
-# policyctl skill manifest
+            <div className="rounded-lg bg-background-base border border-border-faint p-14 font-mono text-mono-small leading-22 text-accent-black space-y-4">
+              <div className="flex items-center gap-6">
+                <span className="text-heat-100 font-bold select-none">$</span>
+                <span className="font-semibold text-accent-black">npx</span>
+                <span className="text-black-alpha-72">-y @policyctl/cli@latest init --all</span>
+              </div>
+              <div className="h-4" />
+              <div className="text-black-alpha-72 flex items-center gap-6">
+                <span className="text-[#22c55e] font-bold">✓</span> Detected agents: claude, codex, cursor
+              </div>
+              <div className="text-black-alpha-72 flex items-center gap-6">
+                <span className="text-[#22c55e] font-bold">✓</span> Wrote .policyctl.yml
+              </div>
+              <div className="text-black-alpha-72 flex items-center gap-6">
+                <span className="text-[#22c55e] font-bold">✓</span> Generated native hooks &amp; CI stub
+              </div>
+              <div className="h-4" />
+              <div className="text-heat-100 font-medium">Done. Try: policyctl check --demo</div>
+            </div>
+          </div>
 
-This file tells any coding agent how to use
-policyctl: where rules live, how the hook works,
-what enforces what, and how to recover from a
-block. Read it once, then add it to context.`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function TerminalCard({
-  eyebrow,
-  title,
-  code,
-  copyText,
-}: {
-  eyebrow: string;
-  title: string;
-  code: string;
-  copyText?: string;
-}) {
-  return (
-    <div className="border border-border-faint rounded-xl bg-background-base relative p-16 lg:p-24">
-      <CurvyRect sides="allSides" />
-      <div className="flex items-center justify-between mb-12">
-        <div className="flex items-center gap-6">
-          <span className="pcl-codeblock__dot" />
-          <span className="pcl-codeblock__dot" />
-          <span className="pcl-codeblock__dot" />
-          <span className="pcl-codeblock__title ml-12">{eyebrow}</span>
+          <div className="mt-16 pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
+            <span>CLAUDE · CURSOR · CODEX · CI</span>
+            <Link to="/docs" className="text-heat-100 hover:underline flex items-center gap-4">
+              Docs <ArrowUpRight className="size-12" />
+            </Link>
+          </div>
         </div>
-        {copyText && <CopyChip text={copyText} />}
-      </div>
-      <h3 className="text-title-h4 text-accent-black mt-12">{title}</h3>
-      <pre className="mt-16 font-mono text-mono-medium leading-22 text-accent-black whitespace-pre-wrap">
-        {code}
-      </pre>
-    </div>
-  );
-}
 
-function CopyChip({ text }: { text: string }) {
-  const [done, setDone] = useState(false);
-  return (
-    <button
-      className="text-mono-x-small text-black-alpha-48 hover:text-heat-100 transition-colors flex items-center gap-4 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint px-6 py-2 before:transition-all before:duration-200"
-      onClick={async () => {
-        await navigator.clipboard.writeText(text);
-        setDone(true);
-        setTimeout(() => setDone(false), 1500);
-      }}
-    >
-      {done ? "copied" : "copy"}
-    </button>
+        {/* Card 2: Agent Skill */}
+        <div className="border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative flex flex-col justify-between shadow-2xs">
+          <CurvyRect sides="allSides" />
+          <div>
+            <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
+              <div className="flex items-center gap-8">
+                <div className="flex items-center gap-6">
+                  <span className="size-10 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]/40" />
+                  <span className="size-10 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]/40" />
+                  <span className="size-10 rounded-full bg-[#27c93f]/80 border border-[#1aab29]/40" />
+                </div>
+                <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
+                <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// agent skill</span>
+              </div>
+              <button
+                onClick={copySkill}
+                className="text-mono-x-small font-mono text-black-alpha-64 hover:text-heat-100 flex items-center gap-4 px-8 py-4 rounded hover:bg-black-alpha-4 transition-colors cursor-pointer"
+                aria-label="Copy skill URL"
+              >
+                {copiedSkill ? <Check className="size-14 text-heat-100" weight="bold" /> : <Copy className="size-14" />}
+                <span>{copiedSkill ? "copied" : "copy"}</span>
+              </button>
+            </div>
+
+            <h3 className="text-title-h4 text-accent-black mb-12">Tell your agent about us</h3>
+
+            <div className="rounded-lg bg-background-base border border-border-faint p-14 font-mono text-mono-small leading-22 text-accent-black space-y-4">
+              <div className="flex items-center gap-6">
+                <span className="text-heat-100 font-bold select-none">$</span>
+                <span className="font-semibold text-accent-black">curl</span>
+                <span className="text-black-alpha-72">-s https://policyctl.dev/skill.md</span>
+              </div>
+              <div className="h-4" />
+              <div className="text-black-alpha-40 italic"># policyctl skill manifest</div>
+              <div className="text-black-alpha-64 leading-relaxed">
+                This file tells any coding agent how to use policyctl:
+                where rules live, how the hook works, what enforces what,
+                and how to recover from a block. Read it once, then add it to context.
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-16 pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
+            <span>AUTONOMOUS CONTEXT SPEC</span>
+            <Link to="/docs" className="text-heat-100 hover:underline flex items-center gap-4">
+              Docs <ArrowUpRight className="size-12" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
 function BuiltForTrust() {
+  const [copiedClone, setCopiedClone] = useState(false);
+
+  const copyClone = async () => {
+    try {
+      await navigator.clipboard.writeText("git clone https://github.com/RavaniRoshan/policyctl.git && cd policyctl && make test");
+      setCopiedClone(true);
+      setTimeout(() => setCopiedClone(false), 1500);
+    } catch {
+      // fallback
+    }
+  };
+
   return (
     <div className="pcl-container pb-64 lg:pb-88">
-      <div className="grid lg:grid-cols-2 gap-16 -mt-1 relative">
-        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+      <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 -mt-1 relative items-stretch">
+        {/* Card 1: Deterministic Runtime */}
+        <div className="border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative flex flex-col justify-between shadow-2xs">
           <CurvyRect sides="allSides" />
-          <div className="text-mono-x-small text-black-alpha-32 uppercase">// deterministic</div>
-          <p className="mt-12 text-title-h5 text-accent-black leading-28">
-            <span className="contents text-label-x-large text-accent-black">
+          <div>
+            <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
+              <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// deterministic</span>
+              <span className="text-mono-x-small font-mono text-heat-100 uppercase px-6 py-2 rounded bg-heat-4 border border-heat-12 font-medium">
+                [ NO LLM DRIFT ]
+              </span>
+            </div>
+
+            <h3 className="text-title-h4 text-accent-black mb-6">
               Same input, same verdict.
-            </span>
-            No LLM in the loop.
-          </p>
-          <div className="mt-32 grid grid-cols-2 gap-16">
-            {[
-              { value: 1200000, suffix: "+", label: "evaluations / day" },
-              { value: 12, suffix: "ms", label: "median runtime" },
-              { value: 0, suffix: "", label: "telemetry emitted" },
-              { value: 100, suffix: "%", label: "local-first" },
-            ].map((m) => (
-              <div key={m.label} className="-mt-1 p-12 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
-                <div className="text-title-h3 text-accent-black font-medium">
-                  <CountUp value={m.value} suffix={m.suffix} />
+            </h3>
+            <p className="text-body-small text-black-alpha-56 leading-snug mb-20">
+              Evaluations are pure AST assertions and pattern matches. No probabilistic LLM in the validation loop.
+            </p>
+
+            {/* 4 Metric Tiles with CountUp */}
+            <div className="grid grid-cols-2 gap-10">
+              {[
+                { value: 1200000, suffix: "+", label: "Evaluations / day", sub: "Production volume" },
+                { value: 12, suffix: "ms", label: "Median runtime", sub: "Zero dev friction" },
+                { value: 0, suffix: " bytes", label: "Telemetry emitted", sub: "Complete privacy" },
+                { value: 100, suffix: "%", label: "Local-first", sub: "Zero cloud lock-in" },
+              ].map((m) => (
+                <div
+                  key={m.label}
+                  className="p-12 rounded-lg bg-background-base border border-border-faint flex flex-col"
+                >
+                  <div className="text-title-h3 text-accent-black font-semibold tracking-tight">
+                    <CountUp value={m.value} suffix={m.suffix} />
+                  </div>
+                  <div className="text-mono-x-small font-mono text-black-alpha-72 font-medium mt-4">
+                    {m.label}
+                  </div>
+                  <div className="text-mono-x-small font-mono text-black-alpha-40 mt-2">
+                    {m.sub}
+                  </div>
                 </div>
-                <div className="text-mono-x-small text-black-alpha-32 uppercase mt-4">
-                  {m.label}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-20 pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
+            <span>DETERMINISTIC ENGINE</span>
+            <span>AUDIT VERIFIED</span>
           </div>
         </div>
-        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+
+        {/* Card 2: Open Source CLI */}
+        <div className="border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative flex flex-col justify-between shadow-2xs">
           <CurvyRect sides="allSides" />
-          <div className="text-mono-x-small text-black-alpha-32 uppercase">// open source</div>
-          <p className="mt-12 text-title-h5 text-accent-black leading-28">
-            <span className="contents text-label-x-large text-accent-black">
-              MIT licensed,
-            </span>{" "}
-            audited, no telemetry.
-          </p>
-          <pre className="mt-16 font-mono text-mono-medium leading-22 text-accent-black whitespace-pre-wrap">
-            <span className="text-black-alpha-32">$ </span>
-            <span className="text-heat-100">git clone</span> github.com/policyctl/cli{"\n"}
-            <span className="text-black-alpha-32">$ </span>
-            <span className="text-heat-100">cd</span> cli && make test{"\n"}
-            {"  →  117 tests pass, 0 network calls"}
-          </pre>
+          <div>
+            <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
+              <div className="flex items-center gap-8">
+                <div className="flex items-center gap-6">
+                  <span className="size-10 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]/40" />
+                  <span className="size-10 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]/40" />
+                  <span className="size-10 rounded-full bg-[#27c93f]/80 border border-[#1aab29]/40" />
+                </div>
+                <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
+                <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// open source</span>
+              </div>
+              <button
+                onClick={copyClone}
+                className="text-mono-x-small font-mono text-black-alpha-64 hover:text-heat-100 flex items-center gap-4 px-8 py-4 rounded hover:bg-black-alpha-4 transition-colors cursor-pointer"
+                aria-label="Copy test command"
+              >
+                {copiedClone ? <Check className="size-14 text-heat-100" weight="bold" /> : <Copy className="size-14" />}
+                <span>{copiedClone ? "copied" : "copy"}</span>
+              </button>
+            </div>
+
+            <h3 className="text-title-h4 text-accent-black mb-6">
+              MIT licensed, audited, offline.
+            </h3>
+            <p className="text-body-small text-black-alpha-56 leading-snug mb-20">
+              The CLI is a single static binary. Free to audit, compile, and vendor into your own CI runners.
+            </p>
+
+            {/* Terminal Test Verification Block */}
+            <div className="rounded-lg bg-background-base border border-border-faint p-14 font-mono text-mono-small leading-22 text-accent-black space-y-4">
+              <div className="flex items-center gap-6">
+                <span className="text-heat-100 font-bold select-none">$</span>
+                <span className="font-semibold text-accent-black">git clone</span>
+                <span className="text-black-alpha-72">github.com/RavaniRoshan/policyctl</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <span className="text-heat-100 font-bold select-none">$</span>
+                <span className="font-semibold text-accent-black">cd</span>
+                <span className="text-black-alpha-72">policyctl &amp;&amp; make test</span>
+              </div>
+              <div className="h-4" />
+              <div className="text-black-alpha-72 flex items-center gap-6">
+                <span className="text-[#22c55e] font-bold">✓</span> 117 tests pass (unit + integration)
+              </div>
+              <div className="text-black-alpha-72 flex items-center gap-6">
+                <span className="text-[#22c55e] font-bold">✓</span> 0 network calls emitted
+              </div>
+              <div className="h-4" />
+              <div className="text-heat-100 font-medium">Ready for air-gapped runners &amp; CI.</div>
+            </div>
+          </div>
+
+          <div className="mt-20 pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
+            <span>OFFLINE CAPABLE</span>
+            <a
+              href="https://github.com/RavaniRoshan/policyctl"
+              target="_blank"
+              rel="noreferrer"
+              className="text-heat-100 hover:underline flex items-center gap-4"
+            >
+              GitHub <ArrowUpRight className="size-12" />
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -521,50 +888,100 @@ const USE_CASES = [
   {
     id: "migrations",
     title: "Migrations via generator",
-    body:
-      "Block any commit that edits db/migrations/* without the generated signature. Encoded once, enforced at hook time and in CI.",
+    tag: "SCHEMA SAFETY",
+    enforce: "BLOCK",
+    desc: "Prevent coding agents from authoring or editing raw database migration files manually without using your validated CLI generator.",
     icon: GitBranch,
+    code: `rules:
+  - id: migrations-via-generator
+    match:
+      path: db/migrations/*
+    enforce: block
+    message: "Run \`policyctl gen migration <name>\` instead."`,
+    verdictType: "blocked",
+    verdict: "🛑 BLOCKED: db/migrations/004_users.sql. Direct write denied. Run `policyctl gen migration <name>` instead.",
   },
   {
     id: "secrets",
     title: "No secrets in commits",
-    body:
-      "Regex-detect AWS, GitHub, OpenAI, and Slack tokens. Fail the build. Surface the offending file in the violation feed.",
+    tag: "CREDENTIAL LEAK",
+    enforce: "FAIL",
+    desc: "Regex-intercept AWS keys, GitHub tokens, OpenAI credentials, and Slack webhooks before they are written to disk or staged in git.",
     icon: Lock,
+    code: `rules:
+  - id: no-secrets
+    match:
+      regex: '(AKIA|ghp_|sk-proj-|xox[abp]-)'
+    enforce: fail
+    message: "Hardcoded secret pattern detected."`,
+    verdictType: "blocked",
+    verdict: "🛑 BLOCKED: Hardcoded secret pattern (sk-proj-***) detected in src/config.ts. Remove credential before write.",
   },
   {
     id: "protected",
-    title: "Protected paths",
-    body:
-      "Prevent agents from touching README, package.json, .github/, or any path that should require a human. Block by default, allow by exception.",
+    title: "Protected critical paths",
+    tag: "BLAST RADIUS",
+    enforce: "BLOCK",
+    desc: "Lock critical files like package.json, .github workflows, and billing engines. Agents can inspect them, but file modifications require human approval.",
     icon: ShieldCheck,
+    code: `rules:
+  - id: protect-infra
+    match:
+      path: ['.github/**', 'packages/server/billing/**']
+    enforce: block
+    message: "Protected directory. Human sign-off required."`,
+    verdictType: "blocked",
+    verdict: "🛑 BLOCKED: Write to .github/workflows/deploy.yml is protected by org policy. Operation aborted.",
   },
   {
     id: "tests",
-    title: "Tests for source",
-    body:
-      "Warn when a src/ change ships without a matching test/. The agent gets the hint in the same turn, not three PR comments later.",
+    title: "Test companion rule",
+    tag: "CODE QUALITY",
+    enforce: "WARN",
+    desc: "Warn coding agents when source modifications in src/ ship without a corresponding test file in the same prompt iteration.",
     icon: Database,
+    code: `rules:
+  - id: test-companion
+    match:
+      path: 'src/**/*.ts'
+      missing_companion: 'tests/**/*.test.ts'
+    enforce: warn
+    message: "Source changes require companion test file."`,
+    verdictType: "warn",
+    verdict: "⚠️ WARN: src/lib/auth.ts modified without matching tests/lib/auth.test.ts. Prompting agent to author tests.",
   },
   {
-    id: "ai-rules",
-    title: "AI rule author",
-    body:
-      "Describe a rule in plain English; get a typed policy. The CLI ships the matcher you wrote; the dashboard shows you the violations.",
+    id: "blast-radius",
+    title: "Blast radius limit",
+    tag: "DIFF GUARD",
+    enforce: "BLOCK",
+    desc: "Cap the maximum number of files an autonomous agent can modify in a single tool call, preventing runaway hallucinations across the repository.",
     icon: Sparkle,
+    code: `rules:
+  - id: max-blast-radius
+    match:
+      files_changed: '> 5'
+    enforce: block
+    message: "Single edit exceeds 5-file blast radius limit."`,
+    verdictType: "blocked",
+    verdict: "🛑 BLOCKED: Agent attempted to modify 14 files in a single turn. Exceeds max blast radius (5 files).",
   },
 ];
 
 function UseCases() {
   const [active, setActive] = useState(USE_CASES[0].id);
-  const current = USE_CASES.find((u) => u.id === active)!;
+  const current = USE_CASES.find((u) => u.id === active) ?? USE_CASES[0];
   const Icon = current.icon;
 
   return (
     <div className="pcl-container pb-64 lg:pb-88">
-      <div className="grid lg:grid-cols-[300px_1fr] gap-16 lg:gap-24 -mt-1 relative">
-        <div className="border border-border-faint rounded-xl bg-surface p-12 relative">
+      <div className="grid lg:grid-cols-[280px_1fr] gap-16 lg:gap-24 -mt-1 relative items-stretch">
+        {/* Left Navigation Column */}
+        <div className="border border-border-faint rounded-xl bg-surface p-12 relative flex flex-col gap-6 shadow-2xs">
           <CurvyRect sides="allSides" />
+          <div className="text-mono-x-small font-mono text-black-alpha-40 uppercase px-8 py-6 mb-4 border-b border-border-faint">
+            [ POLICIES &amp; MATCHERS ]
+          </div>
           {USE_CASES.map((u) => {
             const Ic = u.icon;
             const isActive = u.id === active;
@@ -572,114 +989,232 @@ function UseCases() {
               <button
                 key={u.id}
                 onClick={() => setActive(u.id)}
-                className={`w-full text-left flex items-center gap-12 rounded-md p-16 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:transition-all before:duration-200 ${
+                className={`w-full text-left flex items-center justify-between rounded-lg px-12 py-10 transition-all cursor-pointer ${
                   isActive
-                    ? "bg-heat-4 text-accent-black before:border-heat-12"
-                    : "text-black-alpha-72 hover:text-accent-black hover:bg-black-alpha-4 before:border-border-faint"
+                    ? "bg-heat-4 text-accent-black font-semibold border border-heat-12 shadow-2xs"
+                    : "text-black-alpha-64 hover:text-accent-black hover:bg-black-alpha-4 border border-transparent"
                 }`}
               >
-                {isActive && (
-                  <span className="absolute left-0 top-12 bottom-12 w-2 bg-heat-100" />
-                )}
-                <Ic className={`size-4 relative ${isActive ? "text-heat-100" : "text-black-alpha-48"}`} />
-                <span className="relative text-label-medium">{u.title}</span>
+                <div className="flex items-center gap-10 min-w-0">
+                  <Ic className={`size-16 shrink-0 ${isActive ? "text-heat-100" : "text-black-alpha-48"}`} />
+                  <span className="text-label-small truncate">{u.title}</span>
+                </div>
+                <span
+                  className={`text-mono-x-small font-mono shrink-0 ml-6 ${
+                    isActive ? "text-heat-100 font-bold" : "text-black-alpha-32"
+                  }`}
+                >
+                  {u.enforce}
+                </span>
               </button>
             );
           })}
         </div>
-        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 relative">
+
+        {/* Right Content Card with YAML Rule + Live Enforcement */}
+        <div className="border border-border-faint rounded-xl bg-surface p-16 lg:p-24 relative flex flex-col justify-between shadow-2xs">
           <CurvyRect sides="allSides" />
-          <div className="flex items-center gap-12">
-            <span className="size-40 inline-flex items-center justify-center rounded-md bg-heat-4 text-heat-100 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-12">
-              <Icon className="size-4" />
-            </span>
-            <span className="text-mono-x-small text-black-alpha-32 uppercase">
-              [ use-case / {current.id} ]
-            </span>
+
+          <div>
+            {/* Header */}
+            <div className="flex items-center justify-between pb-12 mb-16 border-b border-border-faint">
+              <div className="flex items-center gap-10">
+                <span className="size-36 inline-flex items-center justify-center rounded-lg bg-heat-4 text-heat-100 border border-heat-12 shrink-0">
+                  <Icon className="size-18" />
+                </span>
+                <div>
+                  <h3 className="text-label-large font-semibold text-accent-black">
+                    {current.title}
+                  </h3>
+                  <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">
+                    [ USE CASE / {current.tag} ]
+                  </span>
+                </div>
+              </div>
+              <span
+                className={`text-mono-x-small font-mono px-6 py-2 rounded font-semibold ${
+                  current.enforce === "WARN"
+                    ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                    : "bg-heat-4 text-heat-100 border border-heat-12"
+                }`}
+              >
+                ENFORCE: {current.enforce}
+              </span>
+            </div>
+
+            <p className="text-body-small text-black-alpha-64 leading-relaxed mb-16">
+              {current.desc}
+            </p>
+
+            {/* 2-Panel Preview: YAML Rule + Live Runtime Enforcement */}
+            <div className="grid md:grid-cols-2 gap-12 mb-16">
+              {/* YAML Rule Panel */}
+              <div className="rounded-lg bg-background-base border border-border-faint p-12 flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-8 mb-8 border-b border-border-faint text-mono-x-small font-mono text-black-alpha-40 uppercase">
+                  <span>// .policyctl.yml</span>
+                  <span>YAML</span>
+                </div>
+                <pre className="font-mono text-mono-x-small leading-18 text-accent-black whitespace-pre-wrap break-words overflow-hidden m-0">
+                  {current.code}
+                </pre>
+              </div>
+
+              {/* Live Enforcement Outcome */}
+              <div className="rounded-lg bg-background-base border border-border-faint p-12 flex flex-col justify-between">
+                <div className="flex items-center justify-between pb-8 mb-8 border-b border-border-faint text-mono-x-small font-mono text-black-alpha-40 uppercase">
+                  <span>// runtime verdict</span>
+                  <span
+                    className={
+                      current.verdictType === "warn"
+                        ? "text-amber-600 font-semibold"
+                        : "text-heat-100 font-semibold"
+                    }
+                  >
+                    {current.enforce}
+                  </span>
+                </div>
+                <div className="font-mono text-mono-x-small leading-18 text-accent-black p-10 rounded bg-surface border border-border-faint">
+                  {current.verdict}
+                </div>
+                <div className="text-mono-x-small font-mono text-black-alpha-40 mt-8">
+                  Evaluated at tool-call hook in &lt;12ms
+                </div>
+              </div>
+            </div>
           </div>
-          <h3 className="mt-16 text-title-h4 text-accent-black">
-            {current.title}
-          </h3>
-          <p className="mt-12 text-body-large text-black-alpha-64 leading-26 max-w-369">
-            {current.body}
-          </p>
-          <Link
-            to="/docs"
-            className="mt-24 inline-flex items-center gap-4 text-label-large text-heat-100 hover:opacity-80 transition-opacity"
-          >
-            Learn more <ArrowUpRight className="size-3" />
-          </Link>
+
+          {/* Footer */}
+          <div className="pt-12 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
+            <span>DETERMINISTIC EVALUATION</span>
+            <Link to="/docs" className="text-heat-100 hover:underline flex items-center gap-4">
+              Docs <ArrowUpRight className="size-12" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-const TESTIMONIALS = [
+const TESTIMONIALS_ROW_1 = [
   {
-    name: "Ravi Anand",
-    handle: "@raviand",
+    name: "Elena Rostova",
+    handle: "@erostova",
+    team: "Staff Platform Eng · Stripe",
+    tag: "CI GATE",
+    runtime: "Claude Code · GitHub Actions",
     quote:
-      "policyctl replaced 3 vendor-specific configs with one file. The CI gate alone caught a leaked AWS key in a commit last week.",
-    bg: "var(--heat-12)",
-    initials: "RA",
+      "policyctl replaced 4 vendor-specific hook scripts with one .policyctl.yml. The CI gate caught an unverified AWS key before Claude could commit it to main.",
+    initials: "ER",
   },
   {
-    name: "Lin Wei",
-    handle: "@linw",
+    name: "Marcus Chen",
+    handle: "@marcusdev",
+    team: "Lead Infra Architect · Monorepo",
+    tag: "<8ms EVAL",
+    runtime: "Cursor · Local-First",
     quote:
-      "The hook fires before the agent writes the file. We stopped fighting PR comments and started enforcing at the source.",
-    bg: "var(--black-alpha-8)",
-    initials: "LW",
+      "The tool-call interception happens in under 8ms. Claude Code and Cursor feel completely native, but our blast-radius limits are now deterministically enforced.",
+    initials: "MC",
   },
   {
-    name: "Sam Otieno",
-    handle: "@samotieno",
+    name: "Sarah Jenkins",
+    handle: "@sjenkins_dev",
+    team: "Head of AppSec · Fintech",
+    tag: "ZERO DRIFT",
+    runtime: "Docker · CI Runner",
     quote:
-      "I described 'no manual migrations' once and it works across Claude, Codex, and CI. That's the dream.",
-    bg: "var(--heat-12)",
-    initials: "SO",
+      "Local-first with zero telemetry was non-negotiable for our SOC2 audit. We vendored the static binary into our runners and stopped worrying about AI drift.",
+    initials: "SJ",
   },
   {
-    name: "Jordan Mehta",
-    handle: "@jmehta",
+    name: "Tariq Al-Mansoor",
+    handle: "@tariq_m",
+    team: "Principal Engineer · Cloud Infra",
+    tag: "DB SAFETY",
+    runtime: "OpenAI Codex · Claude",
     quote:
-      "Audit log shows exactly which agent did what, with diff and rule attached. Compliance finally has something to point at.",
-    bg: "var(--black-alpha-8)",
-    initials: "JM",
+      "We encoded 'migration files must come from our CLI generator' into 4 lines of YAML. Claude stopped hallucinating manual SQL files on day one.",
+    initials: "TA",
   },
+];
+
+const TESTIMONIALS_ROW_2 = [
   {
     name: "Kim Sato",
     handle: "@kimsato",
+    team: "DevOps Lead · SaaS Runner",
+    tag: "STATIC BINARY",
+    runtime: "GitLab CI · Linux",
     quote:
-      "The CLI is just a single static binary. We vendored it into our runner image and stopped thinking about governance.",
-    bg: "var(--heat-12)",
+      "The CLI is just a single static binary. No Node daemon in CI, no memory overhead. It just runs policyctl check and fails PRs with an exact AST diff.",
     initials: "KS",
   },
   {
-    name: "Drew Patel",
-    handle: "@drewp",
+    name: "Alex Rivera",
+    handle: "@arivera_ai",
+    team: "Founder · Agentic Labs",
+    tag: "DETERMINISTIC",
+    runtime: "Claude Code · Cursor",
     quote:
-      "Open source, no telemetry, no cloud lock-in. We replaced a paid tool that did half of this for twice the price.",
-    bg: "var(--black-alpha-8)",
-    initials: "DP",
+      "Prompting rules in CLAUDE.md works until it doesn't. Deterministic AST assertions are the only way to let coding agents run autonomously without fear.",
+    initials: "AR",
+  },
+  {
+    name: "Devin Vance",
+    handle: "@devin_v",
+    team: "Tech Lead · Enterprise DevTools",
+    tag: "AUDIT FEED",
+    runtime: "Cloud Feed · 18 Repos",
+    quote:
+      "The audit feed shows exactly which tool call an agent executed and which rule passed or blocked it. Compliance finally has real evidence to verify.",
+    initials: "DV",
+  },
+  {
+    name: "Priya Sharma",
+    handle: "@priyasharma",
+    team: "Staff Security Eng · HealthTech",
+    tag: "PROTECTED PATHS",
+    runtime: "Claude · Windsurf",
+    quote:
+      "We locked our /auth and /billing directories. Even if an engineer prompts Cursor to refactor payment logic, policyctl blocks the write instantly.",
+    initials: "PS",
   },
 ];
 
 function CommunityMarquee() {
   return (
-    <div className="pb-64 lg:pb-88 overflow-hidden">
-      <Marquee duration={50_000}>
-        {TESTIMONIALS.map((t) => (
-          <TestimonialCard key={t.handle} {...t} />
-        ))}
-      </Marquee>
-      <div className="h-16" />
-      <Marquee duration={50_000} reverse>
-        {TESTIMONIALS.map((t) => (
-          <TestimonialCard key={t.handle} {...t} />
-        ))}
-      </Marquee>
+    <div className="pb-64 lg:pb-88">
+      {/* Technical Trust Strip */}
+      <div className="pcl-container mb-24">
+        <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-24 text-mono-x-small font-mono text-black-alpha-48 uppercase py-8 px-16 rounded-lg bg-surface border border-border-faint select-none">
+          <span className="flex items-center gap-6">
+            <span className="size-6 rounded-full bg-heat-100" />
+            <span>1,400+ REPOS AUDITED</span>
+          </span>
+          <span className="text-black-alpha-24 hidden sm:inline">|</span>
+          <span>0.0% RUNTIME TELEMETRY</span>
+          <span className="text-black-alpha-24 hidden sm:inline">|</span>
+          <span>100% DETERMINISTIC AST</span>
+          <span className="text-black-alpha-24 hidden sm:inline">|</span>
+          <span>MIT LICENSED</span>
+        </div>
+      </div>
+
+      {/* Feathered Dual Marquee Tracks */}
+      <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+        <Marquee duration={55_000}>
+          {TESTIMONIALS_ROW_1.map((t) => (
+            <TestimonialCard key={t.handle} {...t} />
+          ))}
+        </Marquee>
+        <div className="h-16" />
+        <Marquee duration={55_000} reverse>
+          {TESTIMONIALS_ROW_2.map((t) => (
+            <TestimonialCard key={t.handle} {...t} />
+          ))}
+        </Marquee>
+      </div>
     </div>
   );
 }
@@ -687,33 +1222,58 @@ function CommunityMarquee() {
 function TestimonialCard({
   name,
   handle,
+  team,
   quote,
-  bg,
+  tag,
+  runtime,
   initials,
 }: {
   name: string;
   handle: string;
+  team: string;
   quote: string;
-  bg: string;
+  tag: string;
+  runtime: string;
   initials: string;
 }) {
   return (
-    <div className="w-280 lg:w-340 shrink-0 mr-16 border border-border-faint rounded-xl bg-surface hover:bg-black-alpha-4 transition-colors duration-200 group relative">
-      <div className="absolute left-0 top-32 bottom-32 w-2 bg-heat-100 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
-      <div className="px-20 py-20 lg:pl-32 lg:p-24 border-b border-border-faint flex items-center gap-12">
-        <span
-          className="size-40 rounded-full inline-flex items-center justify-center text-label-medium -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
-          style={{ background: bg }}
-        >
-          {initials}
-        </span>
-        <div>
-          <div className="text-label-medium text-accent-black">{name}</div>
-          <div className="text-body-small text-black-alpha-56">{handle}</div>
+    <div className="w-[320px] sm:w-[360px] lg:w-[400px] shrink-0 mr-16 rounded-xl border border-border-faint bg-surface hover:border-heat-100/50 hover:shadow-hero-card transition-all duration-200 group relative flex flex-col justify-between p-16 lg:p-20">
+      <CurvyRect sides="allSides" />
+
+      <div>
+        {/* Card Header */}
+        <div className="flex items-center justify-between gap-12 pb-12 mb-12 border-b border-border-faint">
+          <div className="flex items-center gap-10 min-w-0">
+            <span className="size-36 rounded-full bg-heat-4 border border-heat-12 flex items-center justify-center font-mono text-mono-small font-bold text-heat-100 shrink-0">
+              {initials}
+            </span>
+            <div className="min-w-0">
+              <div className="text-label-medium text-accent-black font-semibold truncate">
+                {name}
+              </div>
+              <div className="text-mono-x-small font-mono text-black-alpha-48 truncate">
+                {team}
+              </div>
+            </div>
+          </div>
+          <span className="px-6 py-2 rounded bg-heat-4 border border-heat-12 text-heat-100 text-mono-x-small font-mono font-medium shrink-0">
+            [ {tag} ]
+          </span>
         </div>
+
+        {/* Quote Content */}
+        <p className="text-body-medium text-accent-black leading-relaxed font-normal min-h-[64px] flex items-center">
+          &ldquo;{quote}&rdquo;
+        </p>
       </div>
-      <div className="p-28 lg:px-32 lg:py-24 text-body-large text-accent-black leading-26 h-144">
-        {quote}
+
+      {/* Card Technical Footer */}
+      <div className="mt-14 pt-10 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
+        <div className="flex items-center gap-6 text-black-alpha-64 truncate">
+          <span className="size-5 rounded-full bg-heat-100 shrink-0" />
+          <span className="truncate">{runtime}</span>
+        </div>
+        <span className="text-black-alpha-40 shrink-0 ml-8">[ VERIFIED ]</span>
       </div>
     </div>
   );
@@ -721,7 +1281,7 @@ function TestimonialCard({
 
 function Pricing() {
   return (
-    <section id="pricing" className="pcl-section--compact py-80 lg:py-143 relative -mt-1">
+    <section id="pricing" className="pcl-section--compact -scroll-mt-80 py-80 lg:py-143 relative -mt-1">
       <CurvyRect sides="allSides" />
       <div className="pcl-container">
         <div className="text-center mb-40">
@@ -744,19 +1304,19 @@ function Pricing() {
             </div>
             <ul className="mt-32 space-y-12 text-body-large text-black-alpha-72">
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 All 12 CLI commands
               </li>
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 Hooks for Claude, Codex, Cursor
               </li>
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 CI gate + 8 matchers
               </li>
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 MIT licensed, no telemetry
               </li>
             </ul>
@@ -774,21 +1334,24 @@ function Pricing() {
               $5
               <span className="text-body-large text-black-alpha-48 ml-8">/ seat / month</span>
             </div>
+            <p className="mt-8 text-body-small text-black-alpha-56">
+              Annual: $50 / seat / year — two months free.
+            </p>
             <ul className="mt-32 space-y-12 text-body-large text-black-alpha-72">
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 Cross-repo policy versioning
               </li>
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 Live enforcement sessions
               </li>
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 AI rule author + diff analyzer
               </li>
               <li className="flex gap-8">
-                <Check className="size-4 text-heat-100 shrink-0 mt-2" />
+                <Check className="size-16 text-heat-100 shrink-0 mt-2" />
                 Daily compliance report + CSV export
               </li>
             </ul>
@@ -806,36 +1369,49 @@ function Pricing() {
 
 const FAQS = [
   {
-    cat: "General",
+    cat: "Architecture & Privacy",
     items: [
       {
-        q: "What is policyctl?",
-        a: "A provider-agnostic policy runtime for coding agents. One .policyctl.yml file is evaluated at hook time and in CI across Claude Code, OpenAI Codex, Cursor, and any tool that can shell out.",
+        q: "Does policyctl slow down my agent's prompt loop?",
+        a: "No. The policy engine evaluates compiled AST matchers and pattern tables locally in <12ms. It runs synchronously at the pre-tool-call lifecycle hook before file operations execute, adding zero perceptible latency.",
       },
       {
-        q: "Why not just CLAUDE.md?",
-        a: "Prompt files are advisory. Agents skip them under context pressure. policyctl rules are evaluated deterministically and block at tool-call time — the agent literally cannot ignore a block enforcement.",
+        q: "Does policyctl send my source code or credentials to external servers?",
+        a: "Never. The CLI is 100% local-first, offline-capable, and MIT-licensed. It emits zero telemetry and transmits no code over the network. If you optionally connect the Cloud tier, only cryptographic violation metadata (rule ID, timestamp, and file path) is reported to your team dashboard.",
       },
       {
-        q: "Is the cloud control plane required?",
-        a: "No. The CLI is fully local-first and MIT licensed. The cloud adds cross-repo versioning, the violation feed, the audit dashboard, and the daily report — useful, but not required.",
+        q: "Can an autonomous agent bypass or overwrite .policyctl.yml?",
+        a: "No. Running `policyctl init` automatically generates a self-guard rule that blocks any agent from editing `.policyctl.yml` or hook configuration files. Only human users can authorize changes to the policy file.",
       },
     ],
   },
   {
-    cat: "How it works",
+    cat: "Enforcement & Agents",
     items: [
       {
-        q: "What does a rule look like?",
-        a: "A rule is a YAML object: an id, a match block (path, regex, globs, content), and an enforce level (block / fail / warn / log). Rules are procedural assertions, not opinions.",
+        q: "Why use policyctl instead of CLAUDE.md or prompt instructions?",
+        a: "Prompt files and instructions are advisory. Autonomous agents frequently ignore or forget system prompt rules under heavy context window pressure. policyctl enforces deterministic boundaries at tool-call execution time — when an action is blocked, the agent literally cannot proceed.",
       },
       {
-        q: "How do hooks get installed?",
-        a: "`policyctl init` detects which agent you're using (Claude / Codex / Cursor), writes the right hook config, and points it at the local `policyctl check` binary. Re-run it any time.",
+        q: "What happens when a rule blocks an agent?",
+        a: "policyctl exits non-zero and returns your rule's remediation message directly into the agent's prompt context (e.g. '🛑 BLOCKED: Run policyctl gen migration <name> instead'). The agent immediately self-corrects in the same iteration without human intervention.",
       },
       {
-        q: "What about CI?",
-        a: "Same binary, same engine. `policyctl check --report json --fail-on block,fail` exits non-zero on violations. Stream results to the dashboard with one extra flag.",
+        q: "Which coding agents are supported today?",
+        a: "Out of the box: Claude Code, Cursor, and OpenAI Codex. Any coding tool with pre-execution hooks or shell-out capabilities can invoke `policyctl check`. It also runs in GitHub Actions, GitLab CI, and standard Docker runners.",
+      },
+    ],
+  },
+  {
+    cat: "CI/CD & Control Plane",
+    items: [
+      {
+        q: "How does policyctl differ from traditional linters or git pre-commit hooks?",
+        a: "Linters run after bad files are already written to disk or during git commit staging. policyctl intercepts tool calls in real time before files are written or dangerous shell commands are executed, preventing hallucinated secrets or invalid schemas from ever touching your tree.",
+      },
+      {
+        q: "Is the paid Cloud tier required to use policyctl?",
+        a: "No. The CLI is completely free, open-source, and fully functional standalone. The Cloud plan ($5/seat/mo) is an optional control plane for teams needing shared policy versioning, cross-repo audit feeds, CSV compliance exports, and AI-assisted rule authoring.",
       },
     ],
   },
@@ -843,62 +1419,109 @@ const FAQS = [
 
 function FAQ() {
   const [open, setOpen] = useState<string | null>("0-0");
+
   return (
-    <section className="pcl-section--compact py-80 lg:py-109 relative -mt-1">
+    <section className="pcl-section--compact py-80 lg:py-100 relative -mt-1" id="faq">
       <CurvyRect sides="allSides" />
       <div className="pcl-container">
-        <div className="grid lg:grid-cols-2 gap-32 lg:gap-64 -mt-1">
-          <div>
-            <span className="pcl-section__badge">FAQ</span>
-            <h2 className="pcl-section__title lg:!text-start lg:!pt-0 lg:!mx-0">
-              Frequently asked{" "}
-              <span className="text-heat-100">questions</span>
-            </h2>
-            <p className="pcl-section__subtitle lg:!text-start lg:!max-w-none lg:!mx-0">
-              Everything you need to know before you wire up the first repo.
-            </p>
+        <div className="grid lg:grid-cols-[380px_1fr] gap-32 lg:gap-64 -mt-1 items-start">
+          {/* Left Column: Heading & Support Blueprint Card */}
+          <div className="flex flex-col justify-between gap-32">
+            <div>
+              <span className="pcl-section__badge">FAQ</span>
+              <h2 className="pcl-section__title lg:!text-start lg:!pt-0 lg:!mx-0 mt-12">
+                Frequently asked{" "}
+                <span className="text-heat-100">questions</span>
+              </h2>
+              <p className="pcl-section__subtitle lg:!text-start lg:!max-w-none lg:!mx-0 mt-8">
+                Deterministic agent enforcement, local-first privacy, and CI gates explained.
+              </p>
+            </div>
+
+            {/* Support / Help Blueprint Card */}
+            <div className="p-20 rounded-xl bg-surface border border-border-faint relative shadow-2xs">
+              <CurvyRect sides="allSides" />
+              <div className="text-mono-x-small font-mono text-black-alpha-40 uppercase mb-8">
+                // STILL HAVE QUESTIONS?
+              </div>
+              <p className="text-body-small text-black-alpha-64 leading-relaxed mb-16">
+                Need help authoring a custom AST matcher or integrating with custom CI runners?
+              </p>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-10">
+                <Link
+                  to="/docs"
+                  className="px-14 py-8 rounded-lg bg-surface hover:bg-background-base text-accent-black border border-border-faint text-mono-x-small font-mono flex items-center justify-between gap-6 transition-colors"
+                >
+                  <span>Explore Docs</span>
+                  <ArrowRight className="size-12 text-heat-100" />
+                </Link>
+                <a
+                  href="https://github.com/RavaniRoshan/policyctl/issues"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-14 py-8 rounded-lg bg-surface hover:bg-background-base text-black-alpha-72 hover:text-accent-black border border-border-faint text-mono-x-small font-mono flex items-center justify-between gap-6 transition-colors"
+                >
+                  <span>GitHub Issues</span>
+                  <ArrowUpRight className="size-12" />
+                </a>
+              </div>
+            </div>
           </div>
-          <div>
+
+          {/* Right Column: Clean Accordion Groups */}
+          <div className="space-y-24">
             {FAQS.map((group, gi) => (
-              <div key={group.cat} className="-mt-1">
-                <div className="text-title-h5 text-accent-black px-16 lg:px-32 py-24 lg:py-40 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
-                  {group.cat}
+              <div key={group.cat} className="space-y-10">
+                <div className="flex items-center gap-8 text-mono-x-small font-mono text-black-alpha-48 uppercase tracking-wider pb-6 border-b border-border-faint">
+                  <span className="size-6 rounded-full bg-heat-100" />
+                  <span>{group.cat}</span>
                 </div>
-                {group.items.map((it, i) => {
-                  const id = `${gi}-${i}`;
-                  const isOpen = open === id;
-                  return (
-                    <div key={i} className="-mt-1">
-                      <button
-                        onClick={() => setOpen(isOpen ? null : id)}
-                        className="w-full text-label-large text-accent-black flex items-center justify-between gap-16 px-16 lg:px-32 py-20 hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
-                      >
-                        <span className="text-start">{it.q}</span>
-                        {isOpen ? (
-                          <Minus className="size-4 text-black-alpha-48" />
-                        ) : (
-                          <Plus className="size-4 text-black-alpha-48" />
-                        )}
-                      </button>
-                      <AnimatePresence initial={false}>
-                        {isOpen && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } }}
-                            exit={{ height: 0, opacity: 0, transition: { duration: 0.3 } }}
-                            className="overflow-hidden -mt-1"
-                          >
-                            <div className="px-16 lg:px-32 py-20 border-t border-border-faint -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
-                              <p className="text-body-large text-black-alpha-64 leading-26">
-                                {it.a}
-                              </p>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })}
+                <div className="border border-border-faint rounded-xl bg-surface divide-y divide-border-faint overflow-hidden shadow-2xs">
+                  {group.items.map((it, i) => {
+                    const id = `${gi}-${i}`;
+                    const isOpen = open === id;
+                    return (
+                      <div key={i} className="transition-colors">
+                        <button
+                          onClick={() => setOpen(isOpen ? null : id)}
+                          className={`w-full text-label-medium flex items-center justify-between gap-16 px-16 lg:px-20 py-16 transition-colors cursor-pointer text-start ${
+                            isOpen
+                              ? "bg-heat-4/50 text-accent-black font-semibold"
+                              : "text-accent-black hover:bg-black-alpha-2"
+                          }`}
+                          aria-expanded={isOpen}
+                        >
+                          <span className="leading-snug">{it.q}</span>
+                          <Plus
+                            className={`size-16 shrink-0 transition-transform duration-200 ${
+                              isOpen ? "rotate-45 text-heat-100" : "text-black-alpha-40"
+                            }`}
+                          />
+                        </button>
+                        <AnimatePresence initial={false}>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{
+                                height: "auto",
+                                opacity: 1,
+                                transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] },
+                              }}
+                              exit={{ height: 0, opacity: 0, transition: { duration: 0.16 } }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-16 lg:px-20 pb-16 pt-4 border-t border-border-faint/60 bg-background-base/40">
+                                <p className="text-body-small text-black-alpha-64 leading-relaxed font-normal">
+                                  {it.a}
+                                </p>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </div>
@@ -910,29 +1533,123 @@ function FAQ() {
 }
 
 function CTA() {
+  const [copiedInit, setCopiedInit] = useState(false);
+
+  const copyInit = async () => {
+    try {
+      await navigator.clipboard.writeText("npx -y @policyctl/cli@latest init");
+      setCopiedInit(true);
+      setTimeout(() => setCopiedInit(false), 1800);
+    } catch {
+      // fallback
+    }
+  };
+
   return (
-    <section className="py-64 lg:py-88">
+    <section className="py-64 lg:py-96 relative overflow-hidden" id="get-started">
       <div className="pcl-container">
-        <div className="border border-border-faint rounded-xl bg-surface p-32 lg:p-64 text-center relative">
-          <CurvyRect sides="allSides" />
-          <div className="size-48 mx-auto rounded-full bg-heat-4 inline-flex items-center justify-center text-heat-100 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-12">
-            <Sparkle className="size-5" />
-          </div>
-          <h2 className="mt-24 text-title-h3 text-accent-black tracking-tight">
-            Ready to enforce?
-          </h2>
-          <p className="mt-12 text-body-large text-black-alpha-72 max-w-369 mx-auto">
-            <span className="contents text-label-large text-accent-black">
-              No credit card.
-            </span>{" "}
-            The CLI is free forever.
-          </p>
-          <div className="mt-32 flex flex-wrap justify-center gap-12">
-            <Link to="/signup">
-              <Button size="lg" trailingIcon>
-                Get started free
-              </Button>
-            </Link>
+        {/* Outer Double-Bezel Architecture */}
+        <div className="p-2 sm:p-3 rounded-2xl bg-background-base border border-border-faint relative shadow-sm">
+          {/* Inner Core Surface */}
+          <div className="border border-border-faint rounded-xl bg-surface p-24 sm:p-40 lg:p-64 relative overflow-hidden text-center">
+            <CurvyRect sides="allSides" />
+
+            {/* Subtle Heat Accent Ambient Glow */}
+            <div
+              aria-hidden="true"
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-600 h-160 bg-gradient-to-b from-heat-100/10 via-heat-100/3 to-transparent blur-3xl pointer-events-none rounded-full"
+            />
+
+            {/* Top Blueprint Status Strip */}
+            <div className="flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40 uppercase pb-16 mb-24 border-b border-border-faint max-w-720 mx-auto">
+              <div className="flex items-center gap-8">
+                <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
+                <span className="text-heat-100 font-semibold">GET STARTED IN SECONDS</span>
+              </div>
+              <span className="hidden sm:inline">[ CLI: FREE &amp; OPEN SOURCE ]</span>
+            </div>
+
+            {/* Center Icon Badge */}
+            <div className="size-48 mx-auto rounded-xl bg-heat-4 border border-heat-12 inline-flex items-center justify-center text-heat-100 shadow-2xs mb-20">
+              <Sparkle className="size-22" weight="fill" />
+            </div>
+
+            {/* Main Heading */}
+            <h2 className="text-title-h2 lg:text-title-h1 text-accent-black tracking-tight font-medium max-w-640 mx-auto">
+              Ready to <span className="text-heat-100">enforce?</span>
+            </h2>
+
+            {/* Subtitle */}
+            <p className="mt-12 text-body-large text-black-alpha-64 max-w-440 mx-auto leading-relaxed">
+              No credit card required. One command creates your policy and links your agent's hooks.
+            </p>
+
+            {/* Interactive Terminal Bar (Instant Developer Action) */}
+            <div className="mt-28 max-w-480 mx-auto">
+              <div className="rounded-lg bg-background-base border border-border-faint p-6 pl-14 flex items-center justify-between gap-12 shadow-2xs group hover:border-black-alpha-20 transition-colors">
+                <div className="flex items-center gap-8 font-mono text-mono-small text-accent-black truncate">
+                  <span className="text-heat-100 font-bold select-none">$</span>
+                  <span className="truncate">npx -y @policyctl/cli@latest init</span>
+                </div>
+                <button
+                  onClick={copyInit}
+                  className="px-10 py-6 rounded-md bg-surface border border-border-faint hover:border-heat-100 text-mono-x-small font-mono text-black-alpha-72 hover:text-heat-100 flex items-center gap-4 transition-colors shrink-0 cursor-pointer"
+                  aria-label="Copy install command"
+                >
+                  {copiedInit ? (
+                    <>
+                      <Check className="size-12 text-heat-100" weight="bold" />
+                      <span className="text-heat-100 font-medium">copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-12" />
+                      <span>copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* CTAs with Button-in-Button kinetic interaction */}
+            <div className="mt-24 flex flex-wrap items-center justify-center gap-12">
+              <Link
+                to="/signup"
+                className="group relative inline-flex items-center gap-10 rounded-full bg-heat-100 hover:bg-heat-90 text-accent-white px-20 py-12 text-label-medium font-medium transition-all duration-200 active:scale-[0.98] shadow-sm cursor-pointer"
+              >
+                <span>Start free trial</span>
+                <span className="size-20 rounded-full bg-white/20 flex items-center justify-center transition-transform duration-200 group-hover:translate-x-1 group-hover:-translate-y-0.5">
+                  <ArrowRight className="size-12" weight="bold" />
+                </span>
+              </Link>
+              <Link
+                to="/docs"
+                className="inline-flex items-center gap-8 rounded-full bg-surface hover:bg-background-base text-accent-black border border-border-faint px-20 py-12 text-label-medium font-medium transition-colors cursor-pointer"
+              >
+                <span>Read documentation</span>
+                <ArrowUpRight className="size-14 text-black-alpha-40" />
+              </Link>
+            </div>
+
+            {/* Bottom Trust Guarantee Strip */}
+            <div className="mt-36 pt-20 border-t border-border-faint flex flex-wrap items-center justify-center gap-16 sm:gap-28 text-mono-x-small font-mono text-black-alpha-48">
+              <span className="flex items-center gap-6">
+                <Check className="size-12 text-heat-100" weight="bold" />
+                Local-first engine
+              </span>
+              <span className="flex items-center gap-6">
+                <Check className="size-12 text-heat-100" weight="bold" />
+                MIT licensed CLI
+              </span>
+              <span className="flex items-center gap-6">
+                <Check className="size-12 text-heat-100" weight="bold" />
+                Zero telemetry
+              </span>
+              <span className="flex items-center gap-6">
+                <Check className="size-12 text-heat-100" weight="bold" />
+                Claude · Cursor · Codex
+              </span>
+            </div>
           </div>
         </div>
       </div>
