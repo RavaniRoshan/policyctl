@@ -3,11 +3,14 @@ name: deploy
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   deploy-web:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       deployments: write
@@ -29,6 +32,7 @@ jobs:
 
   deploy-worker:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       deployments: write
@@ -50,10 +54,10 @@ jobs:
             TURNSTILE_SECRET_SITE
             STRIPE_SECRET_KEY
             STRIPE_WEBHOOK_SECRET
-          env:
-            TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
-            STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-            STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        env:
+          TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
 
   deploy-staging:
     runs-on: ubuntu-latest
@@ -79,7 +83,7 @@ jobs:
             TURNSTILE_SECRET_SITE
             STRIPE_SECRET_KEY
             STRIPE_WEBHOOK_SECRET
-          env:
-            TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
-            STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-            STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        env:
+          TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
