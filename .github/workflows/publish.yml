@@ -55,37 +55,22 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # ── Publish to GitHub Packages npm (best-effort) ────────────────────────
-      # NOTE: GitHub Packages npm requires @scope to match a GitHub user/org.
-      # @policyctl doesn't match owner RavaniRoshan, so this step is best-effort.
-      - name: Switch registry to GitHub Packages
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          registry-url: https://npm.pkg.github.com
-          scope: "@policyctl"
-
-      - name: Add publishConfig for GitHub Packages
+      # ── Publish to GitHub Packages npm ──────────────────────────────────────
+      # GitHub Packages npm requires the @scope to match the repo owner (@ravaniroshan).
+      - name: Publish @${{ github.repository_owner }}/policyctl → GitHub Packages (npm)
+        continue-on-error: true
         run: |
-          for pkg in packages/core packages/cli; do
-            node -e "
-              const fs = require('fs');
-              const p = '$pkg/package.json';
-              const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-              j.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'public' };
-              fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
-            "
-          done
-
-      - name: Publish @policyctl/core → GitHub Packages
-        continue-on-error: true
-        run: cd packages/core && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish @policyctl/cli → GitHub Packages
-        continue-on-error: true
-        run: cd packages/cli && npm publish --access public
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          cd packages/cli
+          node -e "
+            const fs = require('fs');
+            const j = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            j.name = '@' + '$OWNER_LOWER' + '/policyctl';
+            j.publishConfig = { registry: 'https://npm.pkg.github.com', access: 'public' };
+            fs.writeFileSync('package.json', JSON.stringify(j, null, 2) + '\n');
+          "
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
