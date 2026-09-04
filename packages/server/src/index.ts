@@ -457,7 +457,8 @@ app.post(`${API}/ai/analyze`, async (c) => {
   if (typeof body.diff !== "string") return c.json({ error: "diff required" }, 400);
   const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
-  // Gate: AI features require an active or trial paid subscription.
+  // Gate: AI features require a paid subscription (active, trial, or past_due
+  // grace during Stripe retries).
   if (!isOrgActive(org)) {
     return c.json({ error: "AI features require a paid subscription. Visit /dashboard/billing to upgrade.", code: "UPGRADE_REQUIRED" }, 403);
   }
