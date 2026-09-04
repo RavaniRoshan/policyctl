@@ -3,15 +3,16 @@
 Measured 2026-09-04 via `web/e2e/a11y.spec.ts` (axe-core, WCAG 2.1 A/AA, 15 routes,
 desktop-light). **Zero critical violations** — the CI gate blocks on critical.
 
-## Known serious debt: color-contrast (98 nodes, 5 sampled routes)
+## 2026-09-04 pass: functional secondary text fixed
 
-One systemic rule. Failing patterns (fg on light surface, ratio):
+All `text-black-alpha-48` body/secondary text → `text-black-alpha-64` (~2.9:1 → ~5.3:1),
+plus the npm footer link (alpha-56 → 64). Verified visually: aesthetic preserved.
+
+## Remaining (decorative/brand — needs product call, see options below)
 
 | Pattern | Example | Ratio | Needed |
 |---|---|---|---|
 | `text-black-alpha-32` microcopy (eyebrows, index strips, kbd) | `[ overview · … ]` | 1.94 | 4.5 |
-| `text-black-alpha-48` secondary (timestamps, hints) | `Sep 04, 07:03 AM` | 2.92 | 4.5 |
-| `text-black-alpha-56` links/body-secondary | npm footer link | 3.69 | 4.5 |
 | `text-heat-100` small text on white | View-all links, theme labels | 3.18–3.32 | 4.5 |
 | `text-success` (#10b981) stat numerals | `94%` at 40px | 2.53 | 3.0 (large) |
 

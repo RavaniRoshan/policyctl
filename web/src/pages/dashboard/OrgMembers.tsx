@@ -135,7 +135,7 @@ export function OrgMembers() {
         <Card className="overflow-hidden p-0">
           <table className="w-full text-body-medium">
             <thead>
-              <tr className="border-b border-border-faint text-left font-mono text-mono-x-small uppercase text-black-alpha-48">
+              <tr className="border-b border-border-faint text-left font-mono text-mono-x-small uppercase text-black-alpha-64">
                 <th scope="col" className="p-16">member</th>
                 <th scope="col" className="p-16">role</th>
                 <th scope="col" className="hidden p-16 sm:table-cell">status</th>
@@ -153,7 +153,7 @@ export function OrgMembers() {
                       </span>
                       <div className="min-w-0">
                         <div className="truncate text-body-medium">{m.display_name || "—"}</div>
-                        <div className="truncate font-mono text-mono-x-small text-black-alpha-48">
+                        <div className="truncate font-mono text-mono-x-small text-black-alpha-64">
                           {m.email}
                         </div>
                       </div>
@@ -173,7 +173,7 @@ export function OrgMembers() {
                       <Badge tone="accent">pending</Badge>
                     )}
                   </td>
-                  <td className="hidden whitespace-nowrap p-16 font-mono text-mono-x-small text-black-alpha-48 md:table-cell">
+                  <td className="hidden whitespace-nowrap p-16 font-mono text-mono-x-small text-black-alpha-64 md:table-cell">
                     {m.invited_at
                       ? new Date(m.invited_at).toLocaleDateString("en-US", {
                           month: "short",
@@ -227,7 +227,7 @@ export function OrgMembers() {
               </option>
             ))}
           </select>
-          <CaretDown className="pointer-events-none absolute right-12 top-1/2 size-4 -translate-y-1/2 text-black-alpha-48" aria-hidden />
+          <CaretDown className="pointer-events-none absolute right-12 top-1/2 size-4 -translate-y-1/2 text-black-alpha-64" aria-hidden />
         </div>
         <p className="mt-12 flex items-start gap-6 text-body-small text-black-alpha-56">
           <Warning className="size-4 shrink-0 text-warning" aria-hidden />
@@ -302,7 +302,7 @@ function RoleSelect({
           </option>
         ))}
       </select>
-      <CaretDown className="pointer-events-none absolute right-8 top-1/2 size-3 -translate-y-1/2 text-black-alpha-48" aria-hidden />
+      <CaretDown className="pointer-events-none absolute right-8 top-1/2 size-3 -translate-y-1/2 text-black-alpha-64" aria-hidden />
     </div>
   );
 }

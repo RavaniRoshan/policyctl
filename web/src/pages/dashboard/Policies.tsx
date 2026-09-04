@@ -97,7 +97,7 @@ export function Policies() {
             </Button>
           )}
           <label className="flex items-center gap-8 rounded-md border border-border-faint px-12 py-6">
-            <MagnifyingGlass className="size-3 text-black-alpha-48" aria-hidden />
+            <MagnifyingGlass className="size-3 text-black-alpha-64" aria-hidden />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -164,7 +164,7 @@ export function Policies() {
         <Card className="overflow-hidden p-0">
           <table className="w-full text-body-medium">
             <thead>
-              <tr className="border-b border-border-faint text-left font-mono text-mono-x-small uppercase text-black-alpha-48">
+              <tr className="border-b border-border-faint text-left font-mono text-mono-x-small uppercase text-black-alpha-64">
                 <th scope="col" className="p-16">version</th>
                 <th scope="col" className="p-16">note</th>
                 <th scope="col" className="hidden p-16 md:table-cell">author</th>
@@ -262,7 +262,7 @@ function VersionRow({
         <tr>
           <td colSpan={5} className="border-b border-border-faint p-24">
             <div className="mb-12 flex items-center justify-between">
-              <span className="font-mono text-mono-x-small text-black-alpha-48">
+              <span className="font-mono text-mono-x-small text-black-alpha-64">
                 // .policyctl.yml (v{v.version})
               </span>
               <div className="flex gap-8">

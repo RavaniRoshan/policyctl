@@ -139,7 +139,7 @@ export function Settings() {
           </div>
         )}
         {!generatedKey && hasApiKey && (
-          <p className="mt-8 text-body-small text-black-alpha-48">
+          <p className="mt-8 text-body-small text-black-alpha-64">
             A key is already active. Click &quot;Regenerate&quot; to rotate it.
           </p>
         )}

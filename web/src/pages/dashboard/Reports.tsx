@@ -97,7 +97,7 @@ export function Reports() {
               </p>
               <div className="mt-12 flex flex-wrap items-center gap-8">
                 <Badge tone="heat">enabled</Badge>
-                <span className="font-mono text-mono-x-small text-black-alpha-48">
+                <span className="font-mono text-mono-x-small text-black-alpha-64">
                   cron: <span className="text-accent-black">0 9 * * *</span>
                 </span>
               </div>
@@ -171,7 +171,7 @@ export function Reports() {
               )}
             </div>
           </div>
-          <div className="relative mt-16 overflow-x-auto border border-border-faint p-12 font-mono text-mono-x-small leading-16 text-black-alpha-48 before:absolute before:inset-0 before:rounded-inherit">
+          <div className="relative mt-16 overflow-x-auto border border-border-faint p-12 font-mono text-mono-x-small leading-16 text-black-alpha-64 before:absolute before:inset-0 before:rounded-inherit">
             {generated ? (
               <>
                 <span className="text-black-alpha-32">subject: </span>policyctl compliance ·{" "}

@@ -267,7 +267,7 @@ function Hero() {
           {/* Micro-proof list */}
           <motion.div
             variants={fadeUp}
-            className="flex items-center justify-center gap-24 text-body-small text-black-alpha-48 mb-48 lg:mb-64"
+            className="flex items-center justify-center gap-24 text-body-small text-black-alpha-64 mb-48 lg:mb-64"
           >
             <span className="flex items-center gap-6">
               <Check className="size-16 text-heat-100" /> Free CLI
@@ -482,7 +482,7 @@ function DeveloperFirst() {
                 <span className="text-black-alpha-24">|</span>
                 <span className="text-heat-100 font-semibold">RUNTIME INTERFACE</span>
               </div>
-              <div className="flex items-center gap-6 text-black-alpha-48">
+              <div className="flex items-center gap-6 text-black-alpha-64">
                 <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
                 <span>INTERACTIVE DEMO</span>
               </div>
@@ -617,7 +617,7 @@ function DeveloperFirst() {
                   <span className="text-label-large text-accent-black font-semibold mt-2">
                     {m.v}
                   </span>
-                  <span className="text-mono-x-small text-black-alpha-48 font-mono mt-2">
+                  <span className="text-mono-x-small text-black-alpha-64 font-mono mt-2">
                     {m.tag}
                   </span>
                 </div>
@@ -678,7 +678,7 @@ function AgentReady() {
                   <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
                 </div>
                 <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
-                <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// one command</span>
+                <span className="text-mono-x-small font-mono text-black-alpha-64 uppercase">// one command</span>
               </div>
               <button
                 onClick={copyCmd}
@@ -733,7 +733,7 @@ function AgentReady() {
                   <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
                 </div>
                 <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
-                <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// agent skill</span>
+                <span className="text-mono-x-small font-mono text-black-alpha-64 uppercase">// agent skill</span>
               </div>
               <button
                 onClick={copySkill}
@@ -796,7 +796,7 @@ function BuiltForTrust() {
           <CurvyRect sides="allSides" />
           <div>
             <div className="flex items-center justify-between pb-12 mb-14 border-b border-border-faint">
-              <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// deterministic</span>
+              <span className="text-mono-x-small font-mono text-black-alpha-64 uppercase">// deterministic</span>
               <span className="text-mono-x-small font-mono text-heat-100 uppercase px-6 py-2 rounded bg-heat-4 border border-heat-12 font-medium">
                 [ NO LLM DRIFT ]
               </span>
@@ -853,7 +853,7 @@ function BuiltForTrust() {
                   <span className="size-7 rounded-full bg-black-alpha-16 border border-border-faint" />
                 </div>
                 <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
-                <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">// open source</span>
+                <span className="text-mono-x-small font-mono text-black-alpha-64 uppercase">// open source</span>
               </div>
               <button
                 onClick={copyClone}
@@ -1025,7 +1025,7 @@ function UseCases() {
                 }`}
               >
                 <div className="flex items-center gap-10 min-w-0">
-                  <Ic className={`size-16 shrink-0 ${isActive ? "text-heat-100" : "text-black-alpha-48"}`} />
+                  <Ic className={`size-16 shrink-0 ${isActive ? "text-heat-100" : "text-black-alpha-64"}`} />
                   <span className="text-label-small truncate">{u.title}</span>
                 </div>
                 <span
@@ -1055,7 +1055,7 @@ function UseCases() {
                   <h3 className="text-label-large font-semibold text-accent-black">
                     {current.title}
                   </h3>
-                  <span className="text-mono-x-small font-mono text-black-alpha-48 uppercase">
+                  <span className="text-mono-x-small font-mono text-black-alpha-64 uppercase">
                     [ USE CASE / {current.tag} ]
                   </span>
                 </div>
@@ -1204,7 +1204,7 @@ function CommunityMarquee() {
     <div className="pb-64 lg:pb-88">
       {/* Technical Trust Strip */}
       <div className="pcl-container mb-24">
-        <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-24 text-mono-x-small font-mono text-black-alpha-48 uppercase py-8 px-16 rounded-lg bg-surface border border-border-faint select-none">
+        <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-24 text-mono-x-small font-mono text-black-alpha-64 uppercase py-8 px-16 rounded-lg bg-surface border border-border-faint select-none">
           <span className="flex items-center gap-6">
             <span className="size-6 rounded-full bg-heat-100" />
             <span>1,400+ REPOS AUDITED</span>
@@ -1268,7 +1268,7 @@ function TestimonialCard({
               <div className="text-label-medium text-accent-black font-semibold truncate">
                 {name}
               </div>
-              <div className="text-mono-x-small font-mono text-black-alpha-48 truncate">
+              <div className="text-mono-x-small font-mono text-black-alpha-64 truncate">
                 {team}
               </div>
             </div>
@@ -1323,7 +1323,7 @@ function Pricing() {
                 <h3 className="text-title-h4 text-accent-black font-semibold">Free forever</h3>
                 <div className="mt-8 text-title-h2 text-accent-black font-bold">
                   $0
-                  <span className="text-body-large text-black-alpha-48 ml-8 font-normal">/ forever</span>
+                  <span className="text-body-large text-black-alpha-64 ml-8 font-normal">/ forever</span>
                 </div>
                 <ul className="mt-28 space-y-12 text-body-large text-black-alpha-72">
                   <li className="flex gap-10 items-start">
@@ -1368,7 +1368,7 @@ function Pricing() {
                 <h3 className="text-title-h4 text-accent-black font-semibold">Control plane</h3>
                 <div className="mt-8 text-title-h2 text-accent-black font-bold">
                   $5
-                  <span className="text-body-large text-black-alpha-48 ml-8 font-normal">/ seat / month</span>
+                  <span className="text-body-large text-black-alpha-64 ml-8 font-normal">/ seat / month</span>
                 </div>
                 <p className="mt-6 text-body-small text-black-alpha-56 font-mono">
                   Annual: $50 / seat / year (2 months free).
@@ -1514,7 +1514,7 @@ function FAQ() {
           <div className="space-y-24">
             {FAQS.map((group, gi) => (
               <div key={group.cat} className="space-y-10">
-                <div className="flex items-center gap-8 text-mono-x-small font-mono text-black-alpha-48 uppercase tracking-wider pb-6 border-b border-border-faint">
+                <div className="flex items-center gap-8 text-mono-x-small font-mono text-black-alpha-64 uppercase tracking-wider pb-6 border-b border-border-faint">
                   <span className="size-6 rounded-full bg-heat-100" />
                   <span>{group.cat}</span>
                 </div>
@@ -1676,7 +1676,7 @@ function CTA() {
             </div>
 
             {/* Bottom Trust Guarantee Strip */}
-            <div className="mt-36 pt-20 border-t border-border-faint flex flex-wrap items-center justify-center gap-16 sm:gap-28 text-mono-x-small font-mono text-black-alpha-48">
+            <div className="mt-36 pt-20 border-t border-border-faint flex flex-wrap items-center justify-center gap-16 sm:gap-28 text-mono-x-small font-mono text-black-alpha-64">
               <span className="flex items-center gap-6">
                 <Check className="size-12 text-heat-100" weight="bold" />
                 Local-first engine

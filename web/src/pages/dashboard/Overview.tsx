@@ -129,7 +129,7 @@ export function Overview() {
                       {v.repo}
                     </span>
                   </div>
-                  <time className="shrink-0 font-mono text-mono-x-small text-black-alpha-48">
+                  <time className="shrink-0 font-mono text-mono-x-small text-black-alpha-64">
                     {new Date(v.created_at).toLocaleString("en-US", {
                       month: "short",
                       day: "2-digit",

@@ -220,7 +220,7 @@ export function Billing() {
                   className="flex items-center justify-between gap-12 rounded-md border border-border-faint px-12 py-8"
                 >
                   <span className="truncate font-mono text-mono-small">{w.email}</span>
-                  <span className="shrink-0 font-mono text-mono-x-small text-black-alpha-48">
+                  <span className="shrink-0 font-mono text-mono-x-small text-black-alpha-64">
                     {new Date(w.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "2-digit",

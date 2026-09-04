@@ -102,7 +102,7 @@ function Sidebar() {
           href="https://www.npmjs.com/package/@policyctl/cli"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-8 rounded-md border border-border-faint px-12 py-8 font-mono text-mono-x-small text-black-alpha-56 transition-colors hover:text-heat-100"
+          className="flex items-center gap-8 rounded-md border border-border-faint px-12 py-8 font-mono text-mono-x-small text-black-alpha-64 transition-colors hover:text-heat-100"
         >
           npm i -g @policyctl/cli
         </a>
@@ -189,7 +189,7 @@ function Header({ title }: { title: string }) {
           </div>
 
           <button
-            className="hidden h-32 items-center gap-8 rounded-md border border-border-faint px-10 font-mono text-mono-small text-black-alpha-48 transition-colors hover:text-accent-black md:inline-flex"
+            className="hidden h-32 items-center gap-8 rounded-md border border-border-faint px-10 font-mono text-mono-small text-black-alpha-64 transition-colors hover:text-accent-black md:inline-flex"
             onClick={openPalette}
             aria-label="Open command menu"
           >
@@ -283,7 +283,7 @@ function ThemeSwitch({ theme, onChange }: { theme: ThemeValue; onChange: (t: The
             className={`inline-flex h-32 min-w-44 items-center justify-center gap-6 rounded-md px-8 text-body-small transition-colors ${
               active
                 ? "bg-heat-4 font-medium text-heat-100"
-                : "text-black-alpha-48 hover:bg-black-alpha-4 hover:text-accent-black"
+                : "text-black-alpha-64 hover:bg-black-alpha-4 hover:text-accent-black"
             }`}
           >
             <Icon className="size-4" aria-hidden />

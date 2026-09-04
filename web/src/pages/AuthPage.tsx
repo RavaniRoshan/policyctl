@@ -226,7 +226,7 @@ export function AuthPage() {
                 required
                 aria-invalid={errors.email ? "true" : undefined}
                 aria-describedby={errors.email ? "email-error" : undefined}
-                className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 text-body-medium text-accent-black placeholder:text-black-alpha-64 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
               />
               {errors.email && (
                 <p id="email-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
@@ -237,7 +237,7 @@ export function AuthPage() {
             </div>
 
             <div>
-              <p className="text-mono-small text-black-alpha-48 leading-20">
+              <p className="text-mono-small text-black-alpha-64 leading-20">
                 Continue with your work email — you&apos;ll finish signing in on Auth0&apos;s secure page.
               </p>
             </div>

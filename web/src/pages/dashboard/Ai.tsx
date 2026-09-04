@@ -159,7 +159,7 @@ export function Ai() {
             {output ? (
               <CodeBlock code={output} lang={mode === "author" ? "yaml" : "markdown"} title="result" />
             ) : (
-              <p className="text-body-medium text-black-alpha-48">
+              <p className="text-body-medium text-black-alpha-64">
                 Results appear here after you submit a prompt.
               </p>
             )}

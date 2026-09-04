@@ -106,7 +106,7 @@ export function CommandMenu() {
         className="h-48 w-full border-b border-border-faint bg-transparent px-16 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none"
       />
       <Command.List className="max-h-[320px] overflow-y-auto p-8">
-        <Command.Empty className="px-12 py-16 text-body-small text-black-alpha-48">
+        <Command.Empty className="px-12 py-16 text-body-small text-black-alpha-64">
           No matching commands.
         </Command.Empty>
         <Command.Group heading="Pages" className={GROUP_CLS}>
@@ -173,7 +173,7 @@ function MenuItem({
       <span className="shrink-0">{icon}</span>
       <span className="flex-1 truncate">{label}</span>
       {hint && (
-        <kbd className="rounded border border-border-faint px-6 py-2 font-mono text-mono-x-small text-black-alpha-48">
+        <kbd className="rounded border border-border-faint px-6 py-2 font-mono text-mono-x-small text-black-alpha-64">
           {hint}
         </kbd>
       )}
@@ -183,7 +183,7 @@ function MenuItem({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-border-faint px-6 py-2 font-mono text-mono-x-small text-black-alpha-48">
+    <kbd className="rounded border border-border-faint px-6 py-2 font-mono text-mono-x-small text-black-alpha-64">
       {children}
     </kbd>
   );

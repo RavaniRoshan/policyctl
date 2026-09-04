@@ -155,7 +155,7 @@ function Stepper({ step }: { step: number }) {
                   ? "bg-heat-100 text-accent-white before:border-heat-100"
                   : active
                     ? "bg-heat-4 text-heat-100 before:border-heat-30"
-                    : "bg-black-alpha-4 text-black-alpha-48 before:border-border-faint"
+                    : "bg-black-alpha-4 text-black-alpha-64 before:border-border-faint"
               }`}
             >
               {done ? <Check className="size-4" /> : i + 1}

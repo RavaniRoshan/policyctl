@@ -76,7 +76,7 @@ export function App() {
                   <MotionConfig reducedMotion="user">
                     <Suspense
                       fallback={
-                        <div className="min-h-screen grid place-items-center text-black-alpha-48 font-mono text-mono-small">
+                        <div className="min-h-screen grid place-items-center text-black-alpha-64 font-mono text-mono-small">
                           Loading…
                         </div>
                       }

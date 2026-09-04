@@ -130,7 +130,7 @@ export function Sessions() {
           </Button>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-body-small text-black-alpha-48 hover:text-accent-black"
+            className="text-body-small text-black-alpha-64 hover:text-accent-black"
           >
             Clear
           </button>
@@ -164,7 +164,7 @@ export function Sessions() {
         <Card className="overflow-hidden p-0">
           <table className="w-full text-body-medium">
             <thead>
-              <tr className="border-b border-border-faint text-left font-mono text-mono-x-small uppercase text-black-alpha-48">
+              <tr className="border-b border-border-faint text-left font-mono text-mono-x-small uppercase text-black-alpha-64">
                 <th scope="col" className="w-40 p-12">
                   <button onClick={toggleAll} aria-label="Select all violations" className="inline-flex">
                     {selected.size === filtered.length && filtered.length > 0 ? (
@@ -209,7 +209,7 @@ export function Sessions() {
                   <td className="hidden p-12 text-body-small text-black-alpha-64 lg:table-cell">
                     {v.agent}
                   </td>
-                  <td className="whitespace-nowrap p-12 text-right font-mono text-mono-x-small text-black-alpha-48">
+                  <td className="whitespace-nowrap p-12 text-right font-mono text-mono-x-small text-black-alpha-64">
                     {new Date(v.created_at).toLocaleString("en-US", {
                       month: "short",
                       day: "2-digit",
@@ -311,7 +311,7 @@ function Filter({
   options: string[];
 }) {
   return (
-    <label className="flex items-center gap-6 font-mono text-mono-x-small text-black-alpha-48">
+    <label className="flex items-center gap-6 font-mono text-mono-x-small text-black-alpha-64">
       {label}:
       <select
         value={value}
