@@ -109,6 +109,7 @@ const config: Config = {
         },
         heat: {
           100: "var(--heat-100)",
+          ink: "var(--heat-ink)",
           90: "var(--heat-90)",
           80: "var(--heat-80)",
           70: "var(--heat-70)",

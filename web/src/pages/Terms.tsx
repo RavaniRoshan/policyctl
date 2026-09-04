@@ -50,7 +50,7 @@ export function Terms() {
               Local evaluation never leaves your machine. Anything you explicitly stream to
               the cloud (policy pushes, violation reports, waitlist signups) is stored to
               operate your account and is never sold. See the{" "}
-              <Link to="/privacy" className="text-heat-100 hover:underline">
+              <Link to="/privacy" className="text-heat-ink hover:underline">
                 privacy policy
               </Link>
               .
@@ -73,7 +73,7 @@ export function Terms() {
                 href="https://github.com/RavaniRoshan/policyctl/issues"
                 target="_blank"
                 rel="noreferrer"
-                className="text-heat-100 hover:underline"
+                className="text-heat-ink hover:underline"
               >
                 open an issue on GitHub
               </a>

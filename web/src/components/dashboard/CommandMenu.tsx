@@ -168,7 +168,7 @@ function MenuItem({
   return (
     <Command.Item
       onSelect={onSelect}
-      className="flex h-36 cursor-pointer items-center gap-8 rounded-md px-12 text-body-small text-accent-black aria-selected:bg-heat-4 aria-selected:text-heat-100"
+      className="flex h-36 cursor-pointer items-center gap-8 rounded-md px-12 text-body-small text-accent-black aria-selected:bg-heat-4 aria-selected:text-heat-ink"
     >
       <span className="shrink-0">{icon}</span>
       <span className="flex-1 truncate">{label}</span>

@@ -55,7 +55,7 @@ export function Privacy() {
             <h2 className="text-label-x-large text-accent-black mb-8">5. Deletion</h2>
             <p>
               Delete your organization from{" "}
-              <Link to="/dashboard/settings" className="text-heat-100 hover:underline">
+              <Link to="/dashboard/settings" className="text-heat-ink hover:underline">
                 dashboard settings
               </Link>{" "}
               to remove its policies, violations, and subscription data. For anything else,
@@ -64,7 +64,7 @@ export function Privacy() {
                 href="https://github.com/RavaniRoshan/policyctl/issues"
                 target="_blank"
                 rel="noreferrer"
-                className="text-heat-100 hover:underline"
+                className="text-heat-ink hover:underline"
               >
                 open an issue on GitHub
               </a>

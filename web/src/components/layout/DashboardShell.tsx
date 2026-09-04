@@ -177,7 +177,7 @@ function Header({ title }: { title: string }) {
                       setOrgMenu(false);
                     }}
                     className={`flex w-full items-center justify-between rounded px-8 py-8 text-left text-body-small ${
-                      o.id === currentOrgId ? "text-heat-100" : "hover:bg-black-alpha-4"
+                      o.id === currentOrgId ? "text-heat-ink" : "hover:bg-black-alpha-4"
                     }`}
                   >
                     <span className="truncate">{o.name}</span>
@@ -212,7 +212,7 @@ function Header({ title }: { title: string }) {
           <div className="relative">
             <button
               onClick={() => setMenu((m) => !m)}
-              className="inline-flex size-44 items-center justify-center rounded-full bg-heat-12 text-label-medium uppercase text-heat-100"
+              className="inline-flex size-44 items-center justify-center rounded-full bg-heat-12 text-label-medium uppercase text-heat-ink"
               aria-haspopup="menu"
               aria-expanded={menu}
               aria-label="User menu"
@@ -282,7 +282,7 @@ function ThemeSwitch({ theme, onChange }: { theme: ThemeValue; onChange: (t: The
             onClick={() => onChange(value)}
             className={`inline-flex h-32 min-w-44 items-center justify-center gap-6 rounded-md px-8 text-body-small transition-colors ${
               active
-                ? "bg-heat-4 font-medium text-heat-100"
+                ? "bg-heat-4 font-medium text-heat-ink"
                 : "text-black-alpha-64 hover:bg-black-alpha-4 hover:text-accent-black"
             }`}
           >

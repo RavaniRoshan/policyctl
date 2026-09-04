@@ -175,14 +175,14 @@ export function Reports() {
             {generated ? (
               <>
                 <span className="text-black-alpha-32">subject: </span>policyctl compliance ·{" "}
-                <span className="text-heat-100">
+                <span className="text-heat-ink">
                   {new Date(generated).toLocaleDateString("en-US", {
                     month: "short",
                     day: "2-digit",
                     year: "numeric",
                   })}
                 </span>{" "}
-                · <span className="text-heat-100">{report?.total ?? 0}</span> violations
+                · <span className="text-heat-ink">{report?.total ?? 0}</span> violations
               </>
             ) : (
               "Report will appear here after the next cron run at 9am UTC."

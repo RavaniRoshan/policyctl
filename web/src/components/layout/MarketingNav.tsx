@@ -163,7 +163,7 @@ export function MarketingNav() {
                           {/* Featured Spotlight Card */}
                           <div className="flex flex-col justify-between rounded-lg bg-background-base p-16 border border-border-faint relative">
                             <div>
-                              <div className="inline-flex items-center gap-6 px-8 py-3 rounded-md bg-surface border border-border-faint text-mono-x-small font-mono text-heat-100 uppercase tracking-wider mb-10">
+                              <div className="inline-flex items-center gap-6 px-8 py-3 rounded-md bg-surface border border-border-faint text-mono-x-small font-mono text-heat-ink uppercase tracking-wider mb-10">
                                 <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
                                 <span>v0.1.7 RUNTIME</span>
                               </div>
@@ -176,7 +176,7 @@ export function MarketingNav() {
                             </div>
                             <a
                               href="/docs/reference/cli-commands/"
-                              className="mt-16 inline-flex items-center gap-6 text-label-small font-medium text-heat-100 hover:underline no-underline"
+                              className="mt-16 inline-flex items-center gap-6 text-label-small font-medium text-heat-ink hover:underline no-underline"
                             >
                               <span>Explore runtime</span>
                               <span>→</span>

@@ -200,7 +200,7 @@ export function Billing() {
             Add a payment method to continue using the control plane.
             <button
               onClick={handlePortal}
-              className="ml-8 font-medium text-heat-100 underline"
+              className="ml-8 font-medium text-heat-ink underline"
             >
               Update payment method
             </button>

@@ -10,6 +10,9 @@
 
   /* ── Color: accent (the ONE color) ── */
   --heat-100: #fa5d19;
+  /* AA-safe text variant of the accent for small text on light surfaces
+     (#fa5d19 is ~3.2:1 on white; large display type keeps --heat-100). */
+  --heat-ink: #b24300;
   --heat-90: rgba(250, 93, 25, 0.9);
   --heat-80: rgba(250, 93, 25, 0.8);
   --heat-70: rgba(250, 93, 25, 0.7);
@@ -109,6 +112,8 @@
   --border-muted: #4a4a4a;
   --border-loud: #5a5a5a;
   --heat-100: #fa5d19;
+  /* Brightened for dark surfaces (AA-safe at small sizes on near-black). */
+  --heat-ink: #ff8a50;
 
   --black-alpha-4: rgba(245, 245, 245, 0.04);
   --black-alpha-5: rgba(245, 245, 245, 0.05);

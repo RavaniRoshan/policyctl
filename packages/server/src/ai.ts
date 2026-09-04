@@ -48,7 +48,7 @@ async function runAi(env: Env, messages: AiMessage[], maxTokens = 1024): Promise
   if (cached != null) return cached;
 
   try {
-    const res = (await env.AI.run(MODEL, {
+    const res = (await runModel(env, {
       messages,
       max_tokens: maxTokens,
     })) as { response?: string };
@@ -61,6 +61,25 @@ async function runAi(env: Env, messages: AiMessage[], maxTokens = 1024): Promise
     return response;
   } catch (e) {
     return `AI inference failed: ${e instanceof Error ? e.message : String(e)}`;
+  }
+}
+
+/**
+ * Run inference via the AI Gateway when configured (caching, logging, analytics
+ * in the Cloudflare dashboard), falling back to direct Workers AI otherwise —
+ * including when the gateway id doesn't exist yet.
+ */
+async function runModel(
+  env: Env,
+  input: { messages: AiMessage[]; max_tokens: number },
+): Promise<unknown> {
+  const gatewayId = env.AI_GATEWAY_ID ?? "policyctl";
+  try {
+    return await env.AI.run(MODEL, input, {
+      gateway: { id: gatewayId, cacheTtl: 3600, metadata: { app: "policyctl" } },
+    });
+  } catch {
+    return env.AI.run(MODEL, input);
   }
 }
 

@@ -59,7 +59,7 @@ export function CodeBlock({
             {copied ? (
               <>
                 <Check className="size-14 text-heat-100" weight="bold" />
-                <span className="text-heat-100 font-medium">copied</span>
+                <span className="text-heat-ink font-medium">copied</span>
               </>
             ) : (
               <>
@@ -126,7 +126,7 @@ function formatCodeLine(line: string) {
       <>
         {parts.map((p, idx) =>
           p.startsWith("--") ? (
-            <span key={idx} className="text-heat-100 font-medium">
+            <span key={idx} className="text-heat-ink font-medium">
               {p}
             </span>
           ) : (

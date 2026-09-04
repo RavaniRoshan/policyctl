@@ -319,18 +319,18 @@ function Hero() {
               {/* Code Pre with Real Policy Schema */}
               <pre className="font-mono text-mono-medium leading-22 text-accent-black overflow-x-auto m-0">
                 <span className="text-black-alpha-32"># runtime: cross-agent policy engine</span>{"\n"}
-                <span className="text-heat-100">version</span>: <span className="text-accent-black font-semibold">1</span>{"\n"}
-                <span className="text-heat-100">rules</span>:{"\n"}
-                {"  "}- <span className="text-heat-100">id</span>: migrations-via-generator{"\n"}
-                {"    "}<span className="text-heat-100">scope</span>: both{"\n"}
-                {"    "}<span className="text-heat-100">enforce</span>: block{"\n"}
-                {"    "}<span className="text-heat-100">when</span>:{"\n"}
-                {"      "}<span className="text-heat-100">path</span>: <span className="text-black-alpha-72 font-semibold">db/migrations/*</span>{"\n"}
-                {"  "}- <span className="text-heat-100">id</span>: no-secrets-in-diff{"\n"}
-                {"    "}<span className="text-heat-100">scope</span>: diff{"\n"}
-                {"    "}<span className="text-heat-100">enforce</span>: block{"\n"}
-                {"    "}<span className="text-heat-100">when</span>:{"\n"}
-                {"      "}<span className="text-heat-100">diff_regex</span>: <span className="text-black-alpha-72 font-semibold">'(AKIA|ghp_|sk-proj-)'</span>
+                <span className="text-heat-ink">version</span>: <span className="text-accent-black font-semibold">1</span>{"\n"}
+                <span className="text-heat-ink">rules</span>:{"\n"}
+                {"  "}- <span className="text-heat-ink">id</span>: migrations-via-generator{"\n"}
+                {"    "}<span className="text-heat-ink">scope</span>: both{"\n"}
+                {"    "}<span className="text-heat-ink">enforce</span>: block{"\n"}
+                {"    "}<span className="text-heat-ink">when</span>:{"\n"}
+                {"      "}<span className="text-heat-ink">path</span>: <span className="text-black-alpha-72 font-semibold">db/migrations/*</span>{"\n"}
+                {"  "}- <span className="text-heat-ink">id</span>: no-secrets-in-diff{"\n"}
+                {"    "}<span className="text-heat-ink">scope</span>: diff{"\n"}
+                {"    "}<span className="text-heat-ink">enforce</span>: block{"\n"}
+                {"    "}<span className="text-heat-ink">when</span>:{"\n"}
+                {"      "}<span className="text-heat-ink">diff_regex</span>: <span className="text-black-alpha-72 font-semibold">'(AKIA|ghp_|sk-proj-)'</span>
               </pre>
 
               {/* Technical Schematic Signal Flow */}

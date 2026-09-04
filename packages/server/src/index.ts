@@ -1100,27 +1100,10 @@ app.post(`${API}/report/daily/resend`, async (c) => {
 });
 
 // ── Waitlist (free-launch mode: premium is coming soon, no payments yet) ──
+// Signups persist in D1 and are viewable via GET /api/waitlist (owner/admin).
+// Owner email notifications were deliberately removed (inbox noise); a CRM
+// follow-up comes later.
 const EMAIL_RE_WAITLIST = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/** Notify the owner of a new waitlist signup. Best-effort: never fails the request. */
-async function notifyWaitlistSignup(
-  env: Env,
-  entry: { email: string; name: string | null; position: number },
-): Promise<void> {
-  const to = env.WAITLIST_NOTIFY_TO;
-  if (!to || !env.EMAIL) return;
-  const from = env.WAITLIST_FROM ?? "noreply@policyctl.dev";
-  try {
-    await env.EMAIL.send({
-      to,
-      from: { email: from, name: "policyctl" },
-      subject: `Waitlist #${entry.position}: ${entry.email}`,
-      text: `New premium waitlist signup\n\nEmail: ${entry.email}\nName: ${entry.name ?? "—"}\nPosition: #${entry.position}\n`,
-    });
-  } catch (err) {
-    console.error(`Waitlist notify failed: ${err instanceof Error ? err.message : err}`);
-  }
-}
 
 app.post(`${API}/waitlist`, async (c) => {
   if (await rateLimited(c, "waitlist", 5, 3600)) {
@@ -1149,7 +1132,6 @@ app.post(`${API}/waitlist`, async (c) => {
     .bind(Number(r.meta.last_row_id))
     .first<{ c: number }>()) as { c: number } | null;
   const position = pos?.c ?? 1;
-  await notifyWaitlistSignup(c.env, { email, name, position });
   return c.json({ ok: true, position });
 });
 

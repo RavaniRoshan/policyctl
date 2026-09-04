@@ -46,20 +46,20 @@ export interface Env {
   ALLOWED_ORIGINS?: string;
 
   // ── Waitlist (free-launch mode) ──
-  /** Transactional email binding (Cloudflare Email Sending). Optional. */
-  EMAIL?: {
-    send(msg: {
-      to: string;
-      from: { email: string; name?: string };
-      subject: string;
-      text: string;
-      html?: string;
-    }): Promise<unknown>;
-  };
-  /** Owner address notified on each waitlist signup. Empty = skip email. */
-  WAITLIST_NOTIFY_TO?: string;
-  /** Sender address (domain must be onboarded to Email Sending). */
-  WAITLIST_FROM?: string;
+  // Signups persist in D1 (see migrations/0011_waitlist.sql) and are listed
+  // via GET /api/waitlist. No email integration (deliberate; CRM later).
+
+  // ── AI ──
+  /** AI Gateway id for cached/logged inference. Falls back to direct Workers AI. */
+  AI_GATEWAY_ID?: string;
+
+  // ── Object storage (Filebase S3-compatible; UNWIRED — see storage.ts) ──
+  FILEBASE_ENDPOINT?: string;
+  FILEBASE_BUCKET?: string;
+  /** S3 access key (set via secret when a workload needs storage). */
+  FILEBASE_ACCESS_KEY?: string;
+  /** S3 secret key (set via secret when a workload needs storage). */
+  FILEBASE_SECRET_KEY?: string;
 }
 
 export interface User {

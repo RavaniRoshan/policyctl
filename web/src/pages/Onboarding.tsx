@@ -154,7 +154,7 @@ function Stepper({ step }: { step: number }) {
                 done
                   ? "bg-heat-100 text-accent-white before:border-heat-100"
                   : active
-                    ? "bg-heat-4 text-heat-100 before:border-heat-30"
+                    ? "bg-heat-4 text-heat-ink before:border-heat-30"
                     : "bg-black-alpha-4 text-black-alpha-64 before:border-border-faint"
               }`}
             >
@@ -251,7 +251,7 @@ function InstallStep() {
           href="https://github.com/RavaniRoshan/policyctl/releases"
           target="_blank"
           rel="noreferrer"
-          className="text-heat-100 hover:opacity-80"
+          className="text-heat-ink hover:opacity-80"
         >
           GitHub releases
         </a>

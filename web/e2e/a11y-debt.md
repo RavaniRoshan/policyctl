@@ -8,12 +8,18 @@ desktop-light). **Zero critical violations** — the CI gate blocks on critical.
 All `text-black-alpha-48` body/secondary text → `text-black-alpha-64` (~2.9:1 → ~5.3:1),
 plus the npm footer link (alpha-56 → 64). Verified visually: aesthetic preserved.
 
+## 2026-09-04 pass 2: heat-ink token for small functional text
+
+`--heat-ink` added (`#b24300` light / `#ff8a50` dark, ~5.7:1 on white). All small
+functional heat text (links, labels, code keywords, selected states) now uses it;
+display type intentionally keeps `--heat-100` (passes the 3:1 large-text criterion).
+Verified: zero heat findings remain on sampled pages.
+
 ## Remaining (decorative/brand — needs product call, see options below)
 
 | Pattern | Example | Ratio | Needed |
 |---|---|---|---|
 | `text-black-alpha-32` microcopy (eyebrows, index strips, kbd) | `[ overview · … ]` | 1.94 | 4.5 |
-| `text-heat-100` small text on white | View-all links, theme labels | 3.18–3.32 | 4.5 |
 | `text-success` (#10b981) stat numerals | `94%` at 40px | 2.53 | 3.0 (large) |
 
 ## Decision needed (product, not engineering)

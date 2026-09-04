@@ -96,7 +96,7 @@ export function Overview() {
             <h2 className="text-label-x-large">Recent violations</h2>
             <Link
               to="/dashboard/violations"
-              className="flex items-center gap-4 text-label-small text-heat-100 transition-opacity hover:opacity-80"
+              className="flex items-center gap-4 text-label-small text-heat-ink transition-opacity hover:opacity-80"
             >
               View all <ArrowUpRight className="size-3" aria-hidden />
             </Link>
@@ -161,7 +161,7 @@ export function Overview() {
           )}
           <Link
             to="/dashboard/ai"
-            className="mt-16 inline-flex items-center gap-4 text-label-large text-heat-100 hover:opacity-80"
+            className="mt-16 inline-flex items-center gap-4 text-label-large text-heat-ink hover:opacity-80"
           >
             Open AI <ArrowUpRight className="size-3" aria-hidden />
           </Link>
@@ -188,7 +188,7 @@ function TopRuleSpotlight({ ruleId, count }: { ruleId: string; count: number }) 
       </p>
       <blockquote className="mt-16 rounded-md border border-heat-30 bg-heat-4 p-16 text-body-medium leading-22">
         The rule{" "}
-        <code className="rounded bg-heat-12 px-4 py-2 font-mono text-mono-small text-heat-100">
+        <code className="rounded bg-heat-12 px-4 py-2 font-mono text-mono-small text-heat-ink">
           {ruleId}
         </code>{" "}
         appears {count}× in recent violations — review it in the policy and consider

@@ -166,7 +166,7 @@ export function AuthPage() {
               className="inline-flex min-h-44 items-center px-8 -mr-8 text-body-small text-black-alpha-56 hover:text-accent-black transition-colors"
             >
               <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>
-              <span className="ml-4 text-heat-100 font-medium">
+              <span className="ml-4 text-heat-ink font-medium">
                 {mode === "signup" ? "Sign in" : "Sign up"}
               </span>
             </Link>
@@ -305,7 +305,7 @@ export function AuthPage() {
             className="relative text-lg text-white/90 max-w-md leading-relaxed mb-10"
             style={{ textShadow: "0 1px 12px rgba(0,0,0,0.8)" }}
           >
-            One <span className="font-mono text-heat-100">.policyctl.yml</span> enforced
+            One <span className="font-mono text-heat-ink">.policyctl.yml</span> enforced
             across Claude Code, Codex, Cursor, and your CI pipeline. No vendor lock-in.
           </p>
 
