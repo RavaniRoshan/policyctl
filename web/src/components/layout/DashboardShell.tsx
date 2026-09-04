@@ -21,7 +21,7 @@ import {
 import { CommandPaletteHost } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { useOrgs } from "@/lib/hooks";
+import { useOrgs, useCurrentOrgId, useSetCurrentOrgId } from "@/lib/hooks";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
@@ -160,13 +160,13 @@ function Header({ title }: { title: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [orgMenu, setOrgMenu] = useState(false);
   const { data: orgsData } = useOrgs();
-  const queryClient = useQueryClient();
+  const currentOrgId = useCurrentOrgId();
+  const setCurrentOrgId = useSetCurrentOrgId();
 
   const orgs = orgsData?.orgs ?? [];
-  const currentOrgId = queryClient.getQueryData<string>(["currentOrgId"]) ?? orgs[0]?.id;
 
   const onOrgChange = (orgId: string) => {
-    queryClient.setQueryData(["currentOrgId"], orgId);
+    setCurrentOrgId(orgId);
     setOrgMenu(false);
   };
 

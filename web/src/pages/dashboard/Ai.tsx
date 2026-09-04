@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Sparkle, Copy, Check, Lock, ArrowRight } from "@phosphor-icons/react";
 import { useAiAuthor, useAiAnalyze, useBilling } from "@/lib/hooks";
@@ -10,7 +10,6 @@ import { Callout } from "@/components/ui/callout";
 import { Textarea } from "@/components/ui/input";
 import { CurvyRect, PillTabs } from "@policyctl/design-system";
 import { MonoAnnotation } from "@/components/shared/EmptyState";
-import { api } from "@/lib/api";
 
 const HISTORY_KEY = "policyctl-ai-history";
 
@@ -29,7 +28,7 @@ export function Ai() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const { data: billing, refetch: refetchBilling } = useBilling();
+  const { data: billing } = useBilling();
   const authorMut = useAiAuthor();
   const analyzeMut = useAiAnalyze();
 
@@ -185,13 +184,13 @@ export function Ai() {
 }
 
 function History() {
-  const [items, setItems] = useState<HistoryItem[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]");
-    } catch {
-      return [];
-    }
-  });
+  const [items, setItems] = useState<HistoryItem[]>(loadHistory);
+
+  useEffect(() => {
+    const reload = () => setItems(loadHistory());
+    window.addEventListener("policyctl:ai-history", reload);
+    return () => window.removeEventListener("policyctl:ai-history", reload);
+  }, []);
 
   const clear = () => {
     localStorage.removeItem(HISTORY_KEY);
@@ -231,10 +230,17 @@ function History() {
   );
 }
 
+function loadHistory(): HistoryItem[] {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
 function saveHistory(prompt: string, output: string, mode: "author" | "analyze") {
   try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    const items: HistoryItem[] = raw ? JSON.parse(raw) : [];
+    const items: HistoryItem[] = loadHistory();
     items.unshift({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       prompt,
@@ -243,5 +249,6 @@ function saveHistory(prompt: string, output: string, mode: "author" | "analyze")
       at: new Date().toISOString().slice(11, 16),
     });
     localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 50)));
+    window.dispatchEvent(new Event("policyctl:ai-history"));
   } catch {}
 }

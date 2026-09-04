@@ -42,6 +42,10 @@ export function Policies() {
     refetch();
   };
 
+  // Highest version number is the live one; rollback moves the pointer without
+  // creating a new row, so every other row is archived history.
+  const activeVersion = filtered.length > 0 ? Math.max(...filtered.map((v) => v.version)) : null;
+
   const handlePublish = async () => {
     if (!publishYaml.trim()) {
       push({ title: "Policy YAML is required", tone: "warning" });
@@ -180,6 +184,7 @@ export function Policies() {
                 <VersionRow
                   key={v.id}
                   v={v}
+                  isActive={v.version === activeVersion}
                   expanded={expanded === v.id}
                   onToggle={() => setExpanded(expanded === v.id ? null : v.id)}
                   onCopy={() => copyYaml(v.id, v.yaml)}
@@ -214,6 +219,7 @@ export function Policies() {
 
 function VersionRow({
   v,
+  isActive,
   expanded,
   onToggle,
   onCopy,
@@ -222,6 +228,7 @@ function VersionRow({
   isRollingBack,
 }: {
   v: PolicyVersion;
+  isActive: boolean;
   expanded: boolean;
   onToggle: () => void;
   onCopy: () => void;
@@ -246,7 +253,7 @@ function VersionRow({
           {new Date(v.created_at).toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
         </td>
         <td className="p-16">
-          <Badge tone="heat">active</Badge>
+          {isActive ? <Badge tone="heat">active</Badge> : <Badge tone="muted">archived</Badge>}
         </td>
       </tr>
       {expanded && (

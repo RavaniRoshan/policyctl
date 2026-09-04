@@ -88,7 +88,7 @@ export function Overview() {
           <div className="flex items-center justify-between mb-16">
             <h3 className="text-label-x-large text-accent-black">Recent violations</h3>
             <Link
-              to="/dashboard/sessions"
+              to="/dashboard/violations"
               className="text-label-small text-heat-100 hover:opacity-80 transition-opacity flex items-center gap-4"
             >
               View all <ArrowUpRight className="size-3" />

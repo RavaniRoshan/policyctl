@@ -11,7 +11,7 @@ import {
   Warning,
 } from "@phosphor-icons/react";
 import { useOrgMembers, useInviteMember, useUpdateMember, useRemoveMember } from "@/lib/hooks";
-import { useOrgs } from "@/lib/hooks";
+import { useCurrentOrgId } from "@/lib/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,7 @@ import type { Role } from "@policyctl/types";
 const ROLES: Role[] = ["owner", "admin", "member", "viewer"];
 
 export function OrgMembers() {
-  const { data: orgsData } = useOrgs();
-  const currentOrgId = orgsData?.orgs?.[0]?.id;
+  const currentOrgId = useCurrentOrgId();
   const { data: members, isLoading, error, refetch } = useOrgMembers(currentOrgId);
   const queryClient = useQueryClient();
   const { push } = useToast();

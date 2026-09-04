@@ -11,7 +11,7 @@ import { Sheet, CurvyRect, Modal, useToast } from "@policyctl/design-system";
 import { Skeleton, EmptyState, MonoAnnotation } from "@/components/shared/EmptyState";
 import { Callout } from "@/components/ui/callout";
 import type { Violation } from "@policyctl/types";
-import type { SessionViolation, UseSessionStreamOptions } from "@/lib/hooks.types";
+import type { UseSessionStreamOptions } from "@/lib/hooks.types";
 import { api } from "@/lib/api";
 
 export function Sessions() {
@@ -22,15 +22,13 @@ export function Sessions() {
   const [provider, setProvider] = useState<string>("All");
   const [enforce, setEnforce] = useState<string>("All");
   const [open, setOpen] = useState<Violation | null>(null);
-  const [sessionKey] = useState<string>("live");
+  const [sessionKey] = useState<string>("live"); // shared live-feed channel for the org
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkMenuOpen, setBulkMenuOpen] = useState(false);
-  const { connected, lastViolation } = useSessionStream(
+  const { connected } = useSessionStream(
     sessionKey,
     {
       getAccessToken,
-      onViolation: (v: SessionViolation) => {
-        console.log("New violation received:", v);
+      onViolation: () => {
         queryClient.invalidateQueries({ queryKey: ["violations"] });
       },
     } as UseSessionStreamOptions
@@ -49,12 +47,8 @@ export function Sessions() {
 
   // Show connection status
   useEffect(() => {
-    if (connected) {
-      console.log("WebSocket connected");
-    } else {
-      console.log("WebSocket disconnected");
-    }
-  }, [connected]);
+    queryClient.invalidateQueries({ queryKey: ["violations"] });
+  }, [connected, queryClient]);
 
   const filtered = (data ?? []).filter((v) => {
     if (provider !== "All" && v.agent?.toLowerCase() !== provider.toLowerCase()) return false;
@@ -87,7 +81,6 @@ export function Sessions() {
       dismissMutation.mutate({ id, reason });
     });
     setSelectedIds(new Set());
-    setBulkMenuOpen(false);
   };
 
   const handleDismiss = (violation: Violation) => {

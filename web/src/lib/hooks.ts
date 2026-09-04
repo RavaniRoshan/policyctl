@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, API_BASE } from "./api";
 import type { BillingStatus, Role } from "@policyctl/types";
 import { DEMO_ANALYTICS, DEMO_VIOLATIONS, DEMO_POLICIES, DEMO_DAILY_REPORT, DEMO_ORGS } from "./demo-data";
@@ -7,17 +7,17 @@ import type { SessionViolation, UseSessionStreamOptions } from "./hooks.types";
 
 /**
  * Build-mode detection:
- * - `import.meta.env.DEV`     → `true` in `vite dev` (local + preview server)
- * - `import.meta.env.MODE`    → `"development"` | `"production"` | `"preview"`
- * - `import.meta.env.PROD`    → `true` in `vite build` (Cloudflare Pages)
+ * - `import.meta.env.DEV`     → `true` under `vite dev` only
+ * - `import.meta.env.MODE`    → `"development"` | `"production"`
+ * - `import.meta.env.PROD`    → `true` for any production build
+ *   (both `vite build` output and `vite preview`, which serves that output)
  *
- * Mock data is ONLY served in development/preview. In production builds,
- * every query calls the real Worker API — no fallback, no mock, no lies.
+ * Mock data is served in every non-production MODE. Production builds
+ * always call the real Worker API — no fallback, no mock, no lies.
  */
 const ENV = import.meta.env.MODE;
-const IS_PRODUCTION = import.meta.env.PROD;
 
-const USE_DEMO = !IS_PRODUCTION;
+const USE_DEMO = ENV !== "production";
 
 if (USE_DEMO) {
   // eslint-disable-next-line no-console
@@ -79,39 +79,85 @@ export function useOrgs() {
   });
 }
 
+/**
+ * Shared current-org selection: the header switcher writes it, Team and
+ * Settings read it. Falls back to the first org until the user picks one.
+ */
+export function useCurrentOrgId(): string | undefined {
+  const { data: orgsData } = useOrgs();
+  const { data: stored } = useQuery<string | null>({
+    queryKey: ["currentOrgId"],
+    queryFn: () => null,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+  return stored ?? orgsData?.orgs?.[0]?.id;
+}
+
+export function useSetCurrentOrgId() {
+  const queryClient = useQueryClient();
+  return (orgId: string) => queryClient.setQueryData(["currentOrgId"], orgId);
+}
+
 export function useBilling() {
   return useQuery({
     queryKey: ["billing"],
-    queryFn: () => fetchData(() => api.billingStatus(), () => DEMO_BILLING_STATUS),
+    queryFn: () => fetchData(() => api.billingStatus(), () => demoBillingStatus()),
     staleTime: 60_000,
   });
 }
 
-const DEMO_BILLING_STATUS: BillingStatus = {
-  subscription: {
-    id: "demo-1",
-    stripe_sub_id: "sub_demo",
-    status: "trialing",
-    tier: "paid",
-    plan: "growth",
+/**
+ * Demo billing tier for QA: `?demo_tier=free|trial|paid` (default: trial).
+ * Lets developers exercise the paywall, trial banner, and paid states locally.
+ */
+type DemoTier = "free" | "trial" | "paid";
+
+function demoTier(): DemoTier {
+  const t = new URLSearchParams(window.location.search).get("demo_tier");
+  return t === "free" || t === "paid" ? t : "trial";
+}
+
+function demoBillingStatus(): BillingStatus {
+  const tier = demoTier();
+  if (tier === "free") {
+    return {
+      subscription: null,
+      is_paid: false,
+      is_trial: false,
+      days_remaining_in_trial: null,
+      seat_count: 0,
+      plan: "free",
+      has_api_key: false,
+    };
+  }
+  const trialing = tier === "trial";
+  return {
+    subscription: {
+      id: "demo-1",
+      stripe_sub_id: "sub_demo",
+      status: trialing ? "trialing" : "active",
+      tier: "paid",
+      plan: "growth",
+      seat_count: 1,
+      price_id: "price_demo_monthly",
+      current_period_start: Date.now(),
+      current_period_end: Date.now() + 14 * 86400000,
+      trial_start: trialing ? Date.now() : null,
+      trial_end: trialing ? Date.now() + 14 * 86400000 : null,
+      cancel_at_period_end: false,
+      canceled_at: null,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    },
+    is_paid: true,
+    is_trial: trialing,
+    days_remaining_in_trial: trialing ? 14 : null,
     seat_count: 1,
-    price_id: "price_demo_monthly",
-    current_period_start: Date.now(),
-    current_period_end: Date.now() + 14 * 86400000,
-    trial_start: Date.now(),
-    trial_end: Date.now() + 14 * 86400000,
-    cancel_at_period_end: false,
-    canceled_at: null,
-    created_at: Date.now(),
-    updated_at: Date.now(),
-  },
-  is_paid: true,
-  is_trial: true,
-  days_remaining_in_trial: 14,
-  seat_count: 1,
-  plan: "growth",
-  has_api_key: true,
-};
+    plan: "growth",
+    has_api_key: true,
+  };
+}
 
 export function useAiAnalyze() {
   return useMutation({

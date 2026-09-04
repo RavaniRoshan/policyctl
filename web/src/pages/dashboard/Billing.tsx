@@ -79,13 +79,13 @@ export function Billing() {
               <Lock className="size-5 text-heat-100" />
               <h3 className="text-label-x-large text-accent-black">Current plan</h3>
             </div>
-            {isPaid ? (
-              <Badge tone="heat">Control Plane</Badge>
-            ) : isTrial ? (
+            {isTrial ? (
               <Badge tone="accent">
                 <Gift className="size-3 mr-4" />
                 Trial
               </Badge>
+            ) : isPaid ? (
+              <Badge tone="heat">Control Plane</Badge>
             ) : (
               <Badge tone="muted">Free</Badge>
             )}

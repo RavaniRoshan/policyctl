@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
-  Eye,
-  EyeSlash,
   Copy,
   Check,
   GithubLogo,
@@ -16,21 +14,15 @@ import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
 import { Callout } from "@/components/ui/callout";
 import { Button } from "@/components/ui/button";
 
+// Only the email is collected here — and only to pre-fill Universal Login
+// via `login_hint`. Credentials are never handled by this page; Auth0 owns them.
 interface FormData {
-  firstName: string;
-  lastName: string;
   email: string;
-  password: string;
-  terms: boolean;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const EMPTY_TOUCHED: Record<keyof FormData, boolean> = {
-  firstName: false,
-  lastName: false,
   email: false,
-  password: false,
-  terms: false,
 };
 
 export function AuthPage() {
@@ -40,15 +32,8 @@ export function AuthPage() {
   const [mode, setMode] = useState<"signup" | "login">(
     location.pathname === "/login" ? "login" : "signup",
   );
-  const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [form, setForm] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    terms: false,
-  });
+  const [form, setForm] = useState<FormData>({ email: "" });
   const [touched, setTouched] = useState<Record<keyof FormData, boolean>>(EMPTY_TOUCHED);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -94,29 +79,13 @@ export function AuthPage() {
   };
 
   const errors = {
-    firstName: touched.firstName && mode === "signup" && form.firstName.trim().length < 2
-      ? "At least 2 characters"
-      : undefined,
-    lastName: touched.lastName && mode === "signup" && form.lastName.trim().length < 2
-      ? "At least 2 characters"
-      : undefined,
     email: touched.email && !EMAIL_RE.test(form.email)
       ? "Enter a valid email"
-      : undefined,
-    password: touched.password && form.password.length < 8
-      ? "At least 8 characters"
-      : undefined,
-    terms: mode === "signup" && touched.terms && !form.terms
-      ? "Required to continue"
       : undefined,
   };
 
   const firstInvalidField = (): keyof FormData | null => {
-    if (mode === "signup" && form.firstName.trim().length < 2) return "firstName";
-    if (mode === "signup" && form.lastName.trim().length < 2) return "lastName";
     if (!EMAIL_RE.test(form.email)) return "email";
-    if (form.password.length < 8) return "password";
-    if (mode === "signup" && !form.terms) return "terms";
     return null;
   };
 
@@ -135,6 +104,7 @@ export function AuthPage() {
       authorizationParams: {
         redirect_uri: REDIRECT_URI,
         screen_hint: mode === "signup" ? "signup" : "login",
+        login_hint: form.email,
       },
     });
   };
@@ -254,55 +224,6 @@ export function AuthPage() {
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-16">
-            {mode === "signup" && (
-              <div className="grid grid-cols-2 gap-12">
-                <div>
-                  <label htmlFor="firstName" className="text-label-small text-accent-black block mb-6">
-                    First Name
-                  </label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    value={form.firstName}
-                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                    onBlur={() => setTouched((t) => ({ ...t, firstName: true }))}
-                    placeholder="Ada"
-                    aria-invalid={errors.firstName ? "true" : undefined}
-                    aria-describedby={errors.firstName ? "firstName-error" : undefined}
-                    className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
-                  />
-                  {errors.firstName && (
-                    <p id="firstName-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
-                      <WarningCircle className="size-16" />
-                      {errors.firstName}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="lastName" className="text-label-small text-accent-black block mb-6">
-                    Last Name
-                  </label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    value={form.lastName}
-                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                    onBlur={() => setTouched((t) => ({ ...t, lastName: true }))}
-                    placeholder="Lovelace"
-                    aria-invalid={errors.lastName ? "true" : undefined}
-                    aria-describedby={errors.lastName ? "lastName-error" : undefined}
-                    className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
-                  />
-                  {errors.lastName && (
-                    <p id="lastName-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
-                      <WarningCircle className="size-16" />
-                      {errors.lastName}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
             <div>
               <label htmlFor="email" className="text-label-small text-accent-black block mb-6">
                 Work Email
@@ -328,64 +249,10 @@ export function AuthPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="text-label-small text-accent-black block mb-6">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  onBlur={() => setTouched((t) => ({ ...t, password: true }))}
-                  placeholder="••••••••"
-                  required
-                  minLength={8}
-                  aria-invalid={errors.password ? "true" : undefined}
-                  aria-describedby={errors.password ? "password-error" : undefined}
-                  className="w-full h-44 rounded-md border border-border-faint bg-surface px-12 pr-44 text-body-medium text-accent-black placeholder:text-black-alpha-48 outline-none transition-all duration-200 focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-0 top-0 size-44 inline-flex items-center justify-center text-black-alpha-48 hover:text-accent-black transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeSlash className="size-20" /> : <Eye className="size-20" />}
-                </button>
-              </div>
-              {errors.password && (
-                <p id="password-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
-                  <WarningCircle className="size-16" />
-                  {errors.password}
-                </p>
-              )}
+              <p className="text-mono-small text-black-alpha-48 leading-20">
+                Continue with your work email — you&apos;ll finish signing in on Auth0&apos;s secure page.
+              </p>
             </div>
-
-            {mode === "signup" && (
-              <div>
-                <label className="flex min-h-44 items-center gap-8 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.terms}
-                    onChange={(e) => setForm({ ...form, terms: e.target.checked })}
-                    onBlur={() => setTouched((t) => ({ ...t, terms: true }))}
-                    aria-invalid={errors.terms ? "true" : undefined}
-                    aria-describedby={errors.terms ? "terms-error" : undefined}
-                    className="size-20 shrink-0 rounded border-border-faint text-heat-100 focus:ring-heat-100"
-                  />
-                  <span className="text-mono-small text-black-alpha-64 leading-20">
-                    I agree to the Terms of Service and Privacy Policy
-                  </span>
-                </label>
-                {errors.terms && (
-                  <p id="terms-error" role="alert" className="mt-4 text-mono-small text-danger flex items-center gap-4">
-                    <WarningCircle className="size-16" />
-                    {errors.terms}
-                  </p>
-                )}
-              </div>
-            )}
 
             <Button
               type="submit"

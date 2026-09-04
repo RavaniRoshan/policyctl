@@ -8,7 +8,7 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { CurvyRect, Modal, useToast } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { useBilling, useGenerateApiKey, useDeleteOrg, useOrgs } from "@/lib/hooks";
+import { useBilling, useGenerateApiKey, useDeleteOrg, useOrgs, useCurrentOrgId } from "@/lib/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { MonoAnnotation } from "@/components/shared/EmptyState";
 
@@ -20,6 +20,9 @@ export function Settings() {
   const queryClient = useQueryClient();
   const billing = useBilling();
   const orgsQuery = useOrgs();
+  const currentOrgId = useCurrentOrgId();
+  const currentOrg = orgsQuery.data?.orgs?.find((o) => o.id === currentOrgId) ?? orgsQuery.data?.orgs?.[0];
+  const deletePhrase = currentOrg ? `delete ${currentOrg.name}` : "delete this organization";
   const generateApiKey = useGenerateApiKey();
   const deleteOrg = useDeleteOrg();
   const [reveal, setReveal] = useState(false);
@@ -58,17 +61,16 @@ export function Settings() {
   };
 
   const onDelete = async () => {
-    if (confirmText !== "delete my account") {
-      push({ title: "Type the phrase exactly", description: 'Type "delete my account" to confirm', tone: "warning" });
+    if (confirmText !== deletePhrase) {
+      push({ title: "Type the phrase exactly", description: `Type "${deletePhrase}" to confirm`, tone: "warning" });
       return;
     }
-    const orgs = orgsQuery.data?.orgs;
-    if (!orgs || orgs.length === 0) return;
-    const orgId = orgs[0].id;
+    if (!currentOrg) return;
+    const orgId = currentOrg.id;
     setIsDeleting(true);
     try {
       await deleteOrg.mutateAsync(orgId);
-      push({ title: "Account deleted", description: "Your account and all associated data have been removed." });
+      push({ title: "Organization deleted", description: `"${currentOrg.name}" and all associated data have been removed.` });
       await logout();
       navigate("/");
     } catch (e: any) {
@@ -204,11 +206,12 @@ export function Settings() {
         <CurvyRect sides="allSides" color="rgba(239,68,68,0.3)" />
         <h3 className="text-label-x-large text-danger">Danger zone</h3>
         <p className="mt-8 text-body-medium text-black-alpha-64 leading-22">
-          Permanently delete your account and all associated data. This cannot be undone.
+          Permanently delete the {currentOrg ? `"${currentOrg.name}" ` : ""}organization and all
+          associated data. This cannot be undone.
         </p>
         <div className="mt-16">
           <Button variant="danger" onClick={() => setConfirmDelete(true)}>
-            <Trash className="size-3 mr-4" /> Delete account
+            <Trash className="size-3 mr-4" /> Delete organization
           </Button>
         </div>
       </Card>
@@ -216,21 +219,21 @@ export function Settings() {
       <Modal
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        title="Delete account"
+        title="Delete organization"
         maxWidth={420}
       >
         <p className="text-body-medium text-black-alpha-72 leading-22">
-          Type <code className="font-mono text-mono-small text-accent-black">delete my account</code>{" "}
-          to confirm. This will permanently delete your org, all policies, violations, subscriptions,
-          and Stripe customer data. This cannot be undone.
+          Type <code className="font-mono text-mono-small text-accent-black">{deletePhrase}</code>{" "}
+          to confirm. This will permanently delete{currentOrg ? ` "${currentOrg.name}"` : " the organization"},
+          all policies, violations, subscriptions, and Stripe customer data. This cannot be undone.
         </p>
         <Input
           id="delete-confirm"
           className="mt-16"
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
-          placeholder="delete my account"
-          aria-invalid={confirmText.length > 0 && confirmText !== "delete my account" ? "true" : undefined}
+          placeholder={deletePhrase}
+          aria-invalid={confirmText.length > 0 && confirmText !== deletePhrase ? "true" : undefined}
         />
         <div className="mt-24 flex items-center justify-end gap-8">
           <Button variant="tertiary" onClick={() => setConfirmDelete(false)} disabled={isDeleting}>
@@ -239,7 +242,7 @@ export function Settings() {
           <Button
             variant="danger"
             onClick={onDelete}
-            disabled={confirmText !== "delete my account" || isDeleting}
+            disabled={confirmText !== deletePhrase || isDeleting}
           >
             {isDeleting ? "Deleting…" : "Delete permanently"}
           </Button>
