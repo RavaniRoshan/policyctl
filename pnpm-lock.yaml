@@ -20,6 +20,10 @@ importers:
       framer-motion:
         specifier: ^13.1.1
         version: 13.1.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      wrangler:
+        specifier: ^4.43.0
+        version: 4.127.1(@cloudflare/workers-types@5.20260829.1)
 
   docs:
     dependencies:
