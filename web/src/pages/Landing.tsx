@@ -9,6 +9,7 @@ import {
   CountUp,
   FeatureTabs,
   CurvyRect,
+  Reveal,
 } from "@policyctl/design-system";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -359,7 +360,7 @@ function Hero() {
 function TrustedBy() {
   return (
     <section className="pcl-section--compact py-40 lg:py-56">
-      <div className="pcl-container flex flex-col lg:flex-row items-stretch gap-0 -mt-1 relative">
+      <Reveal className="pcl-container flex flex-col lg:flex-row items-stretch gap-0 -mt-1 relative">
         <div className="lg:w-300 border-b lg:border-b-0 lg:border-r border-border-faint p-16 lg:p-40 relative">
           <CurvyRect sides="allSides" />
           <div className="text-mono-x-small text-black-alpha-32 uppercase mb-12">
@@ -395,7 +396,7 @@ function TrustedBy() {
             ))}
           </Marquee>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -1300,7 +1301,7 @@ function Pricing() {
     <section id="pricing" className="pcl-section--compact -scroll-mt-80 py-80 lg:py-120 relative -mt-1">
       <CurvyRect sides="allSides" />
       <div className="pcl-container">
-        <div className="text-center mb-40">
+        <Reveal className="text-center mb-40">
           <span className="pcl-section__badge">Pricing</span>
           <h2 className="pcl-section__title">
             Free CLI. <span className="text-heat-100">Paid control plane.</span>
@@ -1308,7 +1309,7 @@ function Pricing() {
           <p className="pcl-section__subtitle">
             Start free. Upgrade when your team needs shared policy versioning and an audit feed.
           </p>
-        </div>
+        </Reveal>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 -mt-1 items-stretch">
           {/* Tier 1: Free Open Source */}
           <div className="p-2 rounded-2xl bg-background-base border border-border-faint shadow-2xs">
@@ -1463,7 +1464,7 @@ function FAQ() {
     <section className="pcl-section--compact py-80 lg:py-100 relative -mt-1" id="faq">
       <CurvyRect sides="allSides" />
       <div className="pcl-container">
-        <div className="grid lg:grid-cols-[380px_1fr] gap-32 lg:gap-64 -mt-1 items-start">
+        <Reveal className="grid lg:grid-cols-[380px_1fr] gap-32 lg:gap-64 -mt-1 items-start">
           {/* Left Column: Heading & Support Blueprint Card */}
           <div className="flex flex-col justify-between gap-32">
             <div>
@@ -1566,7 +1567,7 @@ function FAQ() {
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </div>
       <IndexStrip index={6} total={6} label="Frequently asked" />
     </section>
@@ -1616,9 +1617,11 @@ function CTA() {
             </div>
 
             {/* Main Heading */}
-            <h2 className="text-title-h2 lg:text-title-h1 text-accent-black tracking-tight font-medium max-w-640 mx-auto">
-              Ready to <span className="text-heat-100">enforce?</span>
-            </h2>
+            <Reveal>
+              <h2 className="text-title-h2 lg:text-title-h1 text-accent-black tracking-tight font-medium max-w-640 mx-auto">
+                Ready to <span className="text-heat-100">enforce?</span>
+              </h2>
+            </Reveal>
 
             {/* Subtitle */}
             <p className="mt-12 text-body-large text-black-alpha-64 max-w-440 mx-auto leading-relaxed">

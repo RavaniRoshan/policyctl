@@ -14,3 +14,4 @@ export { ToastProvider, useToast } from "./blueprint/Toast";
 export type { Toast } from "./blueprint/Toast";
 export { Sheet, Modal } from "./blueprint/Modal";
 export { AsciiCanvas } from "./blueprint/AsciiCanvas";
+export { Reveal } from "./blueprint/Reveal";

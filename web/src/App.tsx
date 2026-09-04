@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { MotionConfig } from "framer-motion";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { MotionConfig, AnimatePresence, motion } from "framer-motion";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, Component, Suspense, type ReactNode } from "react";
 import { AuthProvider, RequireAuth } from "@/lib/auth";
@@ -68,20 +68,45 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
-            <BrowserRouter>
+          <BrowserRouter>
             <a href="#main-content" className="skip-link">Skip to main content</a>
             <ErrorBoundary>
               <AuthProvider>
                 <TurnstileProvider>
                   <MotionConfig reducedMotion="user">
-                  <Suspense
-                    fallback={
-                      <div className="min-h-screen grid place-items-center text-black-alpha-48 font-mono text-mono-small">
-                        Loading…
-                      </div>
-                    }
-                  >
-                    <Routes>
+                    <Suspense
+                      fallback={
+                        <div className="min-h-screen grid place-items-center text-black-alpha-48 font-mono text-mono-small">
+                          Loading…
+                        </div>
+                      }
+                    >
+                      <AnimatedRoutes />
+                    </Suspense>
+                  </MotionConfig>
+                </TurnstileProvider>
+              </AuthProvider>
+            </ErrorBoundary>
+          </BrowserRouter>
+        </ToastProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+}
+
+/** Subtle route transitions (180ms fade/rise). Instant under reduced-motion. */
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+      >
+        <Routes location={location}>
                       {/* Public */}
                       <Route path="/" element={<Landing />} />
                       <Route path="/pricing" element={<Pricing />} />
@@ -126,14 +151,7 @@ export function App() {
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                    </Suspense>
-                  </MotionConfig>
-                </TurnstileProvider>
-              </AuthProvider>
-            </ErrorBoundary>
-          </BrowserRouter>
-        </ToastProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+        </motion.div>
+      </AnimatePresence>
   );
 }

@@ -50,7 +50,7 @@ const ITEMS = [
 export function DashboardShell() {
   const { pathname } = useLocation();
   return (
-    <div className="min-h-screen bg-background-base text-accent-black lg:flex">
+    <div className="min-h-screen bg-background-base text-accent-black transition-colors duration-200 lg:flex">
       <Sidebar />
       <div className="min-w-0 flex-1">
         <Header title={TITLES[pathname] ?? "Overview"} />
@@ -76,7 +76,7 @@ function navClass(isActive: boolean) {
 function Sidebar() {
   const { pathname } = useLocation();
   return (
-    <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-border-faint bg-surface lg:flex">
+    <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-border-faint bg-surface transition-colors duration-200 lg:flex">
       <div className="flex h-64 items-center gap-8 border-b border-border-faint px-16">
         <span className="text-heat-100">
           <PolicyctlMark size={22} />
@@ -134,7 +134,7 @@ function Header({ title }: { title: string }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border-faint bg-background-base/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border-faint bg-background-base/95 backdrop-blur transition-colors duration-200">
       <div className="mx-auto flex h-64 w-full max-w-[1280px] items-center gap-8 px-16 md:px-32">
         <button
           className="inline-flex size-44 items-center justify-center rounded-md text-accent-black hover:bg-black-alpha-4 lg:hidden"
