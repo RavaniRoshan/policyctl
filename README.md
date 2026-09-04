@@ -24,6 +24,18 @@
 
 ---
 
+## See it run
+
+<p align="center">
+  <img src="docs/src/assets/demo.gif" alt="policyctl + Claude Code on macOS: init guardrails, BLOCK hand-written migration, BLOCK leaked secret, check passes" width="1280" />
+</p>
+
+<p align="center">
+  <sub>Claude Code on macOS wired with <code>policyctl gen claude</code> — hand-written migration <b>BLOCKED (exit 2)</b>, secret in diff <b>BLOCKED</b>, remediated run <b>ALLOWED</b>. Deterministic, &lt;12ms per call, 100% local.</sub>
+</p>
+
+---
+
 ## Overview
 
 Prompt-based advisory instructions (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`) degrade as context windows fill up. Autonomous coding agents frequently overlook prompt rules, rewrite protected configuration files, leak secrets into diffs, or execute unauthorized commands.
