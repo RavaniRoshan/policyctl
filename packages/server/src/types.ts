@@ -36,6 +36,10 @@ export interface Env {
   STRIPE_PRICE_ID_GROWTH_MONTHLY?: string;
   /** Stripe price ID for Growth annual subscription ($50/seat/year). */
   STRIPE_PRICE_ID_GROWTH_ANNUAL?: string;
+  /** Stripe price ID for Pro monthly subscription ($12/seat/month). */
+  STRIPE_PRICE_ID_PRO_MONTHLY?: string;
+  /** Stripe price ID for Pro annual subscription ($120/seat/year). */
+  STRIPE_PRICE_ID_PRO_ANNUAL?: string;
 
   // ── CORS ──
   /** Comma-separated list of origins allowed to call the Worker API. */

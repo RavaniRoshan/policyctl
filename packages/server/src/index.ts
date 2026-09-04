@@ -41,8 +41,10 @@ import {
   getSubscriptionByStripeId,
   updateMemberRole,
   removeMember,
+  updateSubscriptionStatus,
 } from "./store.js";
 import { cacheGetPolicy, cacheGetUser, cacheInvalidatePolicy, cachePutPolicy, cachePutUser, cacheGetUserBySub, cachePutUserBySub } from "./cache.js";
+import type { BillingPlan } from "./store.js";
 import { analyzeDiff, authorRule } from "./ai.js";
 import { PolicySession } from "./session.js";
 
@@ -256,17 +258,50 @@ function getStripe(env: Env): Stripe | null {
   return _stripe;
 }
 
-/** Determine if an org has an active or trial subscription. */
-function isOrgActive(org: Org | null): boolean {
+/**
+ * Determine if an org is in good standing. `past_due` keeps access during
+ * Stripe Smart Retries; access is revoked on `unpaid`/`canceled`/`incomplete`.
+ */
+export function isOrgActive(org: Org | null): boolean {
   if (!org) return false;
   const s = org.subscription_status;
-  return s === "active" || s === "trialing";
+  return s === "active" || s === "trialing" || s === "past_due";
 }
 
-/** Map a Stripe price ID to our internal plan name. */
-function priceIdToPlan(env: Env, priceId: string | null): "growth" {
+/** Map a Stripe price ID to our internal plan name (growth default). */
+export function priceIdToPlan(env: Env, priceId: string | null): BillingPlan {
   if (!priceId) return "growth";
+  if (priceId === env.STRIPE_PRICE_ID_PRO_MONTHLY || priceId === env.STRIPE_PRICE_ID_PRO_ANNUAL) {
+    return "pro";
+  }
   return "growth";
+}
+
+/**
+ * Push the current billable seat count to Stripe. Best-effort: failures are
+ * logged but never break the member mutation (D1 stays the source of truth).
+ */
+async function syncStripeSeats(env: Env, db: D1Database, orgId: number): Promise<void> {
+  try {
+    const stripeClient = getStripe(env);
+    if (!stripeClient) return;
+    const row = (await db
+      .prepare("SELECT stripe_sub_id FROM orgs WHERE id = ?")
+      .bind(orgId)
+      .first()) as { stripe_sub_id: string | null } | null;
+    if (!row?.stripe_sub_id) return;
+    const seats = Math.max(await getSeatCount(db, orgId), 1);
+    const sub = await stripeClient.subscriptions.retrieve(row.stripe_sub_id);
+    const item = sub.items.data[0];
+    if (!item || item.quantity === seats) return;
+    await stripeClient.subscriptions.update(row.stripe_sub_id, {
+      items: [{ id: item.id, quantity: seats }],
+      proration_behavior: "create_prorations",
+    });
+    console.log(`[billing] synced org ${orgId} seats -> ${seats}`);
+  } catch (err: any) {
+    console.error(`[billing] seat sync failed for org ${orgId}: ${err?.message ?? err}`);
+  }
 }
 
 /** Get the frontend origin for redirects (from request origin or env). */
@@ -500,6 +535,7 @@ app.post(`${API}/orgs/:id/members`, async (c) => {
     .prepare("UPDATE orgs SET seat_count = ? WHERE id = ?")
     .bind(seats, orgId)
     .run();
+  await syncStripeSeats(c.env, c.env.DB, orgId);
   return c.json({ ok: true, seats });
 });
 
@@ -523,7 +559,14 @@ app.patch(`${API}/orgs/:id/members/:userId`, async (c) => {
   if (!body.role) return c.json({ error: "role required" }, 400);
   const res = await updateMemberRole(c.env.DB, orgId, user.id, targetId, body.role);
   if (!res.ok) return c.json({ error: res.error }, 403);
-  return c.json({ ok: true });
+  // Role changes can move members across the billable line (viewer <-> member).
+  const seats = await getSeatCount(c.env.DB, orgId);
+  await c.env.DB
+    .prepare("UPDATE orgs SET seat_count = ? WHERE id = ?")
+    .bind(seats, orgId)
+    .run();
+  await syncStripeSeats(c.env, c.env.DB, orgId);
+  return c.json({ ok: true, seats });
 });
 
 app.delete(`${API}/orgs/:id/members/:userId`, async (c) => {
@@ -540,6 +583,7 @@ app.delete(`${API}/orgs/:id/members/:userId`, async (c) => {
     .prepare("UPDATE orgs SET seat_count = ? WHERE id = ?")
     .bind(seats, orgId)
     .run();
+  await syncStripeSeats(c.env, c.env.DB, orgId);
   return c.json({ ok: true, seats });
 });
 
@@ -836,7 +880,7 @@ app.post(`${API}/webhook/stripe`, async (c) => {
 
       const priceId = sub.items.data[0]?.price?.id ?? null;
       const customerId = sub.customer as string;
-      const plan = "growth" as "growth";
+      const plan = priceIdToPlan(c.env, priceId);
 
       await updateOrgSubscription(c.env.DB, orgId, {
         stripe_customer_id: customerId,
@@ -884,6 +928,7 @@ app.post(`${API}/webhook/stripe`, async (c) => {
           current_period_end: sub.current_period_end,
           price_id: sub.price_id,
         });
+        await updateSubscriptionStatus(c.env.DB, subId, "active");
       }
       console.log(`[webhook] invoice.payment_succeeded: sub ${subId}, org ${sub?.org_id}`);
       break;
@@ -904,6 +949,7 @@ app.post(`${API}/webhook/stripe`, async (c) => {
           current_period_end: sub.current_period_end,
           price_id: sub.price_id,
         });
+        await updateSubscriptionStatus(c.env.DB, subId, "past_due");
       }
       console.log(`[webhook] invoice.payment_failed: sub ${subId}, org ${sub?.org_id}`);
       break;

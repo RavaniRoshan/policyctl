@@ -669,7 +669,7 @@ export const SUBSCRIPTION_STATUSES = ["free", "trialing", "active", "past_due", 
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 export const BILLING_TIERS = ["free", "paid"] as const;
 export type BillingTier = (typeof BILLING_TIERS)[number];
-export const BILLING_PLANS = ["free", "growth"] as const;
+export const BILLING_PLANS = ["free", "growth", "pro"] as const;
 export type BillingPlan = (typeof BILLING_PLANS)[number];
 
 /** Select all billing columns for an org. */
@@ -767,16 +767,29 @@ export async function updateOrgSubscription(
     price_id: string | null;
   },
 ): Promise<void> {
+  // Caller-facing names differ from orgs column names for status/tier.
+  const COLUMN_MAP: Record<string, string> = {
+    status: "subscription_status",
+    tier: "subscription_tier",
+  };
   const sets: string[] = [];
   const vals: unknown[] = [];
   for (const [k, v] of Object.entries(data)) {
-    sets.push(`${k} = ?`);
+    sets.push(`${COLUMN_MAP[k] ?? k} = ?`);
     vals.push(v);
   }
   vals.push(orgId);
   await db
     .prepare(`UPDATE orgs SET ${sets.join(", ")} WHERE id = ?`)
     .bind(...vals)
+    .run();
+}
+
+/** Sync the subscriptions-table status for a Stripe subscription id. */
+export async function updateSubscriptionStatus(db: D1Database, stripeSubId: string, status: string): Promise<void> {
+  await db
+    .prepare("UPDATE subscriptions SET status = ?, updated_at = ? WHERE stripe_sub_id = ?")
+    .bind(status, now(), stripeSubId)
     .run();
 }
 
