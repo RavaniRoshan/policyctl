@@ -77,7 +77,7 @@ const RESOURCES = [
   {
     title: "Security & Auditing",
     desc: "Local-first policy runtime with deterministic enforcement",
-    href: "/docs/explanation/security-model/",
+    href: "/docs/concepts/security-model/",
     icon: FolderLock,
   },
 ];

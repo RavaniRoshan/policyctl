@@ -3,6 +3,8 @@ title: CLI Command Reference
 description: Complete reference documentation for all 12 policyctl CLI commands, options, and exit codes.
 ---
 
+> **Machine-readable:** [Raw Markdown](/docs/reference/cli-commands.md) · [llms.txt](/docs/llms.txt)
+
 The `policyctl` CLI is the execution engine that runs locally on developer machines and in CI/CD pipelines.
 
 ---

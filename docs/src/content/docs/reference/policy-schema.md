@@ -3,6 +3,8 @@ title: .policyctl.yml Schema Spec
 description: Complete technical schema specification for .policyctl.yml including vars, exceptions, rules, and when clauses.
 ---
 
+> **Machine-readable:** [Raw Markdown](/docs/reference/policy-schema.md) · [llms.txt](/docs/llms.txt)
+
 The `.policyctl.yml` file defines all declarative rules, variable mappings, and exception exemptions for a project.
 
 ---

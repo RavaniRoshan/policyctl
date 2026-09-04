@@ -3,6 +3,8 @@ title: Matchers Reference
 description: Complete technical reference for all 8 deterministic matchers in policyctl.
 ---
 
+> **Machine-readable:** [Raw Markdown](/docs/reference/matchers.md) · [llms.txt](/docs/llms.txt)
+
 The core engine in `packages/core` evaluates 8 deterministic matchers. Matchers are partitioned into **Hook-scope** and **CI-scope** sets.
 
 ---

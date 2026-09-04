@@ -3,13 +3,17 @@ title: policyctl Documentation
 description: Provider-agnostic policy runtime for coding agents. One .policyctl.yml file enforces deterministic rules across Claude Code, OpenAI Codex, Cursor, and CI pipelines.
 template: splash
 hero:
-  tagline: Deterministic procedural rules for AI coding agents. Intercept tool calls in real time and enforce hard gates in CI.
+  tagline: Deterministic policy enforcement for coding agents. Intercept agent tool calls before execution. Enforce the same rules locally and in CI.
   actions:
-    - text: Get Started (5 Min)
-      link: /docs/tutorials/getting-started/
+    - text: Get Started
+      link: /docs/get-started/introduction/
       icon: right-arrow
       variant: primary
-    - text: View on GitHub
+    - text: Install CLI
+      link: /docs/get-started/installation/
+      icon: download
+      variant: secondary
+    - text: GitHub
       link: https://github.com/RavaniRoshan/policyctl
       icon: external
       variant: minimal
@@ -17,67 +21,62 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## The Four Pillars of policyctl
+**Supported:** Claude Code · Cursor · Codex · GitHub Actions
+
+## Install
+
+```bash
+npx -y @policyctl/cli@latest init --all
+```
+
+## How policyctl works
+
+```
+Agent
+  ↓
+Hook (PreToolUse)
+  ↓
+policyctl eval (<12ms, local)
+  ↓
+ALLOW / BLOCK
+  ↓
+Agent continues or receives remediation
+```
+
+## Choose your path
 
 <CardGrid stagger>
-  <Card title="Tutorials" icon="open-book">
-    Step-by-step, hands-on learning guides. Set up your first `.policyctl.yml`, intercept agent tool calls in **Claude Code** and **Cursor**, and wire up automated **GitHub Actions CI** gating.
+  <Card title="Build your first policy" icon="open-book">
+    From zero to your first BLOCK in five minutes.
     <br/>
-    [Start the 5-Minute Tutorial &rarr;](/docs/tutorials/getting-started/)
+    [Start the Quickstart &rarr;](/docs/tutorials/getting-started/)
   </Card>
 
-  <Card title="How-To Guides" icon="puzzle">
-    Problem-oriented recipes for common production challenges. Learn how to protect `package.json`, block hardcoded secrets, mandate companion test files, and author rules with AI.
+  <Card title="Protect secrets" icon="key">
+    Block hardcoded credentials in agent edits and PR diffs.
     <br/>
-    [Browse How-To Recipes &rarr;](/docs/how-to/protect-critical-files/)
+    [Intercept leaked secrets &rarr;](/docs/how-to/intercept-secrets/)
   </Card>
 
-  <Card title="Reference" icon="document">
-    Exhaustive specifications and technical dictionaries. Discover all 12 CLI commands (`init`, `check`, `eval`, `trace`, `doctor`), the full YAML schema, matchers, and cloud REST APIs.
+  <Card title="Configure Claude Code" icon="robot">
+    Wire the PreToolUse hook into Claude Code.
     <br/>
-    [Explore the Reference &rarr;](/docs/reference/cli-commands/)
+    [Claude Code setup &rarr;](/docs/tutorials/claude-code-setup/)
   </Card>
 
-  <Card title="Explanation" icon="information">
-    Deep architectural discussions and design rationale. Understand why advisory system prompts (`CLAUDE.md`) fail under context pressure, how sub-12ms AST evaluation works, and our local-first security model.
+  <Card title="Configure Cursor" icon="puzzle">
+    Wire hooks into the Cursor editor.
     <br/>
-    [Read Architecture Deep Dive &rarr;](/docs/explanation/architecture/)
+    [Cursor setup &rarr;](/docs/tutorials/cursor-setup/)
+  </Card>
+
+  <Card title="Add CI enforcement" icon="check">
+    Gate every PR with the same rules agents follow locally.
+    <br/>
+    [GitHub Actions gate &rarr;](/docs/tutorials/ci-pipeline-setup/)
   </Card>
 </CardGrid>
 
----
+## Reference
 
-## Quick Installation
-
-The `policyctl` CLI is a single static, local-first binary with zero telemetry and zero external network dependencies:
-
-```bash
-# Initialize policyctl across all detected coding agents
-npx -y @policyctl/cli@latest init --all
-
-# Run a local diagnostic check
-npx -y @policyctl/cli@latest doctor
-```
-
-## How It Works
-
-```
-+-------------------+       +-------------------+       +-------------------+
-|    Claude Code    |       |   OpenAI Codex    |       |   Cursor Editor   |
-+---------+---------+       +---------+---------+       +---------+---------+
-          |                           |                           |
-          +---------------------------+---------------------------+
-                                      |
-                      PreToolUse Hook / Shell / Edit
-                                      v
-                        +----------------------------+
-                        |  policyctl eval --hook     |
-                        |  Evaluates .policyctl.yml  |
-                        +--------------+-------------+
-                                       |
-                +----------------------+----------------------+
-                |                                             |
-         exit 0 (Allow)                                exit 2 (Deny)
-                v                                             v
-        Tool Call Proceeds                            Operation BLOCKED
-```
+[CLI](/docs/reference/cli-commands/) · [YAML Schema](/docs/reference/policy-schema/) · [Matchers](/docs/reference/matchers/) · [Hooks](/docs/reference/agent-hooks/) · [Cloud API](/docs/reference/api-cloud/) · [Raw index for agents](/docs/llms.txt)

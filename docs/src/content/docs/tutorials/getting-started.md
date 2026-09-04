@@ -1,6 +1,6 @@
 ---
-title: Getting Started in 5 Minutes
-description: Learn how to install policyctl, initialize your first policy file, and enforce your first rule in under 5 minutes.
+title: Quickstart
+description: Install policyctl, initialize your first policy file, and trigger your first BLOCK in under 5 minutes.
 ---
 
 Welcome to **policyctl**! In this tutorial, you will take a project from zero protection to real-time agent enforcement and CI gating in five minutes.

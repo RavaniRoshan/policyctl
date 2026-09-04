@@ -3,6 +3,8 @@ title: Cloud Control Plane API
 description: Complete REST API reference for the hosted policyctl control plane endpoints, authentication, and schemas.
 ---
 
+> **Machine-readable:** [Raw Markdown](/docs/reference/api-cloud.md) · [llms.txt](/docs/llms.txt)
+
 The `policyctl` cloud control plane runs on Cloudflare Workers (`packages/server`) backed by Cloudflare D1 (SQL), KV cache, and Durable Objects.
 
 **Base URL**: `https://policyctl-server.shivamkumar10958.workers.dev`

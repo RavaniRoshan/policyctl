@@ -282,6 +282,6 @@ policyctl push
   - [Tutorials: Getting Started](https://policyctl-web.pages.dev/docs/tutorials/getting-started/)
   - [How-To: Intercept Secrets](https://policyctl-web.pages.dev/docs/how-to/intercept-secrets/)
   - [Reference: CLI Commands](https://policyctl-web.pages.dev/docs/reference/cli-commands/)
-  - [Explanation: Architecture](https://policyctl-web.pages.dev/docs/explanation/architecture/)
+  - [Explanation: Architecture](https://policyctl-web.pages.dev/docs/concepts/architecture/)
 - **Bug Tracker & Issues:** [GitHub Issues](https://github.com/RavaniRoshan/policyctl/issues)
 - **Web Platform:** [policyctl-web.pages.dev](https://policyctl-web.pages.dev)

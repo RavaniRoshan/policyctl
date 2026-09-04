@@ -19,16 +19,28 @@ export default defineConfig({
       customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
-          label: 'Overview',
-          items: [{ label: 'Welcome to policyctl', link: '/' }],
+          label: 'Get Started',
+          items: [
+            { label: 'Introduction', link: '/get-started/introduction/' },
+            { label: 'Installation', link: '/get-started/installation/' },
+            { label: 'Core Concepts', link: '/get-started/core-concepts/' },
+            { label: 'Quickstart', link: '/tutorials/getting-started/' },
+          ],
         },
         {
-          label: 'Tutorials',
+          label: 'Provider Guides',
           items: [
-            { label: 'Getting Started (5 Min)', link: '/tutorials/getting-started/' },
-            { label: 'Claude Code Setup', link: '/tutorials/claude-code-setup/' },
-            { label: 'Cursor Editor Setup', link: '/tutorials/cursor-setup/' },
-            { label: 'GitHub Actions CI Gate', link: '/tutorials/ci-pipeline-setup/' },
+            { label: 'Claude Code', link: '/tutorials/claude-code-setup/' },
+            { label: 'Cursor', link: '/tutorials/cursor-setup/' },
+            { label: 'Codex', link: '/tutorials/codex-setup/' },
+            { label: 'Team / Cloud', link: '/guides/team-cloud/' },
+          ],
+        },
+        {
+          label: 'CI & Automation',
+          items: [
+            { label: 'GitHub Actions', link: '/tutorials/ci-pipeline-setup/' },
+            { label: 'GitLab CI', link: '/guides/gitlab-ci/' },
           ],
         },
         {
@@ -50,18 +62,24 @@ export default defineConfig({
             { label: 'Matchers Reference', link: '/reference/matchers/' },
             { label: 'Enforcement Levels', link: '/reference/enforcement-levels/' },
             { label: 'Agent Hook Formats', link: '/reference/agent-hooks/' },
+            { label: 'Environment Variables', link: '/reference/environment-variables/' },
             { label: 'skill.md Manifest Spec', link: '/reference/skill-manifest/' },
             { label: 'Cloud API Endpoints', link: '/reference/api-cloud/' },
           ],
         },
         {
-          label: 'Explanation',
+          label: 'Concepts',
           items: [
-            { label: 'Architecture & Engine', link: '/explanation/architecture/' },
-            { label: 'Why Advisory Prompts Fail', link: '/explanation/advisory-vs-deterministic/' },
-            { label: 'Security Model & Privacy', link: '/explanation/security-model/' },
-            { label: 'Hook Execution Lifecycle', link: '/explanation/evaluation-lifecycle/' },
+            { label: 'Architecture & Engine', link: '/concepts/architecture/' },
+            { label: 'Why Advisory Prompts Fail', link: '/concepts/advisory-vs-deterministic/' },
+            { label: 'Security Model & Privacy', link: '/concepts/security-model/' },
+            { label: 'Hook Execution Lifecycle', link: '/concepts/evaluation-lifecycle/' },
+            { label: 'Performance & Latency', link: '/concepts/performance/' },
           ],
+        },
+        {
+          label: 'Changelog',
+          items: [{ label: 'Release History', link: '/changelog/' }],
         },
       ],
     }),

@@ -51,3 +51,8 @@ pre {
 .right-sidebar {
   border-left: 1px solid var(--sl-color-gray-5) !important;
 }
+
+/* Persistent copy buttons on every code block (no hover required) */
+.expressive-code .copy button {
+  opacity: 1 !important;
+}

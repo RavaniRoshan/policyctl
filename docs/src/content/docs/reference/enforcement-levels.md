@@ -3,6 +3,8 @@ title: Enforcement Levels
 description: Detailed reference on the behavior and exit codes of block, fail, warn, and ignore across hook-time and CI runners.
 ---
 
+> **Machine-readable:** [Raw Markdown](/docs/reference/enforcement-levels.md) · [llms.txt](/docs/llms.txt)
+
 Every rule in `.policyctl.yml` specifies an `enforce` level. This level dictates runtime execution behavior, exit codes, and agent interception.
 
 ---

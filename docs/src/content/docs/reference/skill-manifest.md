@@ -3,6 +3,8 @@ title: Agent Skill Manifest (skill.md)
 description: Specification of the policyctl agent skill manifest that instructs coding assistants on how to discover and respect project rules.
 ---
 
+> **Machine-readable:** [Raw Markdown](/docs/reference/skill-manifest.md) · [llms.txt](/docs/llms.txt)
+
 The **Agent Skill Manifest** (`skill.md`) is a standardized prompt document that tells coding agents what `policyctl` is, how rules are enforced, and how to recover when an action is blocked.
 
 You can fetch the active manifest directly:

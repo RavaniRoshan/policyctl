@@ -3,6 +3,8 @@ title: Agent Hook Formats
 description: Technical specification for Claude Code, Cursor, and Codex hook configuration files and JSON payloads.
 ---
 
+> **Machine-readable:** [Raw Markdown](/docs/reference/agent-hooks.md) · [llms.txt](/docs/llms.txt)
+
 `policyctl` bridges heterogeneous coding agent architectures using standard hook configuration files.
 
 ---
