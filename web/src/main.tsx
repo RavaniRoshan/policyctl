@@ -18,7 +18,8 @@ const AUTH0_DOMAIN =
   (import.meta.env.VITE_AUTH0_DOMAIN as string | undefined) || "dev-wyyyhy36ogxygyky.us.auth0.com";
 const AUTH0_CLIENT_ID =
   (import.meta.env.VITE_AUTH0_CLIENT_ID as string | undefined) || "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I";
-const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE as string | undefined;
+const AUTH0_AUDIENCE =
+  (import.meta.env.VITE_AUTH0_AUDIENCE as string | undefined) || "https://api.policyctl.dev";
 
 const REDIRECT_URI = window.location.origin;
 

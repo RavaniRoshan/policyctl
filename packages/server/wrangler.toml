@@ -48,7 +48,7 @@ TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
 # Auth0 — primary auth provider for the SPA. Auth0 handles OAuth/social login
 # via Universal Login; the Worker only verifies the resulting JWT bearer token.
 AUTH0_DOMAIN = "dev-wyyyhy36ogxygyky.us.auth0.com"
-AUTH0_AUDIENCE = "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I"
+AUTH0_AUDIENCE = "https://api.policyctl.dev"
 # Auth0 client_id for CLI device-flow login (public). Enable "Device Code"
 # in the Auth0 app settings. Falls back to AUTH0_AUDIENCE if unset.
 AUTH0_CLI_CLIENT_ID = ""
