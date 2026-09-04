@@ -10,7 +10,8 @@
     "test": "pnpm -r test",
     "build": "pnpm -r build",
     "build:worker": "pnpm --filter @policyctl/server build",
-    "deploy:worker": "pnpm --filter @policyctl/server deploy"
+    "deploy:worker": "pnpm --filter @policyctl/server deploy",
+    "version:worker": "pnpm --filter @policyctl/server exec wrangler versions upload"
   },
   "dependencies": {
     "@fontsource/geist-mono": "^5.3.0",
