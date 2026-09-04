@@ -63,7 +63,11 @@ function createMockViolation(id = 1, orgId = 1): Violation {
     enforce: "fail",
     message: "Test violation",
     agent: "claude",
+    actor: "agent",
     created_at: Date.now(),
+    dismissed_at: null,
+    dismissed_by: null,
+    dismiss_reason: null,
   };
 }
 

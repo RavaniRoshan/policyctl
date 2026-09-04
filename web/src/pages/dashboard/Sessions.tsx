@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, Funnel, ArrowClockwise, X, CheckSquare, Square } from "@phosphor-icons/react";
 import { useViolations, useSessionStream } from "@/lib/hooks";
+import { useAuth } from "@/lib/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "@/components/ui/code-block";
@@ -15,6 +16,7 @@ import { api } from "@/lib/api";
 
 export function Sessions() {
   const { data, isLoading, error, refetch } = useViolations();
+  const { getAccessToken } = useAuth();
   const queryClient = useQueryClient();
   const { push } = useToast();
   const [provider, setProvider] = useState<string>("All");
@@ -26,6 +28,7 @@ export function Sessions() {
   const { connected, lastViolation } = useSessionStream(
     sessionKey,
     {
+      getAccessToken,
       onViolation: (v: SessionViolation) => {
         console.log("New violation received:", v);
         queryClient.invalidateQueries({ queryKey: ["violations"] });

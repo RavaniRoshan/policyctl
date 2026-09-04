@@ -233,11 +233,36 @@ export async function getPrimaryOrg(db: D1Database, userId: number): Promise<Org
               o.current_period_end, o.price_id, o.plan
        FROM orgs o
        JOIN org_members m ON m.org_id = o.id
-       WHERE m.user_id = ? AND m.role = 'owner'
+       WHERE m.user_id = ?
        ORDER BY o.id ASC LIMIT 1`,
     )
     .bind(userId)
     .first()) as Org | null;
+  return row ?? null;
+}
+
+/** The requester's role in an org (null when not a member). */
+export async function getRole(db: D1Database, orgId: number, userId: number): Promise<Role | null> {
+  const row = (await db
+    .prepare("SELECT role FROM org_members WHERE org_id = ? AND user_id = ?")
+    .bind(orgId, userId)
+    .first()) as { role: Role } | null;
+  return row?.role ?? null;
+}
+
+/**
+ * The org's owner with the lowest user id. Used as the acting identity for
+ * org-bound API keys (pc_live_*), which authenticate as the org itself.
+ */
+export async function getOrgOwner(db: D1Database, orgId: number): Promise<User | null> {
+  const row = (await db
+    .prepare(
+      `SELECT u.id, u.email, u.token, u.auth0_sub, u.display_name, u.provider, u.password_hash
+       FROM users u JOIN org_members m ON m.user_id = u.id
+       WHERE m.org_id = ? AND m.role = 'owner' ORDER BY u.id ASC LIMIT 1`,
+    )
+    .bind(orgId)
+    .first()) as User | null;
   return row ?? null;
 }
 
@@ -454,11 +479,13 @@ export async function listViolations(
   db: D1Database,
   orgId: number,
   limit = 200,
+  includeDismissed = false,
 ): Promise<Violation[]> {
   const rows = (await db
     .prepare(
-      `SELECT id, org_id, repo, rule_id, enforce, message, agent, created_at
-       FROM violations WHERE org_id = ? ORDER BY id DESC LIMIT ?`,
+      `SELECT id, org_id, repo, rule_id, enforce, message, agent, actor, created_at,
+              dismissed_at, dismissed_by, dismiss_reason
+       FROM violations WHERE org_id = ?${includeDismissed ? "" : " AND dismissed_at IS NULL"} ORDER BY id DESC LIMIT ?`,
     )
     .bind(orgId, limit)
     .all()) as unknown as { results: Violation[] };
@@ -493,7 +520,7 @@ export async function trend(
   const since = now() - days * 86400000;
   const rows = (await db
     .prepare(
-      "SELECT date(created_at / 1000, 'unixepoch') AS day, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY day ORDER BY day",
+      "SELECT date(created_at / 1000, 'unixepoch') AS day, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? AND dismissed_at IS NULL GROUP BY day ORDER BY day",
     )
     .bind(orgId, since)
     .all()) as unknown as { results: { day: string; count: number }[] };
@@ -511,25 +538,27 @@ export interface Analytics {
 
 export async function analytics(db: D1Database, orgId: number, days = 30): Promise<Analytics> {
   const since = now() - days * 86400000;
+  // Dismissed violations stay in the audit log but don't count against compliance.
+  const active = "org_id = ? AND created_at >= ? AND dismissed_at IS NULL";
 
-  const totalRow = (await db.prepare("SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?").bind(orgId, since).first()) as { c: number } | null;
+  const totalRow = (await db.prepare(`SELECT COUNT(*) AS c FROM violations WHERE ${active}`).bind(orgId, since).first()) as { c: number } | null;
   const total = totalRow?.c ?? 0;
 
-  const byActor = (await db.prepare("SELECT COALESCE(actor, 'agent') AS actor, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY COALESCE(actor, 'agent') ORDER BY count DESC").bind(orgId, since).all<{ actor: string; count: number }>()).results;
-  const byRepo = (await db.prepare("SELECT COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY repo ORDER BY count DESC LIMIT 15").bind(orgId, since).all<{ repo: string; count: number }>()).results;
-  const byRule = (await db.prepare("SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY rule_id ORDER BY count DESC LIMIT 15").bind(orgId, since).all<{ rule_id: string; count: number }>()).results;
-  const trend = await trendQuery(db, orgId, days);
+  const byActor = (await db.prepare(`SELECT COALESCE(actor, 'agent') AS actor, COUNT(*) AS count FROM violations WHERE ${active} GROUP BY COALESCE(actor, 'agent') ORDER BY count DESC`).bind(orgId, since).all<{ actor: string; count: number }>()).results;
+  const byRepo = (await db.prepare(`SELECT COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count FROM violations WHERE ${active} GROUP BY repo ORDER BY count DESC LIMIT 15`).bind(orgId, since).all<{ repo: string; count: number }>()).results;
+  const byRule = (await db.prepare(`SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COUNT(*) AS count FROM violations WHERE ${active} GROUP BY rule_id ORDER BY count DESC LIMIT 15`).bind(orgId, since).all<{ rule_id: string; count: number }>()).results;
+  const trendData = await trend(db, orgId, days);
 
   const repeatOffenders = (await db
     .prepare(
       `SELECT COALESCE(rule_id, '(unknown)') AS rule_id, COALESCE(repo, '(unknown)') AS repo, COUNT(*) AS count
-       FROM violations WHERE org_id = ? AND created_at >= ?
+       FROM violations WHERE ${active}
        GROUP BY rule_id, repo HAVING count > 1 ORDER BY count DESC LIMIT 20`,
     )
     .bind(orgId, since)
     .all<{ rule_id: string; repo: string; count: number }>()).results;
 
-  return { total, byActor, byRepo, byRule, trend, repeatOffenders };
+  return { total, byActor, byRepo, byRule, trend: trendData, repeatOffenders };
 }
 
 // Alias to avoid name collision with the `trend` field inside Analytics.
@@ -603,7 +632,11 @@ export function toWebViolation(v: Violation): WebViolation {
     enforce: v.enforce ?? "",
     message: v.message ?? "",
     agent: v.agent ?? "",
+    actor: v.actor ?? null,
     created_at: new Date(v.created_at).toISOString(),
+    dismissed_at: v.dismissed_at ? new Date(v.dismissed_at).toISOString() : null,
+    dismissed_by: v.dismissed_by != null ? String(v.dismissed_by) : null,
+    dismiss_reason: v.dismiss_reason ?? null,
   };
 }
 
@@ -623,7 +656,7 @@ export function toWebPolicyVersion(v: PolicyVersion & { author_email?: string | 
 export function toCsv(violations: Violation[]): string {
   const header = ["id", "repo", "rule_id", "enforce", "message", "agent", "actor", "created_at"];
   const rows = violations.map((v) =>
-    [v.id, v.repo ?? "", v.rule_id ?? "", v.enforce ?? "", (v.message ?? "").replace(/[\r\n]+/g, " "), v.agent ?? "", (v as any).actor ?? "agent", new Date(v.created_at).toISOString()]
+    [v.id, v.repo ?? "", v.rule_id ?? "", v.enforce ?? "", (v.message ?? "").replace(/[\r\n]+/g, " "), v.agent ?? "", v.actor ?? "agent", new Date(v.created_at).toISOString()]
       .map((c) => `"${String(c).replace(/"/g, '""')}"`)
       .join(","),
   );

@@ -123,6 +123,8 @@ export interface Violation {
   message: string;
   agent: string;
   created_at: string;
+  /** agent vs human attribution (null on rows written before the actor column). */
+  actor?: string | null;
   /** Correlation ID linking CLI report to dashboard session. */
   session_id?: string | null;
   /** Git commit SHA where the violation was detected. */

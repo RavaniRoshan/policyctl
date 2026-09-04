@@ -26,6 +26,12 @@ export interface UseSessionStreamOptions {
   autoReconnect?: boolean;
   /** Max reconnection attempts (default: 10). */
   maxRetries?: number;
+  /**
+   * Resolves the Auth0 access token to send as `?token=` on the WebSocket URL.
+   * Browsers can't set Authorization headers on WebSocket(); the Worker reads
+   * the same query param as REST (`bearerToken`). Omit for anonymous streams.
+   */
+  getAccessToken?: () => Promise<string | null>;
 }
 
 export type { Session, Violation } from "@policyctl/types";

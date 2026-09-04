@@ -8,6 +8,7 @@ import { TurnstileProvider } from "@/components/ui/turnstile";
 import { queryClient } from "@/lib/query";
 import { Landing } from "@/pages/Landing";
 import { AuthPage } from "@/pages/AuthPage";
+import { Pricing } from "@/pages/Pricing";
 import { Onboarding } from "@/pages/Onboarding";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Overview } from "@/pages/dashboard/Overview";
@@ -78,6 +79,7 @@ export function App() {
                     <Routes>
                       {/* Public */}
                       <Route path="/" element={<Landing />} />
+                      <Route path="/pricing" element={<Pricing />} />
                       <Route path="/docs" element={<DocsRedirect />} />
                       <Route path="/docs/*" element={<DocsRedirect />} />
                       <Route path="/login" element={<AuthPage />} />

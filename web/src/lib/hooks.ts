@@ -247,17 +247,27 @@ export function useSessionStream(
   const wsRef = useRef<WebSocket | null>(null);
   const retriesRef = useRef(0);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectGenRef = useRef(0);
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
   const connect = useCallback(() => {
     if (!sessionKey) return;
+    const gen = ++connectGenRef.current;
 
-    const apiBase = API_BASE.replace(/^https/, "wss").replace(/^http/, "ws");
-    const url = `${apiBase}/api/session/${encodeURIComponent(sessionKey)}/stream`;
+    (async () => {
+      const apiBase = API_BASE.replace(/^https/, "wss").replace(/^http/, "ws");
+      let url = `${apiBase}/api/session/${encodeURIComponent(sessionKey)}/stream`;
+      try {
+        const token = await optionsRef.current.getAccessToken?.();
+        if (token) url += `?token=${encodeURIComponent(token)}`;
+      } catch {
+        /* unauthenticated — server will 401 and onclose will schedule a retry */
+      }
+      if (gen !== connectGenRef.current) return; // superseded by disconnect/reconnect
 
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
 
     ws.onopen = () => {
       setConnected(true);
@@ -296,12 +306,20 @@ export function useSessionStream(
       }
     };
 
-    ws.onerror = (err) => {
+    ws.onerror = () => {
       optionsRef.current.onError?.(new Error("WebSocket connection failed"));
+      // Ensure onclose runs so the backoff reconnect path is deterministic.
+      try {
+        ws.close();
+      } catch {
+        /* already closed */
+      }
     };
+    })();
   }, [sessionKey, autoReconnect, maxRetries]);
 
   const disconnect = useCallback(() => {
+    connectGenRef.current++; // invalidate any in-flight token fetch
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;

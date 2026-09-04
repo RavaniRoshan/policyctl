@@ -122,7 +122,11 @@ export interface Violation {
   enforce: string | null;
   message: string | null;
   agent: string | null;
+  actor: string | null;
   created_at: number;
+  dismissed_at: number | null;
+  dismissed_by: number | null;
+  dismiss_reason: string | null;
 }
 
 export type ReportResult = {

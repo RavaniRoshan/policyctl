@@ -60,14 +60,38 @@ export function AuthPage() {
     setSubmitError(null);
   }, [location.pathname]);
 
-  // Redirect authenticated users straight to the dashboard.
+  // Redirect authenticated users to their original destination.
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard", { replace: true });
+      const n = safeNext(sessionStorage.getItem("policyctl.postLoginNext"));
+      const plan = sessionStorage.getItem("policyctl.postLoginPlan");
+      sessionStorage.removeItem("policyctl.postLoginNext");
+      sessionStorage.removeItem("policyctl.postLoginPlan");
+      navigate(n ?? (plan ? "/dashboard/billing" : "/dashboard"), { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
   const REDIRECT_URI = window.location.origin;
+
+  // ?next= / ?plan= arrive here from RequireAuth and landing CTAs. The Auth0
+  // round-trip lands on `/` and drops query params, so stash them for post-login.
+  const searchParams = new URLSearchParams(location.search);
+  const nextParam = searchParams.get("next");
+  const planParam = searchParams.get("plan");
+
+  /** Same-origin path only — blocks open redirects like //evil or https:. */
+  function safeNext(raw: string | null): string | null {
+    if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+    return raw;
+  }
+
+  const stashPostLogin = () => {
+    const n = safeNext(nextParam);
+    if (n) sessionStorage.setItem("policyctl.postLoginNext", n);
+    else sessionStorage.removeItem("policyctl.postLoginNext");
+    if (planParam) sessionStorage.setItem("policyctl.postLoginPlan", planParam);
+    else sessionStorage.removeItem("policyctl.postLoginPlan");
+  };
 
   const errors = {
     firstName: touched.firstName && mode === "signup" && form.firstName.trim().length < 2
@@ -106,6 +130,7 @@ export function AuthPage() {
       return;
     }
     if (isLoading) return;
+    stashPostLogin();
     loginWithRedirect({
       authorizationParams: {
         redirect_uri: REDIRECT_URI,
@@ -116,6 +141,7 @@ export function AuthPage() {
 
   const handleSocialLogin = (provider: string) => {
     if (isLoading) return;
+    stashPostLogin();
     loginWithRedirect({
       authorizationParams: {
         redirect_uri: REDIRECT_URI,
@@ -140,7 +166,7 @@ export function AuthPage() {
   // Friendly error messages for known Auth0 error codes.
   const friendlyError = error
     ? error.message?.includes("Callback URL")
-      ? `Auth0 rejected the callback URL. The app sent: "${REDIRECT_URI}". Make sure this exact URL (with or without trailing slash) is in your Auth0 app's Allowed Callback URLs.`
+      ? `Auth0 rejected the callback URL. The app sent: "${REDIRECT_URI}". Make sure this exact URL (without a trailing slash) is in your Auth0 app's Allowed Callback URLs.`
       : error.message?.includes("access_denied")
         ? "Access was denied. Try signing in with email instead."
         : error.message ?? "Something went wrong. Please try again."
@@ -165,7 +191,7 @@ export function AuthPage() {
               </span>
             </Link>
             <Link
-              to={mode === "signup" ? "/login" : "/signup"}
+              to={`${mode === "signup" ? "/login" : "/signup"}${location.search}`}
               className="inline-flex min-h-44 items-center px-8 -mr-8 text-body-small text-black-alpha-56 hover:text-accent-black transition-colors"
             >
               <span>{mode === "signup" ? "Already have an account?" : "Don't have an account?"}</span>

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import type { Context } from "hono";
 import Stripe from "stripe";
 import type { Env, ReportResult, Role, User, Org, Subscription, Violation } from "./types.js";
 import type { User as WebUser, OrgMember } from "@policyctl/types";
@@ -32,6 +33,9 @@ import {
   upsertUser,
   getOrgSubscription,
   getSeatCount,
+  getRole,
+  getOrgOwner,
+  verifyApiKey,
   upsertSubscription,
   updateOrgSubscription,
   getSubscriptionByStripeId,
@@ -114,6 +118,10 @@ function sessionToken(c: { env: Env; req: { header: (k: string) => string | unde
  *    is RS256-signed by Auth0 and verified against its JWKS. On success, we
  *    look up (or auto-provision) the user in D1 by auth0_sub.
  *
+ * 1b. Try control-plane API keys (pc_live_*). Keys are org-bound: on success
+ *    we act as the keyed org's owner and pin requestOrg() to that org, so a
+ *    key can never reach another org even with ?org=.
+ *
  * 2. Fall back to legacy token-based auth (CLI magic-link) for backward compat.
  */
 async function requireUser(c: { env: Env; req: { header: (k: string) => string | undefined; query: (k: string) => string | undefined } }): Promise<User | null> {
@@ -130,6 +138,16 @@ async function requireUser(c: { env: Env; req: { header: (k: string) => string |
     return user;
   }
 
+  // 1b. API key path.
+  if (token.startsWith("pc_live_")) {
+    const orgId = await verifyApiKey(c.env.DB, token);
+    if (orgId == null) return null;
+    const owner = await getOrgOwner(c.env.DB, orgId);
+    if (!owner) return null;
+    (c as unknown as { set: (k: string, v: unknown) => void }).set?.("apiKeyOrgId", orgId);
+    return owner;
+  }
+
   // 2. Legacy token path (CLI magic-link backward compat).
   const cachedUid = await cacheGetUser(c.env, token);
   if (cachedUid != null) {
@@ -139,6 +157,28 @@ async function requireUser(c: { env: Env; req: { header: (k: string) => string |
   const u = await getUserByToken(c.env.DB, token);
   if (u) await cachePutUser(c.env, token, u.id);
   return u;
+}
+
+const ORG_COLUMNS = `id, name, current_version, stripe_customer_id, stripe_sub_id,
+  subscription_status, subscription_tier, seat_count, trial_ends_at,
+  current_period_end, price_id, plan`;
+
+/**
+ * Org resolution for request handlers. API-key callers are pinned to the
+ * keyed org (set by requireUser); everyone else resolves ?org= or primary.
+ */
+async function requestOrg(db: D1Database, c: Context, user: User): Promise<Org | null> {
+  const keyed = (c as unknown as { get: (k: string) => unknown }).get?.("apiKeyOrgId") as number | undefined;
+  if (keyed != null) {
+    return (await db.prepare(`SELECT ${ORG_COLUMNS} FROM orgs WHERE id = ?`).bind(keyed).first()) as Org | null;
+  }
+  return resolveOrg(db, user.id, orgQuery(c));
+}
+
+/** True when the user holds one of the given roles in the org. */
+async function hasOrgRole(db: D1Database, orgId: number, userId: number, allowed: Role[]): Promise<boolean> {
+  const role = await getRole(db, orgId, userId);
+  return role != null && allowed.includes(role);
 }
 
 // ── Auth (legacy CLI magic-link — kept for backward compat) ─────────
@@ -248,8 +288,11 @@ app.post(`${API}/policy`, async (c) => {
   if (!user) return c.json({ error: "unauthorized" }, 401);
   const body = (await c.req.json<{ yaml?: string; note?: string }>().catch(() => ({}))) as { yaml?: string; note?: string };
   if (typeof body.yaml !== "string") return c.json({ error: "yaml required" }, 400);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin", "member"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
   const v = await pushPolicy(c.env.DB, org.id, body.yaml, user.id, body.note);
   await cacheInvalidatePolicy(c.env, org.id);
   return c.json({ ok: true, version: v.version, id: v.id });
@@ -258,7 +301,7 @@ app.post(`${API}/policy`, async (c) => {
 app.get(`${API}/policy`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   // KV cache first, fall back to D1.
   const cached = await cacheGetPolicy(c.env, org.id);
@@ -271,7 +314,7 @@ app.get(`${API}/policy`, async (c) => {
 app.get(`${API}/policy/versions`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const rows = await listVersions(c.env.DB, org.id);
   return c.json(rows.map(toWebPolicyVersion));
@@ -280,8 +323,11 @@ app.get(`${API}/policy/versions`, async (c) => {
 app.post(`${API}/policy/versions/:id/rollback`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin", "member"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
   const id = Number(c.req.param("id"));
   const res = await rollback(c.env.DB, org.id, id);
   if (res.ok) await cacheInvalidatePolicy(c.env, org.id);
@@ -295,8 +341,11 @@ app.post(`${API}/report`, async (c) => {
   const body = (await c.req
     .json<{ repo?: string; agent?: string; results?: ReportResult[]; actor?: "agent" | "human" }>()
     .catch(() => ({}))) as { repo?: string; agent?: string; results?: ReportResult[]; actor?: "agent" | "human" };
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin", "member"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
   const results = Array.isArray(body.results) ? body.results : [];
   const repo = String(body.repo ?? "");
   const agent = String(body.agent ?? "ci");
@@ -308,16 +357,17 @@ app.post(`${API}/report`, async (c) => {
 app.get(`${API}/violations`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
-  const rows = await listViolations(c.env.DB, org.id);
+  const includeDismissed = c.req.query("include_dismissed") === "1";
+  const rows = await listViolations(c.env.DB, org.id, 200, includeDismissed);
   return c.json(rows.map(toWebViolation));
 });
 
 app.get(`${API}/violations/:id`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const id = Number(c.req.param("id"));
   const row = (await c.env.DB.prepare("SELECT * FROM violations WHERE id = ? AND org_id = ?").bind(id, org.id).first()) as Violation | null;
@@ -328,13 +378,17 @@ app.get(`${API}/violations/:id`, async (c) => {
 app.post(`${API}/violations/:id/dismiss`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin", "member"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
   const id = Number(c.req.param("id"));
   const body = (await c.req.json<{ reason?: string }>().catch(() => ({}))) as { reason?: string };
-  await c.env.DB.prepare("UPDATE violations SET dismissed_at = ?, dismissed_by = ?, dismiss_reason = ? WHERE id = ? AND org_id = ?")
+  const r = (await c.env.DB.prepare("UPDATE violations SET dismissed_at = ?, dismissed_by = ?, dismiss_reason = ? WHERE id = ? AND org_id = ?")
     .bind(Date.now(), user.id, body.reason ?? "", id, org.id)
-    .run();
+    .run()) as unknown as { meta?: { changes?: number } };
+  if (!r.meta?.changes) return c.json({ error: "not found" }, 404);
   return c.json({ ok: true });
 });
 
@@ -342,16 +396,16 @@ app.post(`${API}/violations/:id/dismiss`, async (c) => {
 app.get(`${API}/analytics`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const days = Number(c.req.query("days") ?? 30);
   const a = await analytics(c.env.DB, org.id, days);
   const violations24h = (await c.env.DB.prepare(
-    "SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?",
+    "SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ? AND dismissed_at IS NULL",
   ).bind(org.id, Date.now() - 86400000).first<{ c: number }>())?.c ?? 0;
   // active_sessions: distinct agents seen in the last 24h (proxy for live sessions).
   const activeSessionsRow = (await c.env.DB.prepare(
-    "SELECT COUNT(DISTINCT agent) AS c FROM violations WHERE org_id = ? AND created_at >= ?",
+    "SELECT COUNT(DISTINCT agent) AS c FROM violations WHERE org_id = ? AND created_at >= ? AND dismissed_at IS NULL",
   ).bind(org.id, Date.now() - 86400000).first<{ c: number }>())?.c ?? 0;
   const aiInsights = await countAiInsights(c.env.DB, org.id);
   return c.json(toWebAnalytics(a, violations24h, activeSessionsRow, aiInsights));
@@ -366,7 +420,7 @@ app.post(`${API}/ai/analyze`, async (c) => {
   }
   const body = (await c.req.json<{ diff?: string; policy?: string; repo?: string }>().catch(() => ({}))) as { diff?: string; policy?: string; repo?: string };
   if (typeof body.diff !== "string") return c.json({ error: "diff required" }, 400);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   // Gate: AI features require an active or trial paid subscription.
   if (!isOrgActive(org)) {
@@ -386,7 +440,7 @@ app.post(`${API}/ai/author`, async (c) => {
   }
   const body = (await c.req.json<{ intent?: string }>().catch(() => ({}))) as { intent?: string };
   if (typeof body.intent !== "string") return c.json({ error: "intent required" }, 400);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   // Gate: AI features require an active or trial paid subscription.
   if (!isOrgActive(org)) {
@@ -401,7 +455,7 @@ app.post(`${API}/ai/author`, async (c) => {
 app.get(`${API}/export/violations.csv`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const rows = await listViolations(c.env.DB, org.id, 5000);
   const csv = toCsv(rows);
@@ -493,7 +547,7 @@ app.delete(`${API}/orgs/:id/members/:userId`, async (c) => {
 app.get(`${API}/billing/status`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const subInfo = await getOrgSubscription(c.env.DB, org.id);
   if (!subInfo || !subInfo.org) return c.json({ error: "no org" }, 400);
@@ -549,8 +603,11 @@ app.post(`${API}/billing/checkout`, async (c) => {
 
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
 
   // Guard: if this org already has an active or trial subscription, redirect
   // to the billing portal instead of creating a duplicate subscription.
@@ -648,8 +705,11 @@ app.post(`${API}/billing/checkout`, async (c) => {
 app.post(`${API}/billing/portal`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
 
   const stripeClient = getStripe(c.env);
   if (!stripeClient) {
@@ -686,8 +746,11 @@ app.post(`${API}/billing/portal`, async (c) => {
 app.post(`${API}/billing/api-key`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
 
   const key = await createApiKey(c.env.DB, org.id);
   return c.json({ key });
@@ -704,9 +767,12 @@ app.delete(`${API}/orgs/:id`, async (c) => {
   const orgId = Number(c.req.param("id"));
   if (!orgId) return c.json({ error: "invalid org id" }, 400);
 
-  // Only the org owner can delete.
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  // Only the org owner can delete (explicit role check — membership alone is not enough).
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org || org.id !== orgId) return c.json({ error: "no org" }, 403);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
 
   // Delete the Stripe customer if one exists (cancels any subscription).
   const stripeClient = getStripe(c.env);
@@ -887,7 +953,7 @@ app.post(`${API}/session/init`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
   const body = (await c.req.json<{ sessionKey?: string; policy?: string }>().catch(() => ({}))) as { sessionKey?: string; policy?: string };
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const key = body.sessionKey ?? `s-${Date.now()}`;
   const stub = await sessionStub(c.env, org.id, key);
@@ -903,7 +969,7 @@ app.post(`${API}/session/init`, async (c) => {
 app.get(`${API}/session/:key/stream`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const key = c.req.param("key");
   const stub = await sessionStub(c.env, org.id, key);
@@ -915,7 +981,7 @@ app.get(`${API}/session/:key/stream`, async (c) => {
 app.post(`${API}/session/:key/report`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const key = c.req.param("key");
   const stub = await sessionStub(c.env, org.id, key);
@@ -932,7 +998,7 @@ app.post(`${API}/session/:key/report`, async (c) => {
 app.get(`${API}/report/daily`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
   const cached = await c.env.POLICYCTL_CACHE.get(`report:daily:org:${org.id}`, "text");
   if (!cached) return c.json({ report: null, message: "No report yet. Next daily report at 9am UTC." });
@@ -945,8 +1011,11 @@ app.get(`${API}/report/daily`, async (c) => {
 app.post(`${API}/report/daily/resend`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
-  const org = await resolveOrg(c.env.DB, user.id, orgQuery(c));
+  const org = await requestOrg(c.env.DB, c, user);
   if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
 
   const since = Date.now() - 24 * 3600 * 1000;
   const totalRow = (await c.env.DB.prepare(
