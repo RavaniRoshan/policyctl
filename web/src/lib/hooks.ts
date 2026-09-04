@@ -99,6 +99,16 @@ export function useSetCurrentOrgId() {
   return (orgId: string) => queryClient.setQueryData(["currentOrgId"], orgId);
 }
 
+/** Premium waitlist (owner/admin only; 403 otherwise → caller hides the card). */
+export function useWaitlist() {
+  return useQuery({
+    queryKey: ["waitlist"],
+    queryFn: () => api.waitlist(),
+    staleTime: 60_000,
+    retry: false,
+  });
+}
+
 export function useBilling() {
   return useQuery({
     queryKey: ["billing"],

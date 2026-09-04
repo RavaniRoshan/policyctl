@@ -12,26 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import { Callout } from "@/components/ui/callout";
 import { CurvyRect, useToast } from "@policyctl/design-system";
 import { MonoAnnotation } from "@/components/shared/EmptyState";
-import { useBilling } from "@/lib/hooks";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
+import { useBilling, useWaitlist } from "@/lib/hooks";
 import { api } from "@/lib/api";
 
 export function Billing() {
   const { data: billing, isLoading, error, refetch } = useBilling();
+  const { data: waitlist } = useWaitlist();
   const { push } = useToast();
   const [isRedirecting, setIsRedirecting] = useState(false);
-
-  const handleCheckout = async (interval: "monthly" | "annual") => {
-    setIsRedirecting(true);
-    try {
-      const result = await api.billingCheckout("growth", interval);
-      if (result.url) {
-        window.location.href = result.url;
-      }
-    } catch (e: any) {
-      push({ title: "Checkout failed", description: e?.message ?? "Failed to start checkout." });
-      setIsRedirecting(false);
-    }
-  };
 
   const handlePortal = async () => {
     setIsRedirecting(true);
@@ -122,13 +111,9 @@ export function Billing() {
                   {isRedirecting ? "Redirecting…" : "Manage billing"}
                 </Button>
               ) : (
-                <Button
-                  onClick={() => handleCheckout("monthly")}
-                  disabled={isRedirecting}
-                  trailingIcon
-                >
-                  {isRedirecting ? "Redirecting…" : "Start free trial"}
-                </Button>
+                <div className="w-full sm:max-w-sm">
+                  <WaitlistForm source="billing" compact />
+                </div>
               )}
             </div>
           </div>
@@ -173,7 +158,7 @@ export function Billing() {
             <p className="text-body-medium text-black-alpha-64 leading-26 mb-24">
               Your free CLI works locally and never expires. The cloud control plane
               adds shared policy versioning, an audit feed, daily compliance reports,
-              CSV exports, and AI rule authoring — all with a 14-day free trial.
+              CSV exports, and AI rule authoring — premium is coming soon.
             </p>
 
             {/* Pricing summary */}
@@ -208,27 +193,12 @@ export function Billing() {
               </li>
               <li className="flex gap-8">
                 <Check className="size-4 text-heat-100 shrink-0 mt-2" />
-                14-day free trial, cancel anytime
+                Premium coming soon — waitlist members get early access
               </li>
             </ul>
 
-            <div className="flex flex-col sm:flex-row gap-12">
-              <Button
-                className="flex-1"
-                onClick={() => handleCheckout("annual")}
-                disabled={isRedirecting}
-                trailingIcon={!isRedirecting}
-              >
-                {isRedirecting ? "Redirecting…" : "Start 14-day free trial (annual)"}
-              </Button>
-              <Button
-                variant="secondary"
-                className="flex-1"
-                onClick={() => handleCheckout("monthly")}
-                disabled={isRedirecting}
-              >
-                {isRedirecting ? "Redirecting…" : "Monthly billing"}
-              </Button>
+            <div className="mt-8">
+              <WaitlistForm source="billing-upsell" />
             </div>
           </Card>
         )}
@@ -245,6 +215,31 @@ export function Billing() {
               Update payment method
             </button>
           </Callout>
+        )}
+
+        {/* Premium waitlist (owner/admin only; hidden on 403) */}
+        {waitlist && waitlist.total > 0 && (
+          <Card className="p-24 lg:p-32">
+            <CurvyRect sides="allSides" />
+            <h3 className="text-label-x-large text-accent-black mb-16">
+              Waitlist · {waitlist.total} {waitlist.total === 1 ? "signup" : "signups"}
+            </h3>
+            <ul className="space-y-8 -mt-1">
+              {waitlist.signups.slice(0, 20).map((w) => (
+                <li
+                  key={w.id}
+                  className="flex items-center justify-between gap-12 px-12 py-8 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
+                >
+                  <span className="font-mono text-mono-small text-accent-black truncate">
+                    {w.email}
+                  </span>
+                  <span className="font-mono text-mono-x-small text-black-alpha-48 shrink-0">
+                    {new Date(w.created_at).toLocaleDateString("en-US", { month: "short", day: "2-digit" })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
         )}
       </div>
     </div>

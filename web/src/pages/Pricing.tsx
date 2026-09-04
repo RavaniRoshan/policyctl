@@ -3,13 +3,14 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Check } from "@phosphor-icons/react";
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { Footer } from "@/components/layout/Footer";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
 
 const CLOUD_FEATURES = [
   "Shared policy versioning + rollback",
   "Violation audit feed + daily reports",
   "AI rule authoring + analyzer",
   "CSV export + live sessions",
-  "14-day free trial, no charge until it ends",
+  "Early access as soon as premium launches",
 ];
 
 const FREE_FEATURES = [
@@ -20,7 +21,6 @@ const FREE_FEATURES = [
 
 export function Pricing() {
   const { isAuthenticated } = useAuth0();
-  const cloudCta = isAuthenticated ? "/dashboard/billing" : "/signup?plan=trial";
   const freeCta = isAuthenticated ? "/dashboard" : "/signup";
 
   return (
@@ -57,7 +57,7 @@ export function Pricing() {
           <section className="pcl-card pcl-card--floating p-32" aria-label="Cloud plan">
             <div className="flex items-center justify-between">
               <h2 className="text-title-h3">Cloud</h2>
-              <span className="pcl-badge pcl-badge--heat">Most popular</span>
+              <span className="pcl-badge pcl-badge--heat">Coming soon</span>
             </div>
             <p className="mt-8 text-body-large">
               <span className="font-semibold">$5</span>
@@ -72,9 +72,9 @@ export function Pricing() {
                 </li>
               ))}
             </ul>
-            <Link to={cloudCta} className="pcl-btn pcl-btn--primary mt-32 w-full justify-center">
-              Start free trial
-            </Link>
+            <div className="mt-32">
+              <WaitlistForm source="pricing" compact />
+            </div>
           </section>
         </div>
       </main>

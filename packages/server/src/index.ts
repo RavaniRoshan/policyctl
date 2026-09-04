@@ -1099,6 +1099,88 @@ app.post(`${API}/report/daily/resend`, async (c) => {
   return c.json({ ok: true, message: "Report refreshed. Email delivery is coming soon." });
 });
 
+// ── Waitlist (free-launch mode: premium is coming soon, no payments yet) ──
+const EMAIL_RE_WAITLIST = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Notify the owner of a new waitlist signup. Best-effort: never fails the request. */
+async function notifyWaitlistSignup(
+  env: Env,
+  entry: { email: string; name: string | null; position: number },
+): Promise<void> {
+  const to = env.WAITLIST_NOTIFY_TO;
+  if (!to || !env.EMAIL) return;
+  const from = env.WAITLIST_FROM ?? "noreply@policyctl.dev";
+  try {
+    await env.EMAIL.send({
+      to,
+      from: { email: from, name: "policyctl" },
+      subject: `Waitlist #${entry.position}: ${entry.email}`,
+      text: `New premium waitlist signup\n\nEmail: ${entry.email}\nName: ${entry.name ?? "—"}\nPosition: #${entry.position}\n`,
+    });
+  } catch (err) {
+    console.error(`Waitlist notify failed: ${err instanceof Error ? err.message : err}`);
+  }
+}
+
+app.post(`${API}/waitlist`, async (c) => {
+  if (await rateLimited(c, "waitlist", 5, 3600)) {
+    return c.json({ error: "Too many requests. Try again later." }, 429);
+  }
+  const body = (await c.req.json<{ email?: string; name?: string; interest?: string; source?: string }>().catch(() => ({}))) as {
+    email?: string;
+    name?: string;
+    interest?: string;
+    source?: string;
+  };
+  const email = (body.email ?? "").trim().toLowerCase();
+  if (!EMAIL_RE_WAITLIST.test(email)) return c.json({ error: "valid email required" }, 400);
+  const name = (body.name ?? "").trim().slice(0, 120) || null;
+  const interest = (body.interest ?? "").trim().slice(0, 40) || null;
+  const source = (body.source ?? "").trim().slice(0, 40) || null;
+
+  const r = (await c.env.DB.prepare(
+    "INSERT INTO waitlist (email, name, interest, source, created_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(email) DO NOTHING",
+  )
+    .bind(email, name, interest, source, Date.now())
+    .run()) as unknown as { meta?: { changes?: number; last_row_id?: number } };
+  if (!r.meta?.changes) return c.json({ ok: true, duplicate: true });
+
+  const pos = (await c.env.DB.prepare("SELECT COUNT(*) AS c FROM waitlist WHERE id <= ?")
+    .bind(Number(r.meta.last_row_id))
+    .first<{ c: number }>()) as { c: number } | null;
+  const position = pos?.c ?? 1;
+  await notifyWaitlistSignup(c.env, { email, name, position });
+  return c.json({ ok: true, position });
+});
+
+app.get(`${API}/waitlist`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  // Global list: any owner/admin of any org may view it.
+  const privileged = (await c.env.DB.prepare(
+    "SELECT 1 FROM org_members WHERE user_id = ? AND role IN ('owner', 'admin') LIMIT 1",
+  )
+    .bind(user.id)
+    .first()) as unknown | null;
+  if (!privileged) return c.json({ error: "forbidden" }, 403);
+  const rows = (await c.env.DB.prepare(
+    "SELECT id, email, name, interest, source, created_at FROM waitlist ORDER BY id DESC LIMIT 500",
+  ).all()) as unknown as {
+    results: { id: number; email: string; name: string | null; interest: string | null; source: string | null; created_at: number }[];
+  };
+  return c.json({
+    total: rows.results.length,
+    signups: rows.results.map((w) => ({
+      id: w.id,
+      email: w.email,
+      name: w.name,
+      interest: w.interest,
+      source: w.source,
+      created_at: new Date(w.created_at).toISOString(),
+    })),
+  });
+});
+
 // ── Phase D: Cron Triggers — daily compliance report ────────────────
 async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
   // Daily at 9am UTC: scan all orgs, generate compliance summary

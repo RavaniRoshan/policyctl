@@ -98,14 +98,14 @@ export function Ai() {
             </h3>
             <p className="text-body-medium text-black-alpha-64 leading-26 max-w-md mx-auto mb-24">
               Generate policy rules from plain-English intent and analyze git diffs for violations.
-              This feature requires a paid Control Plane subscription.
+              This feature is part of the upcoming premium control plane.
             </p>
             <div className="flex items-center justify-center gap-12">
               <Link
-                to="/dashboard/billing"
+                to="/pricing"
                 className="inline-flex items-center gap-4 px-16 py-8 rounded-full bg-heat-100 text-accent-white text-label-medium font-medium hover:bg-heat-90 transition-colors"
               >
-                Start 14-day free trial
+                Join the waitlist
                 <ArrowRight className="size-3" />
               </Link>
             </div>

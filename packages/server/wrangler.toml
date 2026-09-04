@@ -19,6 +19,11 @@ id = "12ac186b93734a7fa8431dc74ab26ef1"
 [ai]
 binding = "AI"
 
+# Email Sending — waitlist signup notifications (transactional only).
+# Requires an onboarded sender domain; skipped silently when unconfigured.
+[[send_email]]
+name = "EMAIL"
+
 # Durable Objects — live enforcement sessions + streaming dashboard
 [durable_objects]
 bindings = [
@@ -49,6 +54,11 @@ AUTH0_AUDIENCE = "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I"
 AUTH0_CLI_CLIENT_ID = ""
 # Comma-separated list of origins allowed to call the Worker API.
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:4173,https://policyctl-web.pages.dev"
+# Waitlist (free-launch mode): owner notification destination + sender.
+# WAITLIST_NOTIFY_TO is the owner's inbox; empty disables email (list stays in D1).
+# WAITLIST_FROM's domain must be onboarded to Email Sending.
+WAITLIST_NOTIFY_TO = ""
+WAITLIST_FROM = "noreply@policyctl.dev"
 
 # ── Stripe (set secrets via: wrangler secret put) ──
 # STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are set via `wrangler secret put`

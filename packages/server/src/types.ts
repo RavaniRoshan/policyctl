@@ -44,6 +44,22 @@ export interface Env {
   // ── CORS ──
   /** Comma-separated list of origins allowed to call the Worker API. */
   ALLOWED_ORIGINS?: string;
+
+  // ── Waitlist (free-launch mode) ──
+  /** Transactional email binding (Cloudflare Email Sending). Optional. */
+  EMAIL?: {
+    send(msg: {
+      to: string;
+      from: { email: string; name?: string };
+      subject: string;
+      text: string;
+      html?: string;
+    }): Promise<unknown>;
+  };
+  /** Owner address notified on each waitlist signup. Empty = skip email. */
+  WAITLIST_NOTIFY_TO?: string;
+  /** Sender address (domain must be onboarded to Email Sending). */
+  WAITLIST_FROM?: string;
 }
 
 export interface User {

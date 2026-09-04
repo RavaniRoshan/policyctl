@@ -58,3 +58,4 @@ chatgpt-image-*.png
 .vscode/
 .idea/
 web/visual/
+packages/server/.wrangler/

@@ -8,7 +8,8 @@
 - [x] KPI audit Reports: honest email/report-contents copy, CSV failure toast
 - [x] Token/a11y sweep: code-block dots to tokens; reduced-motion on Scramble/Typewriter/CountUp + MotionConfig
 - [x] Re-screenshot round 2, fix regressions (round 2 clean)
-- [ ] Manual dashboard screenshots via preview URL (needs human login)
+- [x] Demo-auth loop: all dashboard routes shot in dev (?demo_auth=1, 40 shots, 3 rounds)
+- [ ] Authed-session screenshots via preview URL (needs human login; demo loop covers layout)
 
 ## Completion
 - [ ] ALL_TASKS_COMPLETE

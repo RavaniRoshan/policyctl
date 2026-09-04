@@ -127,6 +127,16 @@ export const api = {
     request<{ ok: boolean }>(`/api/orgs/${id}`, {
       method: "DELETE",
     }),
+  joinWaitlist: (email: string, opts?: { name?: string; interest?: string; source?: string }) =>
+    request<{ ok: boolean; position?: number; duplicate?: boolean }>("/api/waitlist", {
+      method: "POST",
+      body: JSON.stringify({ email, ...opts }),
+    }),
+  waitlist: () =>
+    request<{
+      total: number;
+      signups: { id: number; email: string; name: string | null; interest: string | null; source: string | null; created_at: string }[];
+    }>("/api/waitlist"),
 };
 
 /** Download violations as CSV (non-JSON response — streams directly from Worker). */
