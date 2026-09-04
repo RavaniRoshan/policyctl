@@ -13,6 +13,7 @@ import {
   MagnifyingGlass,
   Sun,
   Moon,
+  Monitor,
   List,
   X,
   Warning,
@@ -112,7 +113,7 @@ function Sidebar() {
 
 function Header({ title }: { title: string }) {
   const { user, logout } = useAuth();
-  const { theme, toggle } = useTheme();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
@@ -206,13 +207,7 @@ function Header({ title }: { title: string }) {
             <MagnifyingGlass className="size-4" aria-hidden />
           </button>
 
-          <button
-            className="inline-flex size-44 items-center justify-center rounded-md hover:bg-black-alpha-4"
-            onClick={toggle}
-            aria-label="Toggle theme"
-          >
-            {theme === "light" ? <Moon className="size-4" aria-hidden /> : <Sun className="size-4" aria-hidden />}
-          </button>
+          <ThemeSwitch theme={theme} onChange={setTheme} />
 
           <div className="relative">
             <button
@@ -256,6 +251,47 @@ function Header({ title }: { title: string }) {
         </nav>
       )}
     </header>
+  );
+}
+
+const THEME_OPTIONS = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "system", label: "System", icon: Monitor },
+  { value: "dark", label: "Dark", icon: Moon },
+] as const;
+
+type ThemeValue = (typeof THEME_OPTIONS)[number]["value"];
+
+/** Segmented light/system/dark switch — large targets, keyboard-first. */
+function ThemeSwitch({ theme, onChange }: { theme: ThemeValue; onChange: (t: ThemeValue) => void }) {
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Color theme"
+      className="flex h-40 items-center gap-2 rounded-lg border border-border-faint bg-surface p-4"
+    >
+      {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+        const active = theme === value;
+        return (
+          <button
+            key={value}
+            role="radio"
+            aria-checked={active}
+            aria-label={`${label} theme`}
+            title={`${label} theme`}
+            onClick={() => onChange(value)}
+            className={`inline-flex h-32 min-w-44 items-center justify-center gap-6 rounded-md px-8 text-body-small transition-colors ${
+              active
+                ? "bg-heat-4 font-medium text-heat-100"
+                : "text-black-alpha-48 hover:bg-black-alpha-4 hover:text-accent-black"
+            }`}
+          >
+            <Icon className="size-4" aria-hidden />
+            <span className="hidden xl:inline">{label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
