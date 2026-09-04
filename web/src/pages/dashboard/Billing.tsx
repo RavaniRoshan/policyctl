@@ -82,19 +82,21 @@ export function Billing() {
               <div className="font-mono text-mono-x-small uppercase text-black-alpha-32">
                 {isPaid || isTrial ? "Control plane" : "Free CLI"}
               </div>
-              <div className="mt-8 text-title-h3">
+              <div className="mt-8 text-[28px] font-medium leading-tight sm:text-title-h3">
                 {isPaid || isTrial ? "$5 / seat / month" : "$0 / forever"}
               </div>
               {isTrial && daysRemaining !== null && (
                 <div className="mt-8 flex items-center gap-8 text-body-medium">
-                  <Calendar className="size-4 text-heat-100" aria-hidden />
-                  <span className="font-medium text-accent-black">{daysRemaining} days</span>
-                  <span className="text-black-alpha-56">remaining in your free trial</span>
+                  <Calendar className="size-4 shrink-0 text-heat-100" aria-hidden />
+                  <span className="text-black-alpha-56">
+                    <span className="font-medium text-accent-black">{daysRemaining} days</span>{" "}
+                    remaining in your free trial
+                  </span>
                 </div>
               )}
               {isPaid && billing?.subscription?.current_period_end && (
                 <div className="mt-8 flex items-center gap-8 text-body-medium">
-                  <Calendar className="size-4 text-heat-100" aria-hidden />
+                  <Calendar className="size-4 shrink-0 text-heat-100" aria-hidden />
                   <span className="text-black-alpha-56">
                     Next billing: {formatDate(billing.subscription.current_period_end)}
                   </span>
@@ -104,7 +106,7 @@ export function Billing() {
 
             <div className="flex items-start sm:justify-end">
               {isPaid || isTrial ? (
-                <Button onClick={handlePortal} disabled={isRedirecting} trailingIcon>
+                <Button onClick={handlePortal} disabled={isRedirecting} trailingIcon className="whitespace-nowrap">
                   {isRedirecting ? "Redirecting…" : "Manage billing"}
                 </Button>
               ) : (
@@ -250,9 +252,11 @@ function PlanRow({
         ? "text-danger"
         : "text-success";
   return (
-    <div className="relative flex items-center justify-between border border-border-faint px-12 py-12 before:absolute before:inset-0 before:rounded-inherit">
+    <div className="relative flex flex-col gap-4 border border-border-faint px-12 py-12 before:absolute before:inset-0 before:rounded-inherit sm:flex-row sm:items-center sm:justify-between">
       <span className="text-body-medium text-black-alpha-56">{label}</span>
-      <span className={`font-mono text-body-medium text-mono-small ${dotClass}`}>{value}</span>
+      <span className={`font-mono text-body-medium text-mono-small sm:text-right ${dotClass}`}>
+        {value}
+      </span>
     </div>
   );
 }
