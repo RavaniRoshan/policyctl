@@ -53,9 +53,12 @@ class CliTokenProvider implements AuthTokenProvider {
     // Need to refresh — prevent thundering herd.
     if (this.refreshing) return this.refreshing;
     this.refreshing = this.doRefresh();
-    const result = await this.refreshing;
-    this.refreshing = null;
-    return result;
+    try {
+      return await this.refreshing;
+    } finally {
+      // Reset even on failure: a rejected refresh must not poison later calls.
+      this.refreshing = null;
+    }
   }
 
   private async doRefresh(): Promise<string | null> {
