@@ -15,28 +15,28 @@ const COLS: { heading: string; links: { label: string; to?: string; href?: strin
   {
     heading: "Use Cases",
     links: [
-      { label: "Migrations via generator", to: "/docs" },
-      { label: "Secret scanning", to: "/docs" },
-      { label: "Protected paths", to: "/docs" },
-      { label: "CI hard gate", to: "/docs" },
+      { label: "Migrations via generator", to: "/docs/tutorials/claude-code-setup/" },
+      { label: "Secret scanning", to: "/docs/how-to/intercept-secrets/" },
+      { label: "Protected paths", to: "/docs/how-to/protect-critical-files/" },
+      { label: "CI hard gate", to: "/docs/tutorials/ci-pipeline-setup/" },
     ],
   },
   {
     heading: "Resources",
     links: [
-      { label: "Getting started", to: "/docs" },
-      { label: "CLI reference", to: "/docs" },
-      { label: "Rule Catalog", to: "/docs" },
+      { label: "Getting started", to: "/docs/tutorials/getting-started/" },
+      { label: "CLI reference", to: "/docs/reference/cli-commands/" },
+      { label: "Policy schema", to: "/docs/reference/policy-schema/" },
       { label: "Changelog", href: "https://github.com/RavaniRoshan/policyctl/releases" },
     ],
   },
   {
     heading: "Legal",
     links: [
-      { label: "Terms of service", to: "/docs" },
-      { label: "Privacy policy", to: "/docs" },
-      { label: "Security & Audit", to: "/docs" },
-      { label: "Report issue", href: "mailto:help@policyctl.dev" },
+      { label: "Terms of service", to: "/terms" },
+      { label: "Privacy policy", to: "/privacy" },
+      { label: "Security & Audit", to: "/docs/concepts/security-model/" },
+      { label: "Report issue", href: "https://github.com/RavaniRoshan/policyctl/issues" },
     ],
   },
 ];

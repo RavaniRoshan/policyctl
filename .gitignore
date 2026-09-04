@@ -59,3 +59,11 @@ chatgpt-image-*.png
 .idea/
 web/visual/
 packages/server/.wrangler/
+
+# Agent working state (local-only, never ship to the repo)
+.agents/
+.claude/
+.opencode/
+TODO.md
+PRODUCT_AUDIT.md
+skills-lock.json

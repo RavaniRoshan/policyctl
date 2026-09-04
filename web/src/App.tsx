@@ -10,6 +10,8 @@ import { queryClient } from "@/lib/query";
 import { Landing } from "@/pages/Landing";
 import { AuthPage } from "@/pages/AuthPage";
 import { Pricing } from "@/pages/Pricing";
+import { Terms } from "@/pages/Terms";
+import { Privacy } from "@/pages/Privacy";
 import { Onboarding } from "@/pages/Onboarding";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Overview } from "@/pages/dashboard/Overview";
@@ -82,6 +84,8 @@ export function App() {
                       {/* Public */}
                       <Route path="/" element={<Landing />} />
                       <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/privacy" element={<Privacy />} />
                       <Route path="/docs" element={<DocsRedirect />} />
                       <Route path="/docs/*" element={<DocsRedirect />} />
                       <Route path="/login" element={<AuthPage />} />
