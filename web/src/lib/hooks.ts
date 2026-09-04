@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, API_BASE } from "./api";
 import type { BillingStatus, Role } from "@policyctl/types";
-import { DEMO_ANALYTICS, DEMO_VIOLATIONS, DEMO_POLICIES, DEMO_DAILY_REPORT, DEMO_ORGS } from "./demo-data";
+import { DEMO_ANALYTICS, DEMO_VIOLATIONS, DEMO_POLICIES, DEMO_DAILY_REPORT, DEMO_ORGS, DEMO_MEMBERS } from "./demo-data";
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { SessionViolation, UseSessionStreamOptions } from "./hooks.types";
 
@@ -234,7 +234,7 @@ export function useResendReport() {
 export function useOrgMembers(orgId: string | undefined) {
   return useQuery({
     queryKey: ["orgMembers", orgId],
-    queryFn: () => (orgId ? api.members(orgId) : []),
+    queryFn: () => fetchData(() => (orgId ? api.members(orgId) : Promise.resolve([])), () => DEMO_MEMBERS),
     staleTime: 60_000,
     enabled: !!orgId,
   });

@@ -33,7 +33,7 @@ jobs:
       - run: pnpm --filter policyctl-web build
       - name: Verify no demo data in production bundle
         run: |
-          if grep -rq "DEMO_ANALYTICS\|demo-data\|Mock data active" web/dist/assets/; then
+          if grep -rq "DEMO_ANALYTICS\|DEMO_MEMBERS\|DEMO_VIOLATIONS\|DEMO_POLICIES\|demo-data\|Mock data active" web/dist/assets/; then
             echo "Demo/mock strings leaked into the production bundle"
             exit 1
           fi

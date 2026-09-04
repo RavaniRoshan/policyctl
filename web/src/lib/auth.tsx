@@ -27,6 +27,26 @@ interface AuthState {
 
 const AuthCtx = createContext<AuthState | null>(null);
 
+/**
+ * Demo access for visual QA and frontend development without Auth0 credentials.
+ *
+ * PRODUCTION SAFETY: `import.meta.env.MODE` is replaced at build time, so any
+ * production bundle reduces the first operand to `false` and minifiers drop
+ * the whole branch. There is no runtime flag, env var, or query param that can
+ * enable this in production. Never weaken this gate.
+ */
+export const DEMO_AUTH_ENABLED =
+  import.meta.env.MODE !== "production" &&
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).has("demo_auth");
+
+const DEMO_USER: AuthUser = {
+  id: "demo-user",
+  email: "demo@policyctl.dev",
+  displayName: "Demo User",
+  provider: "demo",
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const {
     user: auth0User,
@@ -60,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const getAccessToken = async (): Promise<string | null> => {
+    if (DEMO_AUTH_ENABLED && !isAuthenticated) return "demo-token";
     if (!isAuthenticated) return null;
     try {
       return await getAccessTokenSilently();
@@ -76,9 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           displayName: auth0User.name ?? auth0User.nickname ?? null,
           provider: auth0User.sub?.split("|")[0] ?? "auth0",
         }
-      : null,
+      : DEMO_AUTH_ENABLED
+        ? DEMO_USER
+        : null,
     loading: isLoading,
-    isAuthenticated,
+    isAuthenticated: isAuthenticated || DEMO_AUTH_ENABLED,
     login,
     logout,
     getAccessToken,
@@ -97,6 +120,9 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth0();
   const navigate = useNavigate();
   const [redirectTo, setRedirectTo] = useState<string | null>(null);
+
+  // Demo visual-QA access (compile-time gated, never active in production).
+  if (DEMO_AUTH_ENABLED) return <>{children}</>;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

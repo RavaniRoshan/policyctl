@@ -55,7 +55,7 @@ export function Overview() {
           label="Compliance score"
           value={analytics?.compliance_score ?? 0}
           suffix="%"
-          tone="success"
+          tone={scoreTone(analytics?.compliance_score ?? 0)}
           icon={ShieldCheck}
           loading={aLoading}
           hint="100 − min(100, 24h violations × 2 + repeat-offender rules × 5). Dismissed violations excluded."
@@ -193,6 +193,13 @@ export function Overview() {
       </div>
     </div>
   );
+}
+
+/** A low compliance score must never render in a success tone. */
+function scoreTone(score: number): "success" | "heat" | "danger" {
+  if (score >= 80) return "success";
+  if (score >= 50) return "heat";
+  return "danger";
 }
 
 function TrialBanner() {

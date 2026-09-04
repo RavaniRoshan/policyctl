@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, Funnel, ArrowClockwise, X, CheckSquare, Square } from "@phosphor-icons/react";
-import { useViolations, useSessionStream } from "@/lib/hooks";
+import { useViolations, useSessionStream, __isDemoMode } from "@/lib/hooks";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +102,8 @@ export function Sessions() {
 
   return (
     <div className="space-y-24">
-      {/* Connection status banner */}
+      {/* Connection status banner (hidden in demo builds: no stream exists to connect to) */}
+      {!__isDemoMode && (
       <div className={`p-12 rounded-md -mt-1 ${connected ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>        <div className="flex items-center gap-8">
           <span className={`size-8 rounded-full ${connected ? "bg-success" : "bg-warning"}`} />
           <span className="font-medium">
@@ -112,6 +113,7 @@ export function Sessions() {
           </span>
         </div>
       </div>
+      )}
 
       <div className="flex items-center justify-between -mt-1 border-b border-border-faint pb-12 flex-wrap gap-8">
         <MonoAnnotation>[ violations / {filtered.length} records ]</MonoAnnotation>
