@@ -6,7 +6,6 @@ import { useAuth0 } from "@auth0/auth0-react";
 import {
   Copy,
   Check,
-  GithubLogo,
   GoogleLogo,
   WarningCircle,
 } from "@phosphor-icons/react";
@@ -137,7 +136,9 @@ export function AuthPage() {
   const friendlyError = error
     ? error.message?.includes("Callback URL")
       ? `Auth0 rejected the callback URL. The app sent: "${REDIRECT_URI}". Make sure this exact URL (without a trailing slash) is in your Auth0 app's Allowed Callback URLs.`
-      : error.message?.includes("access_denied")
+      : error.message?.includes("Service not found")
+        ? "Auth0 doesn't recognize the API audience. Create an API in your Auth0 dashboard (Applications > APIs), then set its identifier as VITE_AUTH0_AUDIENCE (web) and AUTH0_AUDIENCE (Worker) — the SPA client ID is not a valid audience."
+        : error.message?.includes("access_denied")
         ? "Access was denied. Try signing in with email instead."
         : error.message ?? "Something went wrong. Please try again."
     : submitError;
@@ -189,19 +190,6 @@ export function AuthPage() {
           )}
 
           <div className="mt-24 space-y-8">
-            <button
-              type="button"
-              onClick={() => handleSocialLogin("github")}
-              disabled={isLoading}
-              className="flex w-full h-44 items-center justify-center gap-8 rounded-md border border-border-faint bg-surface text-label-medium text-accent-black transition-all duration-200 hover:bg-black-alpha-4 hover:border-border-muted active:scale-[0.99] disabled:opacity-50"
-            >
-              {isLoading ? (
-                <span className="size-20 border-2 border-border-faint border-t-heat-100 rounded-full animate-spin" />
-              ) : (
-                <GithubLogo className="size-20" weight="bold" />
-              )}
-              {mode === "signup" ? "Sign up with GitHub" : "Sign in with GitHub"}
-            </button>
             <button
               type="button"
               onClick={() => handleSocialLogin("google-oauth2")}

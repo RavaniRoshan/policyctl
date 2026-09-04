@@ -9,12 +9,17 @@ import { App } from "./App";
 // Public Auth0 identifiers (same convention as API_BASE in lib/api.ts: baked-in
 // defaults so prebuilt artifacts work, VITE_* env overrides when set).
 // Domain and SPA client ID are public — they ship in the JS bundle by design.
-// Note: the SPA uses its client ID as the API audience, matching the Worker's
-// AUTH0_AUDIENCE, so tokens verify end to end.
+//
+// Audience MUST be an Auth0 API identifier (Dashboard > Applications > APIs),
+// not the client ID — Auth0 rejects anything else with "Service not found".
+// When unset, audience is omitted so login still works; API calls will 401
+// until VITE_AUTH0_AUDIENCE matches the Worker's AUTH0_AUDIENCE.
 const AUTH0_DOMAIN =
   (import.meta.env.VITE_AUTH0_DOMAIN as string | undefined) || "dev-wyyyhy36ogxygyky.us.auth0.com";
 const AUTH0_CLIENT_ID =
   (import.meta.env.VITE_AUTH0_CLIENT_ID as string | undefined) || "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I";
+const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE as string | undefined;
+
 const REDIRECT_URI = window.location.origin;
 
 createRoot(document.getElementById("root")!).render(
@@ -24,7 +29,7 @@ createRoot(document.getElementById("root")!).render(
       clientId={AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: REDIRECT_URI,
-        audience: AUTH0_CLIENT_ID,
+        ...(AUTH0_AUDIENCE ? { audience: AUTH0_AUDIENCE } : {}),
       }}
       cacheLocation="localstorage"
       useRefreshTokens={true}

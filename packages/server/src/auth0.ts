@@ -38,7 +38,11 @@ export async function verifyAuth0Token(env: Env, token: string): Promise<Auth0Id
     return null;
   }
 
-  const audience = env.AUTH0_AUDIENCE ?? "91txJu7H0xUBDi6b8gE3073Nwhi2hG1I";
+  const audience = env.AUTH0_AUDIENCE;
+  if (!audience) {
+    console.warn("AUTH0_AUDIENCE not configured — JWT verification unavailable");
+    return null;
+  }
   const jwksUrl = new URL(`https://${domain}/.well-known/jwks.json`);
 
   // Build the jwksCache object that jose will read/write in place.
