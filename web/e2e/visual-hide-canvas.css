@@ -1,0 +1,8 @@
+/* Applied during visual assertions on pages with live WebGL shader art.
+   The Dithering hero canvas animates continuously (real-time rAF), so two
+   consecutive captures never stabilize and toHaveScreenshot cannot compare it.
+   Hiding canvases makes the assertion cover layout/typography deterministically;
+   the artwork itself is verified in the human screenshot loop (web/visual/). */
+canvas {
+  visibility: hidden !important;
+}

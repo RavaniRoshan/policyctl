@@ -67,3 +67,8 @@ packages/server/.wrangler/
 TODO.md
 PRODUCT_AUDIT.md
 skills-lock.json
+
+# Playwright artifacts
+web/playwright-report/
+web/test-results/
+web/blob-report/
