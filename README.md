@@ -24,6 +24,10 @@
 
 ---
 
+<p align="center">
+  <img src="docs/src/assets/demo.gif" alt="policyctl demo" width="600" />
+</p>
+
 ## Overview
 
 Prompt-based advisory instructions (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`) degrade as context windows fill up. Autonomous coding agents frequently overlook prompt rules, rewrite protected configuration files, leak secrets into diffs, or execute unauthorized commands.
