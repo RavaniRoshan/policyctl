@@ -1,6 +1,13 @@
-import { requirePaidPlan, loadConfig, serverUrl } from "../hosted.js";
+import { requirePaidPlan, loadConfig, serverUrl, getBearerToken, tokenProvider } from "../hosted.js";
+import { http } from "../lib/http.js";
 import { spinner, c, panel } from "../ui.js";
 import { AuthError, NetworkError } from "../lib/errors.js";
+
+/** Fresh Auth0 token (refreshing silently) with legacy-token fallback. */
+async function orgToken(): Promise<string> {
+  const cfg = loadConfig();
+  return ((await getBearerToken().catch(() => null)) ?? cfg.accessToken ?? cfg.token) as string;
+}
 
 export interface OrgListOptions {
   server?: string;
@@ -16,13 +23,7 @@ export async function orgListCommand(_opts: OrgListOptions): Promise<void> {
   const server = serverUrl(_opts.server);
   const spin = spinner("Fetching orgs");
   try {
-    const res = await fetch(`${server}/api/orgs`, {
-      headers: { authorization: `Bearer ${cfg.accessToken ?? cfg.token}` },
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new NetworkError(`org list failed (${res.status}${text ? `: ${text}` : ""})`, res.status);
-    }
+    const res = await http("/api/orgs", { server, token: await orgToken() }, tokenProvider);
     const data = (await res.json()) as { orgs: { id: string; name: string; subscription_status?: string | null }[] };
     spin.stop("ok");
     if (data.orgs.length === 0) {
@@ -55,13 +56,11 @@ export async function orgMembersCommand(orgId: string, _opts: OrgMembersOptions)
   const server = serverUrl(_opts.server);
   const spin = spinner("Fetching members");
   try {
-    const res = await fetch(`${server}/api/orgs/${encodeURIComponent(orgId)}/members`, {
-      headers: { authorization: `Bearer ${cfg.accessToken ?? cfg.token}` },
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new NetworkError(`members failed (${res.status}${text ? `: ${text}` : ""})`, res.status);
-    }
+    const res = await http(
+      `/api/orgs/${encodeURIComponent(orgId)}/members`,
+      { server, token: await orgToken() },
+      tokenProvider,
+    );
     const data = (await res.json()) as { members: { id: string; email: string; role: string }[] };
     spin.stop("ok");
     if (data.members.length === 0) {
@@ -91,18 +90,17 @@ export async function orgInviteCommand(orgId: string, email: string, role: strin
   const server = serverUrl(_opts.server);
   const spin = spinner(`Inviting ${email}`);
   try {
-    const res = await fetch(`${server}/api/orgs/${encodeURIComponent(orgId)}/members`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${cfg.accessToken ?? cfg.token}`,
+    await http(
+      `/api/orgs/${encodeURIComponent(orgId)}/members`,
+      {
+        server,
+        token: await orgToken(),
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, role }),
       },
-      body: JSON.stringify({ email, role }),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new NetworkError(`invite failed (${res.status}${text ? `: ${text}` : ""})`, res.status);
-    }
+      tokenProvider,
+    );
     spin.stop(`invited ${email}`);
     console.log(`${c.success("✓")} Invited ${c.primary(email)} to org ${orgId} as ${role}`);
   } catch (e) {

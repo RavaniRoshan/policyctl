@@ -110,7 +110,7 @@ export function loadConfig(): HostConfig {
       /* ignore parse errors, fall through to defaults */
     }
   }
-  return { server: process.env.POLICYCTL_SERVER ?? "https://policyctl.dev" };
+  return { server: process.env.POLICYCTL_SERVER ?? "https://policyctl-server.shivamkumar10958.workers.dev" };
 }
 
 export function saveConfig(cfg: HostConfig): void {
@@ -133,6 +133,22 @@ export function serverUrl(override?: string): string {
 /** Get the current bearer token (access_token), refreshing if possible. Returns null if not logged in. */
 export async function getBearerToken(): Promise<string | null> {
   return tokenProvider.getValidToken();
+}
+
+/**
+ * Resolve the bearer token for cloud calls: a fresh Auth0 token (refreshing
+ * silently when expired), falling back to the legacy magic-link token.
+ * Throws AuthError when logged out.
+ */
+export async function getCloudToken(): Promise<string> {
+  const cfg = loadConfig();
+  const access = cfg.accessToken;
+  const fresh = access ? await getBearerToken().catch(() => access) : null;
+  const token = fresh ?? cfg.token ?? null;
+  if (!token) {
+    throw new AuthError("not logged in — run `policyctl login`");
+  }
+  return token;
 }
 
 /**
@@ -166,12 +182,9 @@ export async function fetchAuth0Config(override?: string): Promise<{
  * requires a subscription (push, report, pull).
  */
 export async function requirePaidPlan(override?: string): Promise<void> {
-  const cfg = loadConfig();
-  if (!cfg.accessToken) {
-    throw new AuthError("not logged in — run `policyctl login`");
-  }
+  const token = await getCloudToken();
   const server = serverUrl(override);
-  const res = await http("/api/billing/status", { server, token: cfg.accessToken });
+  const res = await http("/api/billing/status", { server, token }, tokenProvider);
   const status = (await res.json()) as { is_paid: boolean; is_trial: boolean };
   if (!status.is_paid && !status.is_trial) {
     throw new AuthError(
@@ -183,22 +196,26 @@ export async function requirePaidPlan(override?: string): Promise<void> {
 /** POST a violation outcome to the hosted feed. Throws on failure. */
 export async function sendReport(body: ReportBody, override?: string): Promise<void> {
   await requirePaidPlan(override);
-  const cfg = loadConfig();
   const server = serverUrl(override);
-  await http("/api/report", {
-    server,
-    token: cfg.accessToken,
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const token = await getCloudToken();
+  await http(
+    "/api/report",
+    {
+      server,
+      token,
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+    tokenProvider,
+  );
 }
 
 /** Fetch the policy YAML from the server. */
 export async function fetchPolicy(override?: string): Promise<string> {
   await requirePaidPlan(override);
-  const cfg = loadConfig();
   const server = serverUrl(override);
-  const res = await http("/api/policy", { server, token: cfg.accessToken });
+  const token = await getCloudToken();
+  const res = await http("/api/policy", { server, token }, tokenProvider);
   const data = (await res.json()) as { yaml: string };
   return data.yaml;
 }
@@ -206,14 +223,18 @@ export async function fetchPolicy(override?: string): Promise<string> {
 /** Push the policy YAML to the server. */
 export async function pushPolicy(yaml: string, note: string | undefined, override?: string): Promise<{ version: number; id: number }> {
   await requirePaidPlan(override);
-  const cfg = loadConfig();
   const server = serverUrl(override);
-  const res = await http("/api/policy", {
-    server,
-    token: cfg.accessToken,
-    method: "POST",
-    body: JSON.stringify({ yaml, note }),
-  });
+  const token = await getCloudToken();
+  const res = await http(
+    "/api/policy",
+    {
+      server,
+      token,
+      method: "POST",
+      body: JSON.stringify({ yaml, note }),
+    },
+    tokenProvider,
+  );
   const data = (await res.json()) as { ok: boolean; version: number; id: number };
   return { version: data.version, id: data.id };
 }
@@ -225,13 +246,13 @@ export async function fetchViolations(opts: {
   override?: string;
 }): Promise<unknown[]> {
   await requirePaidPlan(opts.override);
-  const cfg = loadConfig();
   const server = serverUrl(opts.override);
+  const token = await getCloudToken();
   const params = new URLSearchParams();
   if (opts.limit) params.set("limit", String(opts.limit));
   if (opts.offset) params.set("offset", String(opts.offset));
   const url = `/api/violations${params.toString() ? `?${params}` : ""}`;
-  const res = await http(url, { server, token: cfg.accessToken });
+  const res = await http(url, { server, token }, tokenProvider);
   const data = (await res.json()) as unknown[];
   return data;
 }
@@ -247,9 +268,9 @@ export async function fetchBillingStatus(override?: string): Promise<{
   has_api_key: boolean;
 }> {
   await requirePaidPlan(override);
-  const cfg = loadConfig();
   const server = serverUrl(override);
-  const res = await http("/api/billing/status", { server, token: cfg.accessToken });
+  const token = await getCloudToken();
+  const res = await http("/api/billing/status", { server, token }, tokenProvider);
   return (await res.json()) as any;
 }
 
@@ -257,9 +278,9 @@ export async function fetchBillingStatus(override?: string): Promise<{
 export async function fetchCurrentUser(override?: string): Promise<{ id: string; email: string } | null> {
   const cfg = loadConfig();
   const server = serverUrl(override);
-  const token = cfg.accessToken ?? cfg.token;
+  const token = ((await getBearerToken().catch(() => null)) ?? cfg.accessToken ?? cfg.token) || null;
   if (!token) return null;
-  const res = await http("/api/me", { server, token });
+  const res = await http("/api/me", { server, token }, tokenProvider);
   const data = (await res.json()) as { user: { id: string; email: string } | null };
   return data.user;
 }

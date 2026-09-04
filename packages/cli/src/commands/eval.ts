@@ -5,6 +5,8 @@ import { printOutcome } from "../report.js";
 import { readStdin } from "../stdin.js";
 
 export interface EvalOptions {
+  /** Mode gate passed by agent hooks (`policyctl eval --hook`). Always true in practice. */
+  hook?: boolean;
   json?: boolean;
   policy?: string;
   cwd?: string;

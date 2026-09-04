@@ -112,21 +112,24 @@ program
 program
   .command("config")
   .description("View, set, or get local configuration.")
-  .argument("[key]", "config key to get (or use with --set/--list)")
-  .action(configCommand);
+  .argument("[key]", "config key to get (server | email | orgId; omit to list all)")
+  .action((key?: string) => {
+    if (key) configGetCommand({ key });
+    else configCommand({});
+  });
 
 program
   .command("config:set")
   .description("Set a config value (key: server | email | orgId).")
   .argument("<key>", "config key")
   .argument("<value>", "config value")
-  .action(configSetCommand);
+  .action((key: string, value: string) => configSetCommand({ key, value }));
 
 program
   .command("config:get")
   .description("Get a config value (key: server | email | orgId).")
   .argument("<key>", "config key")
-  .action(configGetCommand);
+  .action((key: string) => configGetCommand({ key }));
 
 program
   .command("push")
@@ -158,7 +161,7 @@ program
   .command("author <prompt>")
   .description("Generate a policy rule from a natural-language prompt (paid tier required).")
   .option("--server <url>", "control-plane URL")
-  .action(authorCommand);
+  .action((prompt: string, opts: { server?: string }) => authorCommand(prompt, opts));
 
 program
   .command("org")

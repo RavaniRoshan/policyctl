@@ -22,7 +22,6 @@ export interface TraceOptions {
   diff?: string;
   policy?: string;
   cwd?: string;
-  json?: boolean;
 }
 
 function resolveInputs(opts: TraceOptions): EvalContext {

@@ -46,8 +46,11 @@ export async function cacheGetUser(env: Env, token: string): Promise<number | nu
   try {
     const v = await env.POLICYCTL_CACHE.get(sessionKey(token), "text");
     if (!v) return null;
-    const j = JSON.parse(v) as { uid: number; exp: number };
+    const j = JSON.parse(v) as { uid: number; exp: number; tok: string };
     if (j.exp < Date.now()) return null;
+    // The key is a token prefix (full JWTs exceed KV's 512-byte key limit),
+    // so verify the stored token matches before trusting the cached uid.
+    if (j.tok !== token) return null;
     return j.uid;
   } catch {
     return null;
@@ -56,7 +59,7 @@ export async function cacheGetUser(env: Env, token: string): Promise<number | nu
 
 export async function cachePutUser(env: Env, token: string, userId: number): Promise<void> {
   try {
-    const v = JSON.stringify({ uid: userId, exp: Date.now() + SESSION_TTL * 1000 });
+    const v = JSON.stringify({ uid: userId, exp: Date.now() + SESSION_TTL * 1000, tok: token });
     await env.POLICYCTL_CACHE.put(sessionKey(token), v, { expirationTtl: SESSION_TTL });
   } catch {
     /* ignore */
@@ -80,6 +83,8 @@ export async function cacheGetUserBySub(env: Env, auth0Sub: string): Promise<Use
     if (!v) return null;
     const j = v as { user: User; exp: number };
     if (j.exp < Date.now()) return null;
+    // The key is a sub suffix, so verify the stored row belongs to this sub.
+    if (j.user.auth0_sub !== auth0Sub) return null;
     return j.user;
   } catch {
     return null;

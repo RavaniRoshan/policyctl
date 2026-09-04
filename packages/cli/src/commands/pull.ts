@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadConfig, requirePaidPlan, serverUrl } from "../hosted.js";
+import { requirePaidPlan, fetchPolicy } from "../hosted.js";
 import { spinner, c } from "../ui.js";
 import { loadPolicyFromString } from "@policyctl/core";
 import { ValidationError } from "../lib/errors.js";
@@ -16,33 +16,30 @@ export interface PullOptions {
 
 export async function pullCommand(opts: PullOptions): Promise<void> {
   await requirePaidPlan(opts.server);
-  const cfg = loadConfig();
-  const server = serverUrl(opts.server);
   const spin = spinner("Pulling policy");
-  const res = await fetch(`${server}/api/policy`, {
-    headers: { authorization: `Bearer ${cfg.accessToken ?? cfg.token}` },
-  });
-  if (!res.ok) {
+  let yaml: string;
+  try {
+    yaml = await fetchPolicy(opts.server);
+  } catch (e) {
     spin.stop("failed");
-    console.error(`policyctl: pull failed (${res.status})`);
+    console.error(`policyctl: pull failed (${e instanceof Error ? e.message : e})`);
     process.exit(1);
     return;
   }
-  const j = (await res.json()) as { yaml: string };
   const target = opts.policy ?? join(opts.cwd ?? process.cwd(), ".policyctl.yml");
 
   // Validate the downloaded YAML before writing it to disk.
   try {
-    loadPolicyFromString(j.yaml);
+    loadPolicyFromString(yaml);
   } catch (e) {
     throw new ValidationError(`Downloaded policy is invalid: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   if (opts.dryRun) {
     spin.stop("ok");
-    console.log(c.muted(j.yaml));
+    console.log(c.muted(yaml));
     console.error(
-      `policyctl: dry run — policy is valid (${j.yaml.length} bytes). Not writing to ${c.muted(target)}.`,
+      `policyctl: dry run — policy is valid (${yaml.length} bytes). Not writing to ${c.muted(target)}.`,
     );
     return;
   }
@@ -53,6 +50,6 @@ export async function pullCommand(opts: PullOptions): Promise<void> {
     process.exit(3);
     return;
   }
-  writeFileSync(target, j.yaml);
+  writeFileSync(target, yaml);
   spin.stop(`to ${c.muted(target)}`);
 }

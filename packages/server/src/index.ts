@@ -67,7 +67,7 @@ app.use(`${API}/*`, async (c, next) => {
   if (allowedOrigins(c.env).includes(origin)) {
     c.header("Access-Control-Allow-Origin", origin);
   }
-  c.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  c.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
   c.header("Access-Control-Allow-Headers", "content-type, authorization");
   c.header("Access-Control-Allow-Credentials", "true");
   c.header("Access-Control-Max-Age", "86400");
@@ -77,7 +77,7 @@ app.options(`${API}/*`, (c) => {
   if (allowedOrigins(c.env).includes(origin)) {
     c.header("Access-Control-Allow-Origin", origin);
   }
-  c.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  c.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
   c.header("Access-Control-Allow-Headers", "content-type, authorization");
   c.header("Access-Control-Allow-Credentials", "true");
   c.header("Access-Control-Max-Age", "86400");
@@ -186,10 +186,14 @@ app.get(`${API}/auth0/config`, async (c) => {
   if (!domain || !audience) {
     return c.json({ error: "Auth0 not configured on the server" }, 503);
   }
-  // The CLI uses its own device-flow client_id. Fall back to the SPA's client
-  // if the server hasn't been given a separate CLI client_id.
-  const clientId = c.env.AUTH0_CLI_CLIENT_ID ?? audience;
-  return c.json({ domain, client_id: clientId, audience });
+  // The CLI uses its own device-flow client_id (a Native-type Auth0 application
+  // with the Device Code grant). Fail closed when unset — an empty string or
+  // the SPA audience here would make every `policyctl login` fail at Auth0.
+  const cliClientId = c.env.AUTH0_CLI_CLIENT_ID;
+  if (!cliClientId) {
+    return c.json({ error: "CLI device login is not configured on the server" }, 503);
+  }
+  return c.json({ domain, client_id: cliClientId, audience });
 });
 
 // Simple KV-based rate limiter keyed by IP. Used for AI endpoints (Phase D).

@@ -1,4 +1,5 @@
-import { requirePaidPlan, loadConfig, serverUrl } from "../hosted.js";
+import { requirePaidPlan, serverUrl, getCloudToken, tokenProvider } from "../hosted.js";
+import { http } from "../lib/http.js";
 import { spinner, c, panel } from "../ui.js";
 import { AuthError, NetworkError } from "../lib/errors.js";
 
@@ -6,32 +7,29 @@ export interface AuthorOptions {
   server?: string;
 }
 
-export async function authorCommand(opts: AuthorOptions): Promise<void> {
-  const args = process.argv.slice(4); // node, script, command, subcommand, ...
-  if (args.length === 0) {
+export async function authorCommand(prompt: string, opts: AuthorOptions): Promise<void> {
+  const intent = (prompt ?? "").trim();
+  if (!intent) {
     console.error("policyctl: missing prompt. Usage: policyctl author \"<intent>\"");
     process.exit(3);
     return;
   }
-  const intent = args.join(" ");
 
   await requirePaidPlan(opts.server);
-  const cfg = loadConfig();
   const server = serverUrl(opts.server);
+  const token = await getCloudToken();
   const spin = spinner("Authoring rule");
   try {
-    const res = await fetch(`${server}/api/ai/author`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${cfg.accessToken ?? cfg.token}`,
+    const res = await http(
+      "/api/ai/author",
+      {
+        server,
+        token,
+        method: "POST",
+        body: JSON.stringify({ intent }),
       },
-      body: JSON.stringify({ intent }),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new NetworkError(`author failed (${res.status}${text ? `: ${text}` : ""})`, res.status);
-    }
+      tokenProvider,
+    );
     const data = (await res.json()) as { rule: string; explanation: string };
     spin.stop("ok");
     console.log(panel("generated rule", [

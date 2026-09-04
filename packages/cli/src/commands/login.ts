@@ -1,4 +1,5 @@
 import { spinner, c, panel, hint } from "../ui.js";
+import { execFileSync } from "node:child_process";
 import { loadConfig, saveConfig, serverUrl, type HostConfig, fetchAuth0Config } from "../hosted.js";
 import { AuthError } from "../lib/errors.js";
 
@@ -137,7 +138,6 @@ function tryAutoOpen(url: string): void {
   if (!cmd) return;
 
   try {
-    const { execFileSync } = require("node:child_process");
     if (process.platform === "win32") {
       execFileSync(cmd, ["url.dll,FileProtocolHandler", url], { stdio: "ignore" });
     } else {
