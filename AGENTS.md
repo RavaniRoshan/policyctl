@@ -275,7 +275,9 @@ The frontend deploys to Cloudflare Pages and the Worker deploys to Cloudflare Wo
 1. `ci` — build, type-check, test
 2. `deploy` — deploys `packages/server` to Cloudflare Workers and `web/dist` to Cloudflare Pages project `policyctl-web`
 
-Pull requests to `main` trigger a staging Worker deploy (`policyctl-server-staging`).
+Pull requests to `main` get a Pages preview deploy (`preview-web` in `preview.yml`).
+There is intentionally no staging Worker: a `--name` override would reuse the
+production D1/KV bindings (see the note in `deploy.yml`).
 
 **Important:** Do not create a duplicate Pages project called `policyctl` — that's a known footgun. Always use `policyctl-web`.
 

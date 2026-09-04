@@ -28,7 +28,7 @@
 
 Prompt-based advisory instructions (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`) degrade as context windows fill up. Autonomous coding agents frequently overlook prompt rules, rewrite protected configuration files, leak secrets into diffs, or execute unauthorized commands.
 
-**policyctl** provides a deterministic policy runtime that sits between the agent and your codebase. It intercepts tool calls at execution time, validates changes against compiled AST rules and pattern tables in under 12ms, and rejects prohibited operations before files are modified on disk.
+**policyctl** provides a deterministic policy runtime that sits between the agent and your codebase. It intercepts tool calls at execution time, validates changes against compiled matchers and pattern tables in under 12ms, and rejects prohibited operations before files are modified on disk.
 
 ```
                   ┌────────────────────────┐
@@ -57,7 +57,7 @@ Prompt-based advisory instructions (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`) de
 ## Key Features
 
 - **Zero LLM Drift:** Pure deterministic evaluation. The same input produces the exact same verdict every time.
-- **Sub-Millisecond Evaluation:** Compiled AST matchers and pattern tables evaluate in `<12ms`, introducing zero perceptible latency to agent prompt loops.
+- **Sub-12ms Evaluation:** Compiled matchers and pattern tables evaluate in `<12ms`, introducing zero perceptible latency to agent prompt loops.
 - **Pre-Tool-Call Interception:** Intercepts file writes and shell executions *before* they touch the filesystem, preventing hallucinated bugs or secrets from ever being staged.
 - **Single Source of Truth:** Author rules once in `.policyctl.yml`. The engine enforces them across Claude Code, Cursor, Codex, and CI.
 - **Automated Hook Generation:** `policyctl gen <provider>` automatically writes the native hook configuration files for each supported agent.
@@ -246,7 +246,7 @@ policyctl gen codex
 |---|---|---|
 | `init` | `policyctl init [--all]` | Scaffolds `.policyctl.yml` and generates agent hooks. |
 | `check` | `policyctl check [--fail-on <levels>]` | Evaluates rules against git diff. Exits non-zero on violations. |
-| `eval` | `policyctl eval --provider <agent>` | Evaluates a single tool call from stdin payload in `<12ms`. |
+| `eval` | `policyctl eval --hook` | Evaluates a single tool call from stdin payload in `<12ms`. |
 | `list` | `policyctl list` | Prints loaded rules, active scopes, and matchers. |
 | `gen` | `policyctl gen <claude\|cursor\|codex>` | Generates provider hook configuration files. |
 | `doctor` | `policyctl doctor` | Diagnostic audit verifying hook paths and CLI installation. |
@@ -266,7 +266,7 @@ For engineering organizations managing policies across dozens of repositories:
 - **Cross-Repo Policy Versioning:** Maintain immutable, auditable policy versions with rollback capabilities.
 - **Audit Feed & Live Sessions:** Real-time visibility into agent tool calls, blocked actions, and remediation outcomes.
 - **Compliance Reports:** Daily compliance digests and CSV export streaming directly from Cloudflare Workers edge.
-- **AI Rule Authoring:** Natural language prompt analysis that generates valid, typed `.policyctl.yml` AST rules.
+- **AI Rule Authoring:** Natural language prompt analysis that generates valid, typed `.policyctl.yml` rules.
 
 ```bash
 # Connect local repository to team workspace

@@ -31,6 +31,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @policyctl/docs build
       - run: pnpm --filter policyctl-web build
+      - name: Verify no demo data in production bundle
+        run: |
+          if grep -rq "DEMO_ANALYTICS\|demo-data\|Mock data active" web/dist/assets/; then
+            echo "Demo/mock strings leaked into the production bundle"
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: web-dist

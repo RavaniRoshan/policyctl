@@ -1,6 +1,6 @@
 ---
 title: CLI Command Reference
-description: Complete reference documentation for all 12 policyctl CLI commands, options, and exit codes.
+description: Complete reference documentation for all 22 policyctl CLI commands, options, and exit codes.
 ---
 
 > **Machine-readable:** [Raw Markdown](/docs/reference/cli-commands.md) · [llms.txt](/docs/llms.txt)
@@ -21,10 +21,17 @@ The `policyctl` CLI is the execution engine that runs locally on developer machi
 | [`doctor`](#policyctl-doctor) | `policyctl doctor` | Validates environment, hook files, and policy syntax |
 | [`trace`](#policyctl-trace) | `policyctl trace --mode <hook\|ci> [--diff <f>]` | Detailed step-by-step evaluation debugger |
 | [`test`](#policyctl-test) | `policyctl test [--suite <file>]` | Runs `.policyctl.test.json` automated test suites |
-| [`login`](#policyctl-login) | `policyctl login --email <email>` | Authenticates CLI with the cloud control plane |
-| [`push`](#policyctl-push) | `policyctl push [--policy <path>]` | Uploads `.policyctl.yml` to hosted version feed |
-| [`pull`](#policyctl-pull) | `policyctl pull [--force]` | Downloads active policy from cloud control plane |
-| [`report`](#policyctl-report) | `policyctl report [--repo <name>]` | Streams evaluation outcome JSON to hosted feed |
+| [`login`](#cloud-commands) | `policyctl login [--server <url>]` | Authenticate via Auth0 device flow |
+| [`logout`](#cloud-commands) | `policyctl logout` | Clear local credentials |
+| [`whoami`](#cloud-commands) | `policyctl whoami [--server <url>]` | Show the authenticated user and org |
+| [`config`](#cloud-commands) | `policyctl config [key]` / `config:set` / `config:get` | View, set, or get local configuration |
+| [`push`](#cloud-commands) | `policyctl push [--policy <path>] [--dry-run]` | Uploads `.policyctl.yml` to hosted version feed |
+| [`pull`](#cloud-commands) | `policyctl pull [--force] [--dry-run]` | Downloads active policy from cloud control plane |
+| [`report`](#cloud-commands) | `policyctl report [--repo <name>]` | Streams evaluation outcome JSON to hosted feed |
+| [`author`](#cloud-commands) | `policyctl author "<prompt>"` | Generate a rule from natural language (paid tier) |
+| [`org:list`](#cloud-commands) | `policyctl org:list` | List organizations for the authenticated user |
+| [`org:members`](#cloud-commands) | `policyctl org:members <orgId>` | List members of an organization |
+| [`org:invite`](#cloud-commands) | `policyctl org:invite <orgId> <email> [--role <r>]` | Invite a member to an organization |
 
 ---
 
@@ -124,9 +131,41 @@ policyctl test --suite .policyctl.test.json
 
 ---
 
+## `policyctl list`
+
+Prints an ASCII table of all rules in the loaded policy:
+
+```bash
+policyctl list [--policy <path>]
+```
+
+---
+
+## `policyctl gen`
+
+Writes provider hook glue (`claude` | `codex` | `cursor`) plus a pre-commit hook. Preview without writing via `--print`:
+
+```bash
+policyctl gen codex --print
+```
+
+---
+
 ## Cloud Commands
 
-- **`policyctl login --email dev@example.com`**: Saves authentication token to `~/.policyctl/config.json` (permissions `0600`).
-- **`policyctl push`**: Pushes local policy to cloud versioning feed.
-- **`policyctl pull`**: Pulls latest versioned policy down.
-- **`policyctl report`**: Streams violation payloads directly to the hosted dashboard.
+Cloud commands authenticate via `policyctl login`, which runs the Auth0 device
+flow and saves tokens to `~/.policyctl/config.json` (permissions `0600`).
+Expired access tokens refresh silently using the stored refresh token.
+
+- **`policyctl login [--server <url>]`**: Device-code login; prints a verification URI and code.
+- **`policyctl logout`**: Clears local credentials (tokens, email, org).
+- **`policyctl whoami [--server <url>]`**: Prints the authenticated user and org (exit 4 if logged out).
+- **`policyctl config [key]`**: Lists all local config, or prints one key (`server | email | orgId`).
+- **`policyctl config:set <key> <value>`** / **`policyctl config:get <key>`**: Set or read one key.
+- **`policyctl push [--policy <path>] [--dry-run] [--note <text>]`**: Validates and uploads the local policy (paid tier required).
+- **`policyctl pull [--policy <path>] [--force] [--dry-run]`**: Downloads and validates the active policy before writing.
+- **`policyctl report [--repo <name>] [--agent <name>]`**: Streams violation JSON from stdin to the hosted feed.
+- **`policyctl author "<prompt>"`**: Generates a rule from natural language via `/api/ai/author` (paid tier required).
+- **`policyctl org:list`**: Lists organizations for the authenticated user.
+- **`policyctl org:members <orgId>`**: Lists members and roles.
+- **`policyctl org:invite <orgId> <email> [--role owner|admin|member|viewer]`**: Invites a member (default role `member`).

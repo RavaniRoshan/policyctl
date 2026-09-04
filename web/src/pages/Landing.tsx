@@ -310,7 +310,7 @@ function Hero() {
                 <div className="flex items-center gap-6">
                   <span className="font-mono text-mono-x-small text-black-alpha-40 hidden sm:inline">[ FIG 1.0 ]</span>
                   <span className="font-mono text-mono-x-small px-8 py-2 rounded bg-heat-4 border border-heat-12 text-heat-100 uppercase tracking-tight font-semibold">
-                    AST INTERCEPTOR
+                    HOOK INTERCEPTOR
                   </span>
                 </div>
               </div>
@@ -407,7 +407,7 @@ const SAMPLES = [
     label: "Author rules",
     badge: "SCHEMA",
     tag: "DETERMINISTIC",
-    desc: "Declarative .policyctl.yml specification with AST, regex, and path matchers without prompt drift.",
+    desc: "Declarative .policyctl.yml specification with glob, regex, and path matchers without prompt drift.",
     filename: ".policyctl.yml",
     lang: "yaml",
     icon: FileCode,
@@ -589,7 +589,7 @@ function DeveloperFirst() {
                 </span>
                 <span className="text-black-alpha-32">→</span>
                 <span className="px-8 py-4 rounded bg-heat-4 border border-heat-12 text-heat-100 font-semibold">
-                  policyctl AST
+                  policyctl eval
                 </span>
                 <span className="text-black-alpha-32">→</span>
                 <span className="px-8 py-4 rounded bg-surface border border-border-faint text-accent-black">
@@ -601,7 +601,7 @@ function DeveloperFirst() {
             {/* Metric Grid */}
             <div className="grid grid-cols-2 gap-10">
               {[
-                { k: "Matchers", v: "8 Built-in", tag: "AST & regex" },
+                { k: "Matchers", v: "8 Built-in", tag: "glob & regex" },
                 { k: "Providers", v: "4 Agents", tag: "Claude, Codex..." },
                 { k: "Latency", v: "<12 ms", tag: "Deterministic" },
                 { k: "Telemetry", v: "Zero", tag: "Local-first" },
@@ -805,7 +805,7 @@ function BuiltForTrust() {
               Same input, same verdict.
             </h3>
             <p className="text-body-small text-black-alpha-56 leading-snug mb-20">
-              Evaluations are pure AST assertions and pattern matches. No probabilistic LLM in the validation loop.
+              Evaluations are pure deterministic assertions and pattern matches. No probabilistic LLM in the validation loop.
             </p>
 
             {/* 4 Metric Tiles with CountUp */}
@@ -1211,7 +1211,7 @@ function CommunityMarquee() {
           <span className="text-black-alpha-24 hidden sm:inline">|</span>
           <span>0.0% RUNTIME TELEMETRY</span>
           <span className="text-black-alpha-24 hidden sm:inline">|</span>
-          <span>100% DETERMINISTIC AST</span>
+          <span>100% DETERMINISTIC</span>
           <span className="text-black-alpha-24 hidden sm:inline">|</span>
           <span>MIT LICENSED</span>
         </div>
@@ -1327,7 +1327,7 @@ function Pricing() {
                 <ul className="mt-28 space-y-12 text-body-large text-black-alpha-72">
                   <li className="flex gap-10 items-start">
                     <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
-                    <span>All 12 CLI commands</span>
+                    <span>20+ CLI commands</span>
                   </li>
                   <li className="flex gap-10 items-start">
                     <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
@@ -1335,7 +1335,7 @@ function Pricing() {
                   </li>
                   <li className="flex gap-10 items-start">
                     <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
-                    <span>CI merge gate + 8 AST matchers</span>
+                    <span>CI merge gate + 8 matchers</span>
                   </li>
                   <li className="flex gap-10 items-start">
                     <Check className="size-16 text-heat-100 shrink-0 mt-3" weight="bold" />
@@ -1412,11 +1412,11 @@ const FAQS = [
     items: [
       {
         q: "Does policyctl slow down my agent's prompt loop?",
-        a: "No. The policy engine evaluates compiled AST matchers and pattern tables locally in <12ms. It runs synchronously at the pre-tool-call lifecycle hook before file operations execute, adding zero perceptible latency.",
+        a: "No. The policy engine evaluates compiled matchers and pattern tables locally in <12ms. It runs synchronously at the pre-tool-call lifecycle hook before file operations execute, adding zero perceptible latency.",
       },
       {
         q: "Does policyctl send my source code or credentials to external servers?",
-        a: "Never. The CLI is 100% local-first, offline-capable, and MIT-licensed. It emits zero telemetry and transmits no code over the network. If you optionally connect the Cloud tier, only cryptographic violation metadata (rule ID, timestamp, and file path) is reported to your team dashboard.",
+        a: "Never. The CLI is 100% local-first, offline-capable, and MIT-licensed. It emits zero telemetry and transmits no code over the network. If you optionally connect the Cloud tier, only the violation outcomes you stream (rule ID, message, file path) are reported to your team dashboard — never source files.",
       },
       {
         q: "Can an autonomous agent bypass or overwrite .policyctl.yml?",
@@ -1485,7 +1485,7 @@ function FAQ() {
                   // STILL HAVE QUESTIONS?
                 </div>
                 <p className="text-body-small text-black-alpha-64 leading-relaxed mb-16">
-                  Need help authoring a custom AST matcher or integrating with custom CI runners?
+                  Need help authoring a custom matcher or integrating with custom CI runners?
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-10">
                   <a
