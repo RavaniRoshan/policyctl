@@ -1,12 +1,14 @@
-import { Outlet, useLocation, NavLink, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   SquaresFour,
   Pulse,
   ShieldCheck,
   Sparkle,
   ChartBar,
+  CreditCard,
+  Buildings,
   Gear,
-  Package,
   SignOut,
   MagnifyingGlass,
   Sun,
@@ -14,32 +16,26 @@ import {
   List,
   X,
   Warning,
-  CreditCard,
-  Buildings,
   CaretDown,
 } from "@phosphor-icons/react";
-import { CommandPaletteHost } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { useOrgs, useCurrentOrgId, useSetCurrentOrgId } from "@/lib/hooks";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { useOrgs, useCurrentOrgId, useSetCurrentOrgId, __isDemoMode } from "@/lib/hooks";
 import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
-import { __isDemoMode } from "@/lib/hooks";
-import { useQueryClient } from "@tanstack/react-query";
+import { CommandMenu, COMMAND_MENU_EVENT } from "@/components/dashboard/CommandMenu";
 
-const titles: Record<string, string> = {
+const TITLES: Record<string, string> = {
   "/dashboard": "Overview",
   "/dashboard/violations": "Violations",
   "/dashboard/policies": "Policies",
   "/dashboard/ai": "AI rule author",
   "/dashboard/reports": "Reports",
-  "/dashboard/settings": "Settings",
   "/dashboard/billing": "Billing",
   "/dashboard/team": "Team",
+  "/dashboard/settings": "Settings",
 };
 
-const items = [
+const ITEMS = [
   { to: "/dashboard", label: "Overview", icon: SquaresFour, end: true },
   { to: "/dashboard/violations", label: "Violations", icon: Pulse },
   { to: "/dashboard/policies", label: "Policies", icon: ShieldCheck },
@@ -52,100 +48,62 @@ const items = [
 
 export function DashboardShell() {
   const { pathname } = useLocation();
-  const title = titles[pathname] ?? "Overview";
-
   return (
-    <div className="min-h-screen flex bg-background-base">
+    <div className="min-h-screen bg-background-base text-accent-black lg:flex">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col pb-16 md:pb-0">
-        {__isDemoMode && <DemoModeBanner />}
-        <Header title={title} />
-        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-16 lg:p-32 focus:outline-none">
+      <div className="min-w-0 flex-1">
+        <Header title={TITLES[pathname] ?? "Overview"} />
+        {__isDemoMode && <DemoBanner />}
+        <main id="main-content" className="mx-auto w-full max-w-[1280px] px-16 py-24 md:px-32">
           <Outlet />
         </main>
       </div>
-      <CommandPaletteHost />
-
-      {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background-base/95 backdrop-blur-4 border-t border-border-faint" aria-label="Mobile navigation">
-        <div className="flex items-center justify-around h-14">
-          {items.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                cn(
-                  "flex flex-col items-center justify-center gap-1 flex-1 h-full text-black-alpha-48 transition-colors relative",
-                  isActive && "text-heat-100",
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-heat-100 rounded-full" />}
-                  <Icon className="size-5" />
-                  <span className="text-mono-x-small">{label}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
+      <CommandMenu />
     </div>
   );
 }
 
+function navClass(isActive: boolean) {
+  return [
+    "group flex h-36 items-center gap-10 rounded-md px-12 text-[13px] transition-colors",
+    isActive
+      ? "bg-heat-4 font-medium text-accent-black"
+      : "text-black-alpha-64 hover:bg-black-alpha-4 hover:text-accent-black",
+  ].join(" ");
+}
+
 function Sidebar() {
+  const { pathname } = useLocation();
   return (
-    <aside className="hidden lg:flex w-240 shrink-0 flex-col border-r border-border-faint bg-background-base relative">
-      <div className="flex items-center gap-2 px-20 h-64 border-b border-border-faint">
-        <NavLink to="/" aria-label="policyctl home" className="flex items-center gap-2 text-accent-black no-underline group">
-          <span className="inline-flex size-7 items-center justify-center text-heat-100 group-hover:scale-105 transition-transform duration-200">
-            <PolicyctlMark size={24} />
-          </span>
-          <span className="font-mono text-mono-medium uppercase tracking-wider">
-            policyctl
-          </span>
-        </NavLink>
+    <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-border-faint bg-surface lg:flex">
+      <div className="flex h-64 items-center gap-8 border-b border-border-faint px-16">
+        <span className="text-heat-100">
+          <PolicyctlMark size={22} />
+        </span>
+        <span className="font-mono text-mono-medium font-semibold uppercase tracking-wider">
+          policyctl
+        </span>
       </div>
-      <nav className="flex-1 p-8 space-y-2">
-        {items.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-12 rounded-md p-8 text-label-medium transition-all duration-200 -mt-1 relative",
-                "before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200",
-                isActive
-                  ? "bg-heat-4 text-accent-black before:border-heat-12"
-                  : "text-black-alpha-72 hover:text-accent-black hover:bg-black-alpha-4 before:border-transparent",
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && (
-                  <span className="absolute left-0 inset-y-8 w-2 bg-heat-100" />
-                )}
-                <Icon className="size-4 relative" />
-                <span className="relative">{label}</span>
-              </>
-            )}
-          </NavLink>
-        ))}
+      <nav aria-label="Dashboard" className="flex-1 space-y-2 overflow-y-auto p-12">
+        {ITEMS.map(({ to, label, icon: Icon, end }) => {
+          const active = end ? pathname === to : pathname.startsWith(to);
+          return (
+            <NavLink key={to} to={to} end={end} className={navClass(active)} aria-current={active ? "page" : undefined}>
+              <Icon className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{label}</span>
+              {active && <span className="ml-auto h-16 w-2 rounded-full bg-heat-100" aria-hidden />}
+            </NavLink>
+          );
+        })}
       </nav>
-      <div className="p-8 border-t border-border-faint">
+      <div className="border-t border-border-faint p-12">
         <a
           href="https://www.npmjs.com/package/@policyctl/cli"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-8 rounded-md p-8 text-mono-small text-black-alpha-56 hover:text-heat-100 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
+          className="flex items-center gap-8 rounded-md border border-border-faint px-12 py-8 font-mono text-mono-x-small text-black-alpha-56 transition-colors hover:text-heat-100"
         >
-          <Package className="size-4 relative" />
-          <span className="font-mono text-mono-small relative">npm i -g @policyctl/cli</span>
+          npm i -g @policyctl/cli
         </a>
       </div>
     </aside>
@@ -156,6 +114,7 @@ function Header({ title }: { title: string }) {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [orgMenu, setOrgMenu] = useState(false);
@@ -164,11 +123,9 @@ function Header({ title }: { title: string }) {
   const setCurrentOrgId = useSetCurrentOrgId();
 
   const orgs = orgsData?.orgs ?? [];
+  const currentOrg = orgs.find((o) => o.id === currentOrgId);
 
-  const onOrgChange = (orgId: string) => {
-    setCurrentOrgId(orgId);
-    setOrgMenu(false);
-  };
+  const openPalette = () => window.dispatchEvent(new Event(COMMAND_MENU_EVENT));
 
   const onLogout = async () => {
     await logout();
@@ -176,162 +133,142 @@ function Header({ title }: { title: string }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background-base/95 backdrop-blur-4 border-b border-border-faint h-64 flex items-center px-16 lg:px-32">
-      {/* Mobile menu trigger */}
-      <button
-        className="lg:hidden mr-8 size-44 -ml-8 inline-flex items-center justify-center text-accent-black hover:bg-black-alpha-4 transition-colors relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
-        onClick={() => setMobileOpen((m) => !m)}
-        aria-label="Toggle navigation menu"
-        aria-expanded={mobileOpen}
-      >
-        {mobileOpen ? <X className="size-4" /> : <List className="size-4" />}
-      </button>
-
-      <h1 className="text-label-x-large sm:text-title-h5 text-accent-black tracking-tight">
-        {title}
-      </h1>
-
-      <div className="ml-auto flex items-center gap-4">
-        {/* Org selector */}
-        <div className="relative">
-          <button
-            onClick={() => setOrgMenu((m) => !m)}
-            className="hidden sm:inline-flex items-center gap-4 rounded-md px-10 py-6 text-mono-small text-accent-black hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint"
-            aria-haspopup="menu"
-            aria-expanded={orgMenu}
-            aria-label="Switch organization"
-          >
-            <Buildings className="size-4" />
-            <span className="truncate max-w-160">{orgs.find((o) => o.id === currentOrgId)?.name ?? "My org"}</span>
-            <CaretDown className="size-3" />
-          </button>
-          {orgMenu && (
-            <div className="absolute right-0 top-48 z-50 w-240 rounded-md bg-surface border border-border-faint shadow-lg p-8 -mt-1">
-              <div className="px-8 py-4 text-mono-x-small text-black-alpha-32 uppercase">Organizations</div>
-              {orgs.map((o) => (
-                <button
-                  key={o.id}
-                  onClick={() => onOrgChange(o.id)}
-                  className={`w-full text-left px-8 py-8 text-mono-small rounded-4 flex items-center justify-between ${
-                    o.id === currentOrgId ? "text-heat-100" : "text-accent-black hover:bg-black-alpha-4"
-                  }`}
-                >
-                  <span className="truncate">{o.name}</span>
-                  {o.id === currentOrgId && <span className="text-heat-100">●</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+    <header className="sticky top-0 z-40 border-b border-border-faint bg-background-base/95 backdrop-blur">
+      <div className="mx-auto flex h-64 w-full max-w-[1280px] items-center gap-8 px-16 md:px-32">
         <button
-          className="hidden lg:inline-flex items-center gap-4 rounded-md px-10 py-6 text-mono-small text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
-          aria-label="Open command palette"
-          onClick={() => {
-            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true } as any));
-          }}
+          className="inline-flex size-44 items-center justify-center rounded-md text-accent-black hover:bg-black-alpha-4 lg:hidden"
+          onClick={() => setMobileOpen((m) => !m)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={mobileOpen}
         >
-          <MagnifyingGlass className="size-3.5" />
-          <span>Search</span>
-          <span className="ml-4 text-mono-x-small text-black-alpha-32 font-mono border border-border-faint rounded-4 px-6 py-2">
-            ⌘K
-          </span>
+          {mobileOpen ? <X className="size-4" /> : <List className="size-4" />}
         </button>
-        {/* Mobile search icon-only */}
-        <button
-          className="lg:hidden size-44 inline-flex items-center justify-center text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
-          aria-label="Open search"
-          onClick={() => {
-            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true } as any));
-          }}
-        >
-          <MagnifyingGlass className="size-4" />
-        </button>
-        <button
-          className="size-44 inline-flex items-center justify-center text-black-alpha-48 hover:text-accent-black hover:bg-black-alpha-4 transition-colors relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200"
-          onClick={toggle}
-          aria-label="Toggle theme"
-        >
-          {theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
-        </button>
-        <div className="relative">
-          <button
-            onClick={() => setMenu((m) => !m)}
-            className="rounded-full size-44 inline-flex items-center justify-center bg-heat-12 text-heat-100 text-label-medium uppercase -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-30"
-            aria-haspopup="menu"
-            aria-expanded={menu}
-            aria-label="User menu"
-          >
-            {user?.email?.charAt(0).toUpperCase() ?? "?"}
-          </button>
-          {menu && (
-            <div className="absolute right-0 top-48 z-50 w-240 rounded-md bg-surface border border-border-faint shadow-lg p-8 -mt-1">
-              <div className="px-8 py-4 text-mono-small text-black-alpha-56 border-b border-border-faint truncate">
-                {user?.email}
-              </div>
-              <button
-                onClick={onLogout}
-                className="w-full text-left px-8 py-8 text-label-medium text-accent-black hover:bg-black-alpha-4 flex items-center gap-8 rounded-md"
-              >
-                <SignOut className="size-4" />
-                Sign out
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+        <span className="text-heat-100 lg:hidden">
+          <PolicyctlMark size={20} />
+        </span>
 
-      {/* Mobile menu drawer */}
-      <div
-        className={`lg:hidden absolute top-full left-0 right-0 bg-background-base border-b border-border-faint overflow-hidden transition-all duration-300 ${
-          mobileOpen ? "max-h-500 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <nav className="p-8 space-y-2">
-          {items.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-12 rounded-md p-12 text-label-medium transition-colors -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint before:transition-all before:duration-200",
-                  isActive
-                    ? "bg-heat-4 text-accent-black before:border-heat-12"
-                    : "text-black-alpha-72 hover:text-accent-black hover:bg-black-alpha-4 before:border-transparent",
-                )
-              }
+        <h1 className="text-title-h5 tracking-tight">{title}</h1>
+
+        <div className="ml-auto flex items-center gap-4">
+          <div className="relative hidden sm:block">
+            <button
+              onClick={() => setOrgMenu((m) => !m)}
+              className="inline-flex h-32 max-w-[200px] items-center gap-6 rounded-md border border-border-faint px-10 text-body-small hover:bg-black-alpha-4"
+              aria-haspopup="menu"
+              aria-expanded={orgMenu}
+              aria-label="Switch organization"
             >
-              {({ isActive }) => (
-                <>
-                  {isActive && (
-                    <span className="absolute left-0 inset-y-8 w-2 bg-heat-100" />
-                  )}
-                  <Icon className="size-4 relative" />
-                  <span className="relative">{label}</span>
-                </>
-              )}
-            </NavLink>
-          ))}
-        </nav>
+              <Buildings className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{currentOrg?.name ?? "My org"}</span>
+              <CaretDown className="size-3 shrink-0" aria-hidden />
+            </button>
+            {orgMenu && (
+              <div role="menu" className="absolute right-0 top-40 z-50 w-240 rounded-md border border-border-faint bg-surface p-8 shadow-lg">
+                <div className="px-8 py-4 font-mono text-mono-x-small uppercase text-black-alpha-32">
+                  Organizations
+                </div>
+                {orgs.map((o) => (
+                  <button
+                    key={o.id}
+                    role="menuitem"
+                    onClick={() => {
+                      setCurrentOrgId(o.id);
+                      setOrgMenu(false);
+                    }}
+                    className={`flex w-full items-center justify-between rounded px-8 py-8 text-left text-body-small ${
+                      o.id === currentOrgId ? "text-heat-100" : "hover:bg-black-alpha-4"
+                    }`}
+                  >
+                    <span className="truncate">{o.name}</span>
+                    {o.id === currentOrgId && <span aria-hidden>●</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            className="hidden h-32 items-center gap-8 rounded-md border border-border-faint px-10 font-mono text-mono-small text-black-alpha-48 transition-colors hover:text-accent-black md:inline-flex"
+            onClick={openPalette}
+            aria-label="Open command menu"
+          >
+            <MagnifyingGlass className="size-4" aria-hidden />
+            <span>Search</span>
+            <kbd className="rounded border border-border-faint px-6 py-2 font-mono text-mono-x-small">
+              ⌘K
+            </kbd>
+          </button>
+          <button
+            className="inline-flex size-44 items-center justify-center rounded-md hover:bg-black-alpha-4 md:hidden"
+            onClick={openPalette}
+            aria-label="Open command menu"
+          >
+            <MagnifyingGlass className="size-4" aria-hidden />
+          </button>
+
+          <button
+            className="inline-flex size-44 items-center justify-center rounded-md hover:bg-black-alpha-4"
+            onClick={toggle}
+            aria-label="Toggle theme"
+          >
+            {theme === "light" ? <Moon className="size-4" aria-hidden /> : <Sun className="size-4" aria-hidden />}
+          </button>
+
+          <div className="relative">
+            <button
+              onClick={() => setMenu((m) => !m)}
+              className="inline-flex size-44 items-center justify-center rounded-full bg-heat-12 text-label-medium uppercase text-heat-100"
+              aria-haspopup="menu"
+              aria-expanded={menu}
+              aria-label="User menu"
+            >
+              {user?.email?.charAt(0).toUpperCase() ?? "?"}
+            </button>
+            {menu && (
+              <div role="menu" className="absolute right-0 top-48 z-50 w-240 rounded-md border border-border-faint bg-surface p-8 shadow-lg">
+                <div className="truncate border-b border-border-faint px-8 py-4 text-mono-small text-black-alpha-56">
+                  {user?.email}
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="flex w-full items-center gap-8 rounded-md px-8 py-8 text-left text-label-medium hover:bg-black-alpha-4"
+                >
+                  <SignOut className="size-4" aria-hidden />
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {mobileOpen && (
+        <nav aria-label="Dashboard" className="space-y-2 border-t border-border-faint p-8 lg:hidden">
+          {ITEMS.map(({ to, label, icon: Icon, end }) => {
+            const active = end ? pathname === to : pathname.startsWith(to);
+            return (
+              <NavLink key={to} to={to} end={end} onClick={() => setMobileOpen(false)} className={navClass(active)}>
+                <Icon className="size-4 shrink-0" aria-hidden />
+                <span className="truncate">{label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      )}
     </header>
   );
 }
 
-function DemoModeBanner() {
+function DemoBanner() {
   return (
-    <div
-      role="status"
-      aria-label="Demo data notice"
-      className="px-16 lg:px-32 py-8 bg-warning text-accent-black text-mono-small flex items-center gap-12"
-    >
-      <Warning className="size-3.5 shrink-0" weight="bold" />
-      <span>
-        <strong>Demo data</strong> — no backend is wired in this build. Connect the
-        Worker (VITE_API_BASE) to see real analytics, violations, and policies.
+    <div role="status" className="bg-warning px-16 py-8 text-mono-small text-accent-black lg:px-32">
+      <span className="mx-auto flex w-full max-w-[1280px] items-center gap-12">
+        <Warning className="size-4 shrink-0" weight="bold" aria-hidden />
+        <span>
+          <strong>Demo data</strong> — no backend is wired in this build. Connect the Worker
+          (VITE_API_BASE) to see real analytics, violations, and policies.
+        </span>
       </span>
     </div>
   );
 }
-

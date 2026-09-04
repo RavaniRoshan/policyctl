@@ -14,6 +14,7 @@ import { Terms } from "@/pages/Terms";
 import { Privacy } from "@/pages/Privacy";
 import { Onboarding } from "@/pages/Onboarding";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { FirstRunGate } from "@/components/dashboard/FirstRunGate";
 import { Overview } from "@/pages/dashboard/Overview";
 import { Sessions } from "@/pages/dashboard/Sessions";
 import { Policies } from "@/pages/dashboard/Policies";
@@ -106,7 +107,9 @@ export function App() {
                         path="/dashboard"
                         element={
                           <RequireAuth>
-                            <DashboardShell />
+                            <FirstRunGate>
+                              <DashboardShell />
+                            </FirstRunGate>
                           </RequireAuth>
                         }
                       >

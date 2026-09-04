@@ -54,7 +54,13 @@ const browser = await chromium.launch();
 try {
   for (const theme of ["light", "dark"]) {
     const context = await browser.newContext({ colorScheme: theme });
-    await context.addInitScript((t) => localStorage.setItem("policyctl-theme", t), theme);
+    await context.addInitScript((t) => {
+      localStorage.setItem("policyctl-theme", t);
+      // Simulate a returning user everywhere except the onboarding route itself.
+      if (!window.location.pathname.includes("/onboarding")) {
+        localStorage.setItem("policyctl-onboarding-complete", "1");
+      }
+    }, theme);
     const page = await context.newPage();
     for (const [name, path] of ROUTES) {
       for (const [vp, size] of VIEWPORTS) {

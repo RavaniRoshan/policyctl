@@ -13,8 +13,4 @@ export { FeatureTabs, PillTabs } from "./blueprint/Tabs";
 export { ToastProvider, useToast } from "./blueprint/Toast";
 export type { Toast } from "./blueprint/Toast";
 export { Sheet, Modal } from "./blueprint/Modal";
-export {
-  CommandPalette,
-  CommandPaletteHost,
-} from "./blueprint/CommandPalette";
 export { AsciiCanvas } from "./blueprint/AsciiCanvas";

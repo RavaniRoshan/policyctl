@@ -1,50 +1,52 @@
-import { useState, useMemo } from "react";
-import { ShieldCheck, GitBranch, Copy, Check, MagnifyingGlass, ArrowClockwise, Upload } from "@phosphor-icons/react";
+import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ShieldCheck, Upload, MagnifyingGlass, ArrowClockwise } from "@phosphor-icons/react";
 import { usePolicyVersions, usePublishPolicy, useRollbackVersion } from "@/lib/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CodeBlock } from "@/components/ui/code-block";
-import { CurvyRect, useToast } from "@policyctl/design-system";
-import { Skeleton, EmptyState, MonoAnnotation } from "@/components/shared/EmptyState";
+import { Skeleton, EmptyState } from "@/components/shared/EmptyState";
 import { Callout } from "@/components/ui/callout";
-import { useQueryClient } from "@tanstack/react-query";
-import type { PolicyVersion } from "@/lib/api";
+import { useToast } from "@policyctl/design-system";
+import type { PolicyVersion } from "@policyctl/types";
 
 export function Policies() {
   const { data, isLoading, error, refetch } = usePolicyVersions();
   const queryClient = useQueryClient();
   const { push } = useToast();
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
   const publishMutation = usePublishPolicy();
   const rollbackMutation = useRollbackVersion();
+
+  const [search, setSearch] = useState("");
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [publishYaml, setPublishYaml] = useState("");
   const [publishNote, setPublishNote] = useState("");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    if (!data || !search) return data ?? [];
-    const q = search.toLowerCase();
-    return data.filter(
+  const versions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const list = data ?? [];
+    if (!q) return list;
+    return list.filter(
       (v) => v.note?.toLowerCase().includes(q) || v.yaml?.toLowerCase().includes(q),
     );
   }, [data, search]);
 
-  const copyYaml = async (id: string, text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1500);
-  };
+  // Highest version number is live; rollback moves the pointer, so the rest is history.
+  const activeVersion =
+    versions.length > 0 ? Math.max(...versions.map((v) => v.version)) : null;
 
   const retry = () => {
     queryClient.invalidateQueries({ queryKey: ["policyVersions"] });
     refetch();
   };
 
-  // Highest version number is the live one; rollback moves the pointer without
-  // creating a new row, so every other row is archived history.
-  const activeVersion = filtered.length > 0 ? Math.max(...filtered.map((v) => v.version)) : null;
+  const copyYaml = async (id: string, text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  };
 
   const handlePublish = async () => {
     if (!publishYaml.trim()) {
@@ -76,8 +78,11 @@ export function Policies() {
 
   return (
     <div className="space-y-24">
-      <div className="flex items-center justify-between -mt-1 border-b border-border-faint pb-12 flex-wrap gap-8">
-        <MonoAnnotation>[ policies / {filtered.length}{data && data.length !== filtered.length ? ` of ${data.length}` : ""} versions ]</MonoAnnotation>
+      <div className="-mt-1 flex flex-wrap items-center justify-between gap-8 border-b border-border-faint pb-12">
+        <span className="font-mono text-mono-x-small uppercase tracking-wider text-black-alpha-32">
+          [ policies / {versions.length}
+          {data && data.length !== versions.length ? ` of ${data.length}` : ""} versions ]
+        </span>
         <div className="flex items-center gap-8">
           {data && data.length > 0 && (
             <Button
@@ -88,48 +93,46 @@ export function Policies() {
                 if (existing) setPublishYaml(existing.yaml ?? "");
               }}
             >
-              <Upload className="size-3 mr-4" /> Edit & publish
+              <Upload className="size-3 mr-4" aria-hidden /> Edit &amp; publish
             </Button>
           )}
-          <div className="flex items-center gap-8 px-12 py-6 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
-            <MagnifyingGlass className="size-3 text-black-alpha-48" />
+          <label className="flex items-center gap-8 rounded-md border border-border-faint px-12 py-6">
+            <MagnifyingGlass className="size-3 text-black-alpha-48" aria-hidden />
             <input
-              type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="search notes / yaml…"
               aria-label="Search policy versions"
-              className="bg-transparent text-mono-small outline-none w-200 placeholder:text-black-alpha-32"
+              className="w-200 bg-transparent font-mono text-mono-small outline-none placeholder:text-black-alpha-32"
             />
-          </div>
+          </label>
         </div>
       </div>
 
       {error && (
         <Callout type="danger" title="Failed to load policy versions" className="p-16">
-          {error.message || "An unexpected error occurred."}
+          {(error as Error)?.message || "An unexpected error occurred."}
           <button onClick={retry} className="mt-8 pcl-btn pcl-btn--secondary pcl-btn--sm">
-            <ArrowClockwise className="size-3 mr-4" /> Retry
+            <ArrowClockwise className="size-3 mr-4" aria-hidden /> Retry
           </button>
         </Callout>
       )}
 
       {isLoading ? (
-        <div className="space-y-8 -mt-1">
+        <div className="space-y-8">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-56" />
           ))}
         </div>
       ) : (data?.length ?? 0) === 0 ? (
         <Card className="p-32 lg:p-64">
-          <CurvyRect sides="allSides" />
           <EmptyState
             icon={ShieldCheck}
             title="No policy versions yet"
             description="Publish your first policy version or push from the CLI."
             action={
               <>
-                <pre className="font-mono text-mono-medium leading-22 px-16 py-12 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-border-faint">
+                <pre className="rounded-md border border-border-faint px-16 py-12 font-mono text-mono-medium leading-22">
                   $ policyctl push
                 </pre>
                 <span className="mt-12 text-mono-x-small text-black-alpha-32">— or —</span>
@@ -137,28 +140,19 @@ export function Policies() {
                   <textarea
                     value={publishYaml}
                     onChange={(e) => setPublishYaml(e.target.value)}
-                    placeholder="rules:
-  - id: block-secrets
-    match:
-      path: '**/*.env'
-    enforce: block
-    message: |
-      Do not commit .env files."
-                    className="w-full min-h-40 font-mono text-mono-small text-accent-black bg-surface border border-border-faint rounded-lg px-12 py-8 outline-none focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20 resize-y"
+                    placeholder={"rules:\n  - id: block-secrets\n    enforce: block"}
                     aria-label="Policy YAML"
+                    className="min-h-40 w-full resize-y rounded-lg border border-border-faint bg-surface px-12 py-8 font-mono text-mono-small outline-none focus:border-heat-100"
                   />
                   <input
                     type="text"
                     value={publishNote}
                     onChange={(e) => setPublishNote(e.target.value)}
                     placeholder="Optional note (e.g. 'Added .env block rule')"
-                    className="mt-8 w-full h-9 rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium text-accent-black placeholder:text-black-alpha-32 outline-none focus:border-heat-100 focus:ring-2 focus:ring-heat-100/20"
+                    aria-label="Version note"
+                    className="mt-8 h-9 w-full rounded-lg border border-border-faint bg-surface px-3 py-2 text-body-medium outline-none placeholder:text-black-alpha-32 focus:border-heat-100"
                   />
-                  <Button
-                    className="mt-16 w-full"
-                    onClick={handlePublish}
-                    disabled={!publishYaml.trim() || publishMutation.isPending}
-                  >
+                  <Button className="mt-16 w-full" onClick={handlePublish} disabled={!publishYaml.trim() || publishMutation.isPending}>
                     {publishMutation.isPending ? "Publishing…" : "Publish version"}
                   </Button>
                 </div>
@@ -167,20 +161,19 @@ export function Policies() {
           />
         </Card>
       ) : (
-        <Card className="p-0 overflow-hidden">
-          <CurvyRect sides="allSides" />
+        <Card className="overflow-hidden p-0">
           <table className="w-full text-body-medium">
             <thead>
-              <tr className="border-b border-border-faint text-left text-mono-x-small text-black-alpha-48 uppercase">
+              <tr className="border-b border-border-faint text-left font-mono text-mono-x-small uppercase text-black-alpha-48">
                 <th scope="col" className="p-16">version</th>
                 <th scope="col" className="p-16">note</th>
-                <th scope="col" className="p-16">author</th>
+                <th scope="col" className="hidden p-16 md:table-cell">author</th>
                 <th scope="col" className="p-16">date</th>
                 <th scope="col" className="p-16">status</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((v) => (
+              {versions.map((v) => (
                 <VersionRow
                   key={v.id}
                   v={v}
@@ -198,19 +191,15 @@ export function Policies() {
         </Card>
       )}
 
-      <Card className="p-32 lg:p-64">
-        <CurvyRect sides="allSides" />
-        <div className="flex items-start gap-12">
-          <GitBranch className="size-5 text-heat-100 mt-2 shrink-0" />
-          <div>
-            <h3 className="text-label-x-large text-accent-black">Push from CLI</h3>
-            <p className="mt-8 text-body-medium text-black-alpha-72 leading-22">
-              Inside any repo, push your local <code className="font-mono text-mono-small">.policyctl.yml</code> to register a new version:
-            </p>
-            <div className="mt-16">
-              <CodeBlock code='policyctl push --note "block manual migrations"' lang="bash" title="terminal" />
-            </div>
-          </div>
+      <Card className="p-24 lg:p-32">
+        <h3 className="text-label-x-large">Push from CLI</h3>
+        <p className="mt-8 text-body-medium leading-22 text-black-alpha-72">
+          Inside any repo, push your local{" "}
+          <code className="font-mono text-mono-small">.policyctl.yml</code> to register a new
+          version:
+        </p>
+        <div className="mt-16">
+          <CodeBlock code='policyctl push --note "block manual migrations"' lang="bash" title="terminal" />
         </div>
       </Card>
     </div>
@@ -240,17 +229,30 @@ function VersionRow({
     <>
       <tr
         onClick={onToggle}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggle(); } }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
         tabIndex={0}
         role="button"
         aria-expanded={expanded}
-        className="border-b border-border-faint hover:bg-black-alpha-4 transition-colors cursor-pointer focus-visible:bg-black-alpha-4"
+        className="cursor-pointer border-b border-border-faint transition-colors last:border-0 hover:bg-black-alpha-4"
       >
-        <td className="p-16 font-mono text-mono-medium text-accent-black">v{v.version}</td>
-        <td className="p-16 text-black-alpha-72">{v.note || "—"}</td>
-        <td className="p-16 text-black-alpha-64 font-mono text-mono-small">{v.author_id}</td>
-        <td className="p-16 font-mono text-mono-x-small text-black-alpha-32">
-          {new Date(v.created_at).toLocaleString("en-US", { month: "short", day: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+        <td className="p-16 font-mono text-mono-medium">v{v.version}</td>
+        <td className="max-w-[240px] truncate p-16 text-black-alpha-72">{v.note || "—"}</td>
+        <td className="hidden p-16 font-mono text-mono-small text-black-alpha-64 md:table-cell">
+          {v.author_id}
+        </td>
+        <td className="whitespace-nowrap p-16 font-mono text-mono-x-small text-black-alpha-32">
+          {new Date(v.created_at).toLocaleString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </td>
         <td className="p-16">
           {isActive ? <Badge tone="heat">active</Badge> : <Badge tone="muted">archived</Badge>}
@@ -258,30 +260,38 @@ function VersionRow({
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={5} className="p-24 border-b border-border-faint">
-            <div className="flex items-center justify-between mb-12">
-              <div className="flex items-center gap-8">
-                <MonoAnnotation>// .policyctl.yml (v{v.version})</MonoAnnotation>
+          <td colSpan={5} className="border-b border-border-faint p-24">
+            <div className="mb-12 flex items-center justify-between">
+              <span className="font-mono text-mono-x-small text-black-alpha-48">
+                // .policyctl.yml (v{v.version})
+              </span>
+              <div className="flex gap-8">
                 <Button
                   variant="tertiary"
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRollback();
+                    onCopy();
                   }}
-                  disabled={isRollingBack}
                 >
-                  Rollback to this version
+                  {copied ? "Copied" : "Copy"}
                 </Button>
+                {!isActive && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRollback();
+                    }}
+                    disabled={isRollingBack}
+                  >
+                    {isRollingBack ? "Rolling back…" : "Rollback to here"}
+                  </Button>
+                )}
               </div>
-              <Button variant="tertiary" size="sm" onClick={onCopy}>
-                {copied ? <Check className="size-3 mr-4" /> : <Copy className="size-3 mr-4" />}
-                {copied ? "copied" : "copy"}
-              </Button>
             </div>
-            <div className="max-h-400 overflow-y-auto">
-              <CodeBlock code={v.yaml || "# empty policy"} lang="yaml" title="" showLineNumbers />
-            </div>
+            <CodeBlock code={v.yaml} lang="yaml" title={`v${v.version}`} />
           </td>
         </tr>
       )}
