@@ -223,7 +223,7 @@ function Hero() {
               <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
               <span>Provider-agnostic policy runtime</span>
               <span className="text-black-alpha-32">|</span>
-              <span className="text-heat-100 font-semibold">v1.2</span>
+              <span className="text-heat-100 font-semibold">v0.1</span>
             </div>
           </motion.div>
 

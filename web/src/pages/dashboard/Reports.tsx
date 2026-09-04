@@ -45,7 +45,7 @@ export function Reports() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
-      console.error(e);
+      push({ title: "CSV download failed", description: e?.message ?? "Try again." });
     }
   };
 
@@ -180,8 +180,8 @@ export function Reports() {
             <Button variant="secondary" size="sm" onClick={handleDownloadCsv} disabled={!report}>
               <Download className="size-3 mr-4" /> Download CSV
             </Button>
-            <Button variant="tertiary" size="sm" disabled={!report || resendMutation.isPending} onClick={handleResend} aria-label="Resend latest report by email">
-              <Envelope className="size-3 mr-4" /> {resendMutation.isPending ? "Refreshing…" : "Resend to me"}
+            <Button variant="tertiary" size="sm" disabled={!report || resendMutation.isPending} onClick={handleResend} aria-label="Regenerate the latest report">
+              <Envelope className="size-3 mr-4" /> {resendMutation.isPending ? "Refreshing…" : "Refresh report"}
             </Button>
           </div>
         </Card>
@@ -198,11 +198,11 @@ export function Reports() {
             <ul className="mt-12 space-y-6 text-body-small text-black-alpha-64">
               <li className="flex items-center gap-8">
                 <span className="size-1 rounded-full bg-heat-100" />
-                Compliance score and trend over the last 30 days
+                Total violations in the last 24 hours
               </li>
               <li className="flex items-center gap-8">
                 <span className="size-1 rounded-full bg-heat-100" />
-                Per-repo enforcement summary
+                Breakdown by agent (human vs automation)
               </li>
               <li className="flex items-center gap-8">
                 <span className="size-1 rounded-full bg-heat-100" />
@@ -210,7 +210,7 @@ export function Reports() {
               </li>
               <li className="flex items-center gap-8">
                 <span className="size-1 rounded-full bg-heat-100" />
-                Full violations CSV (attached)
+                AI insights count (CSV downloads separately below)
               </li>
             </ul>
           </div>

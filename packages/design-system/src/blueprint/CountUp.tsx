@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 
 interface CountUpProps {
   value: number;
@@ -27,6 +28,8 @@ export function CountUp({
   const ref = useRef<HTMLSpanElement | null>(null);
   const [active, setActive] = useState(false);
   const startedRef = useRef(false);
+  // Respect reduced-motion: render the final value with no animation.
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!ref.current) return;
@@ -57,7 +60,7 @@ export function CountUp({
     return () => cancelAnimationFrame(raf);
   }, [active, value, duration, delay]);
 
-  const formatted = format ? format(n) : Math.floor(n).toLocaleString();
+  const formatted = format ? format(reduceMotion ? value : n) : Math.floor(reduceMotion ? value : n).toLocaleString();
 
   return (
     <span ref={ref} className={className}>

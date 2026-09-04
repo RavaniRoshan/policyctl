@@ -57,3 +57,4 @@ chatgpt-image-*.png
 *.swo
 .vscode/
 .idea/
+web/visual/

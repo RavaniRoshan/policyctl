@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 
 interface ScrambleProps {
   text: string;
@@ -27,6 +28,15 @@ export function Scramble({
   const [out, setOut] = useState(text.replace(/[A-Za-z0-9]/g, () => randomChar()));
   const ref = useRef<HTMLSpanElement | null>(null);
   const [active, setActive] = useState(false);
+  // Respect reduced-motion: render the final text with no animation.
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion && out !== text) {
+    return (
+      <span ref={ref} className={className}>
+        {text}
+      </span>
+    );
+  }
 
   useEffect(() => {
     if (!ref.current) return;

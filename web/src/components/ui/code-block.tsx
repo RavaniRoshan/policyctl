@@ -35,9 +35,9 @@ export function CodeBlock({
       <div className="pcl-codeblock__bar px-16 py-10 bg-surface border-b border-border-faint flex items-center justify-between">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-6">
-            <span className="size-10 rounded-full bg-[#ff5f56]/80 border border-[#e0443e]/40" />
-            <span className="size-10 rounded-full bg-[#ffbd2e]/80 border border-[#dea123]/40" />
-            <span className="size-10 rounded-full bg-[#27c93f]/80 border border-[#1aab29]/40" />
+            <span className="size-10 rounded-full bg-danger/80 border border-danger/40" />
+            <span className="size-10 rounded-full bg-warning/80 border border-warning/40" />
+            <span className="size-10 rounded-full bg-success/80 border border-success/40" />
           </div>
           <div className="h-14 w-1 bg-border-faint ml-4 mr-2" />
           <div className="flex items-center gap-6 text-mono-x-small font-mono text-black-alpha-64">

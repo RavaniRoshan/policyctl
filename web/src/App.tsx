@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { MotionConfig } from "framer-motion";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, Component, Suspense, type ReactNode } from "react";
 import { AuthProvider, RequireAuth } from "@/lib/auth";
@@ -64,11 +65,12 @@ export function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
-          <BrowserRouter>
+            <BrowserRouter>
             <a href="#main-content" className="skip-link">Skip to main content</a>
             <ErrorBoundary>
               <AuthProvider>
                 <TurnstileProvider>
+                  <MotionConfig reducedMotion="user">
                   <Suspense
                     fallback={
                       <div className="min-h-screen grid place-items-center text-black-alpha-48 font-mono text-mono-small">
@@ -117,7 +119,8 @@ export function App() {
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                  </Suspense>
+                    </Suspense>
+                  </MotionConfig>
                 </TurnstileProvider>
               </AuthProvider>
             </ErrorBoundary>

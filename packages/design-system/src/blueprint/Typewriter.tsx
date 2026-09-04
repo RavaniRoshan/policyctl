@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 
 interface TypewriterProps {
   targets: string[];
@@ -22,6 +23,11 @@ export function Typewriter({
   const [i, setI] = useState(0);
   const [text, setText] = useState("");
   const [typing, setTyping] = useState(true);
+  // Respect reduced-motion: render the first target statically.
+  const reduceMotion = useReducedMotion();
+  if (reduceMotion) {
+    return <span className={className}>{targets[0] ?? ""}</span>;
+  }
 
   useEffect(() => {
     if (!targets.length || !targets[i]) return;

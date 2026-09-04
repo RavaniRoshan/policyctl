@@ -58,6 +58,7 @@ export function Overview() {
           tone="success"
           icon={ShieldCheck}
           loading={aLoading}
+          hint="100 − min(100, 24h violations × 2 + repeat-offender rules × 5). Dismissed violations excluded."
         />
         <StatCard
           label="Active sessions"
@@ -65,6 +66,7 @@ export function Overview() {
           tone="default"
           icon={Pulse}
           loading={aLoading}
+          hint="Distinct agents seen in the last 24 hours."
         />
         <StatCard
           label="Violations (24h)"
@@ -72,6 +74,7 @@ export function Overview() {
           tone={(analytics?.violations_24h ?? 0) > 0 ? "danger" : "success"}
           icon={Warning}
           loading={aLoading}
+          hint="Non-dismissed violations in the last 24 hours."
         />
         <StatCard
           label="AI insights"
@@ -79,6 +82,7 @@ export function Overview() {
           tone="heat"
           icon={Sparkle}
           loading={aLoading}
+          hint="AI analyses and authored rules saved in the last 24 hours."
         />
       </div>
 
@@ -166,14 +170,14 @@ export function Overview() {
             return (
               <>
                 <p className="text-body-medium text-black-alpha-64 leading-22">
-                  Today's analysis flagged a pattern worth a rule.
+                  Most-triggered rule in recent violations.
                 </p>
                 <blockquote className="mt-16 p-16 text-body-medium text-accent-black leading-22 -mt-1 relative before:absolute before:inset-0 before:rounded-inherit before:border before:border-heat-30 bg-heat-4">
                   The rule{" "}
                   <code className="font-mono text-mono-small bg-heat-12 text-heat-100 px-4 py-2 rounded-4">
                     {topRule[0]}
                   </code>
-                  {" "}was triggered {topRule[1]}× today — review it in the policy and consider
+                  {" "}appears {topRule[1]}× in recent violations — review it in the policy and consider
                   tightening its scope.
                 </blockquote>
               </>
@@ -233,6 +237,7 @@ function StatCard({
   tone,
   icon: Icon,
   loading,
+  hint,
 }: {
   label: string;
   value: number;
@@ -240,6 +245,7 @@ function StatCard({
   tone: "default" | "success" | "danger" | "heat";
   icon: React.ComponentType<{ className?: string }>;
   loading?: boolean;
+  hint?: string;
 }) {
   const color =
     tone === "success"
@@ -254,7 +260,9 @@ function StatCard({
     <Card className="p-16 lg:p-24">
       <CurvyRect sides="allSides" />
       <div className="flex items-center justify-between">
-        <span className="text-mono-x-small text-black-alpha-32 uppercase">{label}</span>
+        <span className="text-mono-x-small text-black-alpha-32 uppercase" title={hint}>
+          {label}
+        </span>
         <Icon className={`size-4 ${color}`} />
       </div>
       <div className={`mt-12 text-title-h3 font-medium ${color}`}>

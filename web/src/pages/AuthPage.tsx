@@ -122,7 +122,7 @@ export function AuthPage() {
   };
 
   const copyCommand = () => {
-    navigator.clipboard.writeText("brew install ravaniroshan/tap/policyctl").then(
+    navigator.clipboard.writeText("npm install -g @policyctl/cli").then(
       () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -327,7 +327,7 @@ export function AuthPage() {
             className="relative inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-colors"
           >
             <code className="text-sm text-white font-mono">
-              brew install ravaniroshan/tap/policyctl
+              npm install -g @policyctl/cli
             </code>
             {copied ? (
               <Check className="size-4 text-white" />
