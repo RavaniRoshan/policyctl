@@ -43,12 +43,11 @@ The build mode is detected via `import.meta.env.MODE` and `import.meta.env.PROD`
 - In the Auth0 dashboard, Allowed Callback URLs, Allowed Logout URLs, and Allowed Web Origins should use the no-trailing-slash variants
 - Both `http://localhost:5173` and `https://policyctl-web.pages.dev` must be in the Auth0 application's Allowed Callback URLs list
 
-### 4. **Object storage (R2) has been fully removed.**
+### 4. **Object storage (R2) stays removed; Filebase holds report archives.**
 - CSV exports stream directly from the Worker response — no object storage needed
 - Daily compliance reports persist in KV (`POLICYCTL_CACHE`) with a 7-day TTL
+- The same reports are also archived as JSON in Filebase (`reports/daily/{orgId}/{date}.json`, S3-compatible, `packages/server/src/storage.ts`) — viewable via `GET /api/report/daily/archives`
 - AI insights persist in D1 (`ai_insights` table) for audit and dashboard stats
-- No object storage, no card details needed
-- All R2 references removed from `wrangler.toml`, `index.ts`, secrets
 - `web/public/favicon.svg` and `logo-*.png` are static assets only
 
 ### 5. **The theme defaults to light.**

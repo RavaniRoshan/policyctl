@@ -72,3 +72,4 @@ skills-lock.json
 web/playwright-report/
 web/test-results/
 web/blob-report/
+packages/server/.dev.vars

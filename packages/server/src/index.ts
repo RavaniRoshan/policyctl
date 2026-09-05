@@ -1055,6 +1055,27 @@ app.get(`${API}/report/daily`, async (c) => {
 // ── Phase D: Re-generate daily compliance report on demand ────────────
 // Regenerates the report from current data and stores it in KV.
 // (Email delivery is not yet wired — the report is refreshed and visible in the dashboard.)
+async function archiveDailyReport(
+  env: Env,
+  orgId: number,
+  report: Record<string, unknown>,
+): Promise<void> {
+  // Best-effort: archives never break report generation (D1/KV stay primary).
+  try {
+    const { storageConfig, storagePut } = await import("./storage.js");
+    const cfg = storageConfig(env);
+    if (!cfg) return;
+    const day = new Date().toISOString().slice(0, 10);
+    await storagePut(
+      cfg,
+      `reports/daily/${orgId}/${day}.json`,
+      new TextEncoder().encode(JSON.stringify(report)),
+      "application/json",
+    );
+  } catch (err) {
+    console.error(`Report archive failed for org ${orgId}: ${err instanceof Error ? err.message : err}`);
+  }
+}
 app.post(`${API}/report/daily/resend`, async (c) => {
   const user = await requireUser(c);
   if (!user) return c.json({ error: "unauthorized" }, 401);
@@ -1095,6 +1116,7 @@ app.post(`${API}/report/daily/resend`, async (c) => {
     aiInsights: aiInsightsCount,
   };
   await c.env.POLICYCTL_CACHE.put(`report:daily:org:${org.id}`, JSON.stringify(report), { expirationTtl: 86400 * 7 });
+  await archiveDailyReport(c.env, org.id, report);
 
   return c.json({ ok: true, message: "Report refreshed. Email delivery is coming soon." });
 });
@@ -1133,6 +1155,25 @@ app.post(`${API}/waitlist`, async (c) => {
     .first<{ c: number }>()) as { c: number } | null;
   const position = pos?.c ?? 1;
   return c.json({ ok: true, position });
+});
+
+app.get(`${API}/report/daily/archives`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await requestOrg(c.env.DB, c, user);
+  if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
+  try {
+    const { storageConfig, storageList } = await import("./storage.js");
+    const cfg = storageConfig(c.env);
+    if (!cfg) return c.json({ archives: [], configured: false });
+    const keys = await storageList(cfg, `reports/daily/${org.id}/`);
+    return c.json({ archives: keys.slice(-90), configured: true });
+  } catch (err) {
+    return c.json({ error: `archive list failed: ${err instanceof Error ? err.message : err}` }, 502);
+  }
 });
 
 app.get(`${API}/waitlist`, async (c) => {
@@ -1200,6 +1241,7 @@ async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext)
       aiInsights: aiInsightsCount,
     };
     await env.POLICYCTL_CACHE.put(`report:daily:org:${org.id}`, JSON.stringify(report), { expirationTtl: 86400 * 7 });
+    await archiveDailyReport(env, org.id, report);
 
     console.log(`[cron] Daily report for org ${org.id} (${org.name}): ${total} violations, ${repeatOffenders.results.length} repeat offenders, ${aiInsightsCount} AI insights`);
   }

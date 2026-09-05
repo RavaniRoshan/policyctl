@@ -69,6 +69,24 @@ export function useDailyReport() {
   });
 }
 
+/** Archived daily reports in object storage (owner/admin only). */
+export function useReportArchives() {
+  return useQuery({
+    queryKey: ["reportArchives"],
+    queryFn: async () => {
+      try {
+        return await api.reportArchives();
+      } catch {
+        return { archives: [], configured: false };
+      }
+    },
+    // No backend in demo builds — skip the doomed request entirely.
+    enabled: !__isDemoMode,
+    staleTime: 300_000,
+    retry: false,
+  });
+}
+
 export { API_BASE, ApiError } from "./api.js";
 
 export function useOrgs() {

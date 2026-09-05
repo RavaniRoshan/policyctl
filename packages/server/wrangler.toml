@@ -42,6 +42,10 @@ crons = ["0 9 * * *"]
 # AI Gateway id for cached/logged inference (falls back to direct Workers AI
 # when the gateway doesn't exist yet — create once: AI → AI Gateways).
 AI_GATEWAY_ID = "policyctl"
+# Object storage (Filebase S3-compatible) for daily report archives.
+# Keys live as secrets (FILEBASE_ACCESS_KEY / FILEBASE_SECRET_KEY).
+FILEBASE_ENDPOINT = "https://s3.filebase.io"
+FILEBASE_BUCKET = "policyclt"
 TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
 # Auth0 — primary auth provider for the SPA. Auth0 handles OAuth/social login
 # via Universal Login; the Worker only verifies the resulting JWT bearer token.

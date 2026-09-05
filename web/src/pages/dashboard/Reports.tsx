@@ -5,12 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { CurvyRect, useToast } from "@policyctl/design-system";
 import { Skeleton, EmptyState, MonoAnnotation } from "@/components/shared/EmptyState";
 import { Callout } from "@/components/ui/callout";
-import { useDailyReport, useResendReport } from "@/lib/hooks";
+import { useDailyReport, useResendReport, useReportArchives } from "@/lib/hooks";
 import { downloadViolationsCsv } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function Reports() {
   const { data, isLoading, error, refetch } = useDailyReport();
+  const { data: archives } = useReportArchives();
   const queryClient = useQueryClient();
   const { push } = useToast();
   const resendMutation = useResendReport();
@@ -203,6 +204,20 @@ export function Reports() {
               {resendMutation.isPending ? "Refreshing…" : "Refresh report"}
             </Button>
           </div>
+          {archives && archives.configured && archives.archives.length > 0 && (
+            <div className="mt-16">
+              <span className="font-mono text-mono-x-small uppercase text-black-alpha-32">
+                Archived ({archives.archives.length})
+              </span>
+              <ul className="mt-4 max-h-[120px] space-y-1 overflow-y-auto">
+                {archives.archives.slice(-8).reverse().map((key) => (
+                  <li key={key} className="truncate font-mono text-mono-x-small text-black-alpha-64">
+                    {key}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </Card>
       </div>
 

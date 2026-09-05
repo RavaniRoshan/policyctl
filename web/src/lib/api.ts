@@ -81,6 +81,7 @@ export const api = {
       method: "POST",
     }),
   dailyReport: () => request<{ report: DailyReport | null; message?: string }>("/api/report/daily"),
+  reportArchives: () => request<{ archives: string[]; configured: boolean }>("/api/report/daily/archives"),
   resendReport: () => request<{ ok: boolean; message?: string }>("/api/report/daily/resend", { method: "POST" }),
   orgs: () => request<{ orgs: Org[] }>("/api/orgs"),
   createOrg: (name: string) => request<{ org: Org }>("/api/orgs", { method: "POST", body: JSON.stringify({ name }) }),
