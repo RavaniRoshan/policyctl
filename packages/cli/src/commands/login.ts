@@ -62,7 +62,7 @@ export async function loginCommand(opts: LoginOptions): Promise<void> {
 
   // Step 2: Start the device authorization flow.
   const spin = spinner("Requesting device code");
-  const res = await fetch(`https://${domain}/oauth/device`, {
+  const res = await fetch(`https://${domain}/oauth/device/code`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
