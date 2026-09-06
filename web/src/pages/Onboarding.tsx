@@ -18,7 +18,7 @@ const STEPS = [
   { id: "welcome", label: "Welcome" },
   { id: "org", label: "Workspace" },
   { id: "install", label: "Install" },
-  { id: "push", label: "Push" },
+  { id: "enforce", label: "Enforce" },
 ];
 
 export function Onboarding() {
@@ -47,16 +47,19 @@ export function Onboarding() {
   const back = () => setStep((s) => Math.max(0, s - 1));
 
   const complete = async () => {
-    localStorage.setItem(STORAGE_KEY, "true");
     // The user already has an auto-provisioned org from Auth0 login.
     // Only create a new org if none exist yet.
     if (existingOrgs.length === 0 && orgName) {
       try {
         await createOrg.mutateAsync(orgName);
-      } catch {
-        // Best-effort — the org may already exist server-side. Continue.
+      } catch (e: any) {
+        // Stay on the step so the error is visible instead of
+        // navigating away past it.
+        setSubmitError(e?.message || "Failed to create workspace.");
+        return;
       }
     }
+    localStorage.setItem(STORAGE_KEY, "true");
     navigate("/dashboard", { replace: true });
   };
 
@@ -87,6 +90,7 @@ export function Onboarding() {
                   <OrgStep
                     value={orgName}
                     onChange={setOrgName}
+                    lockedName={existingOrgs.length > 0 ? existingOrgs[0].name : null}
                   />
                 )}
                 {step === 2 && <InstallStep />}
@@ -178,7 +182,7 @@ function Welcome() {
     <>
       <div className="text-mono-x-small text-black-alpha-32 uppercase">[ welcome ]</div>
       <h1 className="mt-12 text-title-h3 text-accent-black">
-        Make your coding agents <span className="text-heat-100">obey the rules</span>.
+        Give your coding agents <span className="text-heat-100">guardrails, not guidelines</span>.
       </h1>
       <p className="mt-16 text-body-medium text-black-alpha-64 leading-26">
         policyctl gives you one file every agent and your CI must obey. We'll get you set up
@@ -202,10 +206,29 @@ function Welcome() {
 function OrgStep({
   value,
   onChange,
+  lockedName,
 }: {
   value: string;
   onChange: (v: string) => void;
+  lockedName: string | null;
 }) {
+  // Most users arrive with an auto-provisioned workspace from login.
+  // Renaming isn't supported by the API, so don't offer an edit that
+  // would be silently discarded — confirm instead.
+  if (lockedName) {
+    return (
+      <>
+        <div className="text-mono-x-small text-black-alpha-32 uppercase">[ workspace ]</div>
+        <h1 className="mt-12 text-title-h3 text-accent-black">
+          Your <span className="text-heat-100">workspace</span> is ready
+        </h1>
+        <p className="mt-16 text-body-medium text-black-alpha-64 leading-26">
+          You&apos;ll be working in <strong className="text-accent-black">{lockedName}</strong>.
+          You can switch workspaces anytime from the dashboard header.
+        </p>
+      </>
+    );
+  }
   return (
     <>
       <div className="text-mono-x-small text-black-alpha-32 uppercase">[ workspace ]</div>
@@ -213,7 +236,7 @@ function OrgStep({
         Name your <span className="text-heat-100">workspace</span>
       </h1>
       <p className="mt-16 text-body-medium text-black-alpha-64 leading-26">
-        A workspace groups the policies, repos, and members you'll be working with.
+        A workspace groups the policies, repos, and members you&apos;ll be working with.
       </p>
       <Input
         className="mt-32"
@@ -264,17 +287,17 @@ function InstallStep() {
 function PushStep() {
   return (
     <>
-      <div className="text-mono-x-small text-black-alpha-32 uppercase">[ push ]</div>
+      <div className="text-mono-x-small text-black-alpha-32 uppercase">[ enforce ]</div>
       <h1 className="mt-12 text-title-h3 text-accent-black">
-        Initialize and <span className="text-heat-100">push</span> your first policy
+        Initialize and <span className="text-heat-100">enforce</span> your first policy
       </h1>
       <p className="mt-16 text-body-medium text-black-alpha-64 leading-26">
-        From any repo, run init to scaffold a starter policy, then push to register it
-        with your workspace.
+        From any repo, run init to scaffold a starter policy, then check to enforce it
+        locally — no account or backend needed. Cloud push unlocks with premium.
       </p>
       <div className="mt-32 space-y-16">
         <CodeBlock
-          code="policyctl init && policyctl push"
+          code="policyctl init && policyctl check"
           lang="bash"
           title="terminal"
         />
@@ -282,11 +305,13 @@ function PushStep() {
         <CodeBlock
           code={`rules:
   - id: protect-readme
-    match: { path: README.md }
+    scope: hook
+    when: { path: README.md }
     enforce: block
 
   - id: no-secrets
-    match: { regex: '(AKIA|ghp_|sk-)' }
+    scope: both
+    when: { diff_regex: '(AKIA|ghp_|sk-)' }
     enforce: fail`}
           lang="yaml"
           title=".policyctl.yml"

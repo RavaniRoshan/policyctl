@@ -186,13 +186,13 @@ export const TRUSTED_AGENTS: AgentBrand[] = [
     id: "cursor",
     name: "Cursor",
     tag: "Anysphere",
-    icon: <CursorLogo className="size-20 shrink-0 text-accent-black dark:text-accent-white" />,
+    icon: <CursorLogo className="size-20 shrink-0 text-accent-black" />,
   },
   {
     id: "openai",
     name: "OpenAI Codex",
     tag: "OpenAI",
-    icon: <OpenAiLogo className="size-20 shrink-0 text-accent-black dark:text-accent-white" />,
+    icon: <OpenAiLogo className="size-20 shrink-0 text-accent-black" />,
   },
   {
     id: "github-actions",
@@ -210,7 +210,7 @@ export const TRUSTED_AGENTS: AgentBrand[] = [
     id: "continue",
     name: "Continue.dev",
     tag: "Open Source",
-    icon: <ContinueLogo className="size-20 shrink-0 text-accent-black dark:text-accent-white" />,
+    icon: <ContinueLogo className="size-20 shrink-0 text-accent-black" />,
   },
   {
     id: "cody",

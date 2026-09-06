@@ -214,7 +214,7 @@ export function useAiAuthor() {
           .slice(0, 4)
           .join("-");
         return {
-          rule: `rules:\n  - id: ${id || "custom-rule"}\n    match:\n      path: src/**\n    enforce: warn\n    message: |\n      Generated from prompt: "${text.slice(0, 60)}"`,
+          rule: `rules:\n  - id: ${id || "custom-rule"}\n    scope: hook\n    when:\n      path: src/**\n    enforce: warn\n    message: |\n      Generated from prompt: "${text.slice(0, 60)}"`,
           explanation: `Generated policy stub from your prompt. Edit the match path and enforce level before deploying.`,
         };
       }

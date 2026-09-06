@@ -233,8 +233,8 @@ function Hero() {
             variants={fadeUp}
             className="text-title-h1 text-accent-black tracking-tight max-w-3xl mx-auto mb-16 lg:mb-20"
           >
-            Make your coding agents{" "}
-            <span className="text-heat-100 font-bold">obey the rules</span>.
+            Give your coding agents{" "}
+            <span className="text-heat-100 font-bold">guardrails, not guidelines</span>.
           </motion.h1>
 
           {/* Subtitle */}

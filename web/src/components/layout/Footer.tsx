@@ -63,7 +63,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-label-x-large text-accent-black max-w-sm">
-              Make your coding agents <span className="text-heat-100 font-semibold">obey the rules</span>.
+              Give your coding agents <span className="text-heat-100 font-semibold">guardrails, not guidelines</span>.
             </p>
             <p className="text-body-medium text-black-alpha-64 mt-8 max-w-sm leading-relaxed">
               The deterministic policy runtime to keep Claude, Codex, and Cursor inside the lines you draw.
