@@ -42,6 +42,11 @@ import {
   updateMemberRole,
   removeMember,
   updateSubscriptionStatus,
+  insertWebhookEvent,
+  updateWebhookEvent,
+  listWebhookEvents,
+  getOrgReportWebhook,
+  setOrgReportWebhook,
 } from "./store.js";
 import { cacheGetPolicy, cacheGetUser, cacheInvalidatePolicy, cachePutPolicy, cachePutUser, cacheGetUserBySub, cachePutUserBySub } from "./cache.js";
 import type { BillingPlan } from "./store.js";
@@ -150,20 +155,26 @@ async function requireUser(c: { env: Env; req: { header: (k: string) => string |
     return owner;
   }
 
-  // 2. Legacy token path (CLI magic-link backward compat).
+  // 2. Legacy token path (CLI magic-link backward compat — deprecated).
   const cachedUid = await cacheGetUser(c.env, token);
   if (cachedUid != null) {
     const u = await getUserByToken(c.env.DB, token);
-    if (u) return u;
+    if (u) {
+      console.warn("[auth] legacy CLI token used — migrate to `policyctl login` (Auth0) or --api-key");
+      return u;
+    }
   }
   const u = await getUserByToken(c.env.DB, token);
-  if (u) await cachePutUser(c.env, token, u.id);
+  if (u) {
+    console.warn("[auth] legacy CLI token used — migrate to `policyctl login` (Auth0) or --api-key");
+    await cachePutUser(c.env, token, u.id);
+  }
   return u;
 }
 
 const ORG_COLUMNS = `id, name, current_version, stripe_customer_id, stripe_sub_id,
   subscription_status, subscription_tier, seat_count, trial_ends_at,
-  current_period_end, price_id, plan`;
+  current_period_end, price_id, plan, report_webhook_url`;
 
 /**
  * Org resolution for request handlers. API-key callers are pinned to the
@@ -838,6 +849,9 @@ app.delete(`${API}/orgs/:id`, async (c) => {
 
 // ── Billing: Stripe webhook ────────────────────────────────────────────────
 // This route receives raw body for Stripe signature verification.
+// Every verified event is recorded in webhook_events for idempotency +
+// failure triage. Business-skips return 200 (recorded as skipped);
+// handler failures return 500 so Stripe retries.
 app.post(`${API}/webhook/stripe`, async (c) => {
   const stripeClient = getStripe(c.env);
   if (!stripeClient || !c.env.STRIPE_WEBHOOK_SECRET) {
@@ -855,6 +869,24 @@ app.post(`${API}/webhook/stripe`, async (c) => {
     return c.json({ error: "Invalid signature" }, 400);
   }
 
+  const seen = await insertWebhookEvent(c.env.DB, {
+    stripe_event_id: event.id,
+    type: event.type,
+  });
+  if (!seen) return c.json({ received: true, duplicate: true });
+
+  const fail = async (err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[webhook] ${event.type} failed: ${message}`);
+    await updateWebhookEvent(c.env.DB, event.id, "failed", message);
+    return c.json({ error: "Webhook handler failed" }, 500);
+  };
+  const skip = async (reason: string) => {
+    console.error(`[webhook] ${event.type} skipped: ${reason}`);
+    await updateWebhookEvent(c.env.DB, event.id, "skipped", reason);
+    return c.json({ received: true, skipped: true });
+  };
+
   switch (event.type) {
     case "customer.subscription.created":
     case "customer.subscription.updated":
@@ -862,9 +894,9 @@ app.post(`${API}/webhook/stripe`, async (c) => {
       const sub = event.data.object as Stripe.Subscription;
       const orgId = Number(sub.metadata?.policyctl_org_id);
       if (!orgId) {
-        console.error(`Webhook: subscription ${sub.id} has no policyctl_org_id metadata`);
-        break;
+        return skip(`subscription ${sub.id} has no policyctl_org_id metadata`);
       }
+      try {
 
       let internalStatus: string;
       if (sub.canceled_at) {
@@ -911,14 +943,20 @@ app.post(`${API}/webhook/stripe`, async (c) => {
       });
 
       console.log(`[webhook] ${event.type}: org ${orgId}, status ${internalStatus}`);
+      } catch (err) {
+        return fail(err);
+      }
       break;
     }
 
     case "invoice.payment_succeeded": {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subId = invoice.subscription as string;
-      const sub = await getSubscriptionByStripeId(c.env.DB, subId);
-      if (sub) {
+      try {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = invoice.subscription as string;
+        const sub = await getSubscriptionByStripeId(c.env.DB, subId);
+        if (!sub) {
+          return skip(`invoice.payment_succeeded for unknown sub ${subId}`);
+        }
         const plan = sub.plan || priceIdToPlan(c.env, sub.price_id);
         await updateOrgSubscription(c.env.DB, sub.org_id, {
           status: "active",
@@ -930,16 +968,21 @@ app.post(`${API}/webhook/stripe`, async (c) => {
           price_id: sub.price_id,
         });
         await updateSubscriptionStatus(c.env.DB, subId, "active");
+        console.log(`[webhook] invoice.payment_succeeded: sub ${subId}, org ${sub?.org_id}`);
+      } catch (err) {
+        return fail(err);
       }
-      console.log(`[webhook] invoice.payment_succeeded: sub ${subId}, org ${sub?.org_id}`);
       break;
     }
 
     case "invoice.payment_failed": {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subId = invoice.subscription as string;
-      const sub = await getSubscriptionByStripeId(c.env.DB, subId);
-      if (sub) {
+      try {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = invoice.subscription as string;
+        const sub = await getSubscriptionByStripeId(c.env.DB, subId);
+        if (!sub) {
+          return skip(`invoice.payment_failed for unknown sub ${subId}`);
+        }
         const plan = sub.plan || priceIdToPlan(c.env, sub.price_id);
         await updateOrgSubscription(c.env.DB, sub.org_id, {
           status: "past_due",
@@ -951,15 +994,20 @@ app.post(`${API}/webhook/stripe`, async (c) => {
           price_id: sub.price_id,
         });
         await updateSubscriptionStatus(c.env.DB, subId, "past_due");
+        console.log(`[webhook] invoice.payment_failed: sub ${subId}, org ${sub?.org_id}`);
+      } catch (err) {
+        return fail(err);
       }
-      console.log(`[webhook] invoice.payment_failed: sub ${subId}, org ${sub?.org_id}`);
       break;
     }
 
     case "customer.subscription.trial_will_end": {
-      const sub = event.data.object as Stripe.Subscription;
-      const orgId = Number(sub.metadata?.policyctl_org_id);
-      if (orgId) {
+      try {
+        const sub = event.data.object as Stripe.Subscription;
+        const orgId = Number(sub.metadata?.policyctl_org_id);
+        if (!orgId) {
+          return skip("trial_will_end with no policyctl_org_id");
+        }
         await updateOrgSubscription(c.env.DB, orgId, {
           status: "trialing",
           tier: "paid",
@@ -969,16 +1017,76 @@ app.post(`${API}/webhook/stripe`, async (c) => {
           current_period_end: sub.current_period_end ? sub.current_period_end * 1000 : null,
           price_id: sub.items.data[0]?.price?.id ?? null,
         });
+        console.log(`[webhook] trial_will_end: org ${orgId}, trial_end ${sub.trial_end}`);
+      } catch (err) {
+        return fail(err);
       }
-      console.log(`[webhook] trial_will_end: org ${orgId}, trial_end ${sub.trial_end}`);
       break;
     }
 
     default:
+      await updateWebhookEvent(c.env.DB, event.id, "skipped", `unhandled ${event.type}`);
       console.log(`[webhook] unhandled event type: ${event.type}`);
+      return c.json({ received: true, skipped: true });
   }
 
+  await updateWebhookEvent(c.env.DB, event.id, "received", null);
   return c.json({ received: true });
+});
+
+// ── Billing: webhook event log (owner/admin triage) ──────────────────────
+app.get(`${API}/billing/webhook-events`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const org = await requestOrg(c.env.DB, c, user);
+  if (!org) return c.json({ error: "no org" }, 400);
+  if (!(await hasOrgRole(c.env.DB, org.id, user.id, ["owner", "admin"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
+  const events = await listWebhookEvents(c.env.DB, 50);
+  return c.json({
+    events: events.map((e) => ({
+      ...e,
+      created_at: new Date(e.created_at).toISOString(),
+    })),
+  });
+});
+
+// ── Org notifications: report webhook URL ──────────────────────────────
+app.get(`${API}/orgs/:id/notifications`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const orgId = Number(c.req.param("id"));
+  const org = await resolveOrg(c.env.DB, user.id, orgId);
+  if (!org || org.id !== orgId) return c.json({ error: "forbidden" }, 403);
+  const webhook_url = await getOrgReportWebhook(c.env.DB, orgId);
+  return c.json({ webhook_url });
+});
+
+app.put(`${API}/orgs/:id/notifications`, async (c) => {
+  const user = await requireUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const orgId = Number(c.req.param("id"));
+  const org = await resolveOrg(c.env.DB, user.id, orgId);
+  if (!org || org.id !== orgId) return c.json({ error: "forbidden" }, 403);
+  if (!(await hasOrgRole(c.env.DB, orgId, user.id, ["owner", "admin"]))) {
+    return c.json({ error: "forbidden" }, 403);
+  }
+  const body = (await c.req.json<{ webhook_url?: string }>().catch(() => ({}))) as { webhook_url?: string };
+  let url: string | null = null;
+  if (body.webhook_url && body.webhook_url.trim()) {
+    try {
+      const parsed = new URL(body.webhook_url.trim());
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        return c.json({ error: "Webhook URL must use http or https" }, 400);
+      }
+      url = parsed.origin + parsed.pathname + parsed.search;
+    } catch {
+      return c.json({ error: "Invalid webhook URL" }, 400);
+    }
+  }
+  await setOrgReportWebhook(c.env.DB, orgId, url);
+  return c.json({ ok: true, webhook_url: url });
 });
 
 // ── Root redirect → SPA ──────────────────────────────────────────────
@@ -1053,8 +1161,8 @@ app.get(`${API}/report/daily`, async (c) => {
 });
 
 // ── Phase D: Re-generate daily compliance report on demand ────────────
-// Regenerates the report from current data and stores it in KV.
-// (Email delivery is not yet wired — the report is refreshed and visible in the dashboard.)
+// Regenerates the report from current data, stores it in KV/Filebase,
+// and best-effort emails the org owner via Resend (skipped if unconfigured).
 async function archiveDailyReport(
   env: Env,
   orgId: number,
@@ -1118,7 +1226,45 @@ app.post(`${API}/report/daily/resend`, async (c) => {
   await c.env.POLICYCTL_CACHE.put(`report:daily:org:${org.id}`, JSON.stringify(report), { expirationTtl: 86400 * 7 });
   await archiveDailyReport(c.env, org.id, report);
 
-  return c.json({ ok: true, message: "Report refreshed. Email delivery is coming soon." });
+  let emailed = false;
+  try {
+    const { sendDailyReportEmail, getOrgOwnerEmail } = await import("./email.js");
+    const to = await getOrgOwnerEmail(c.env.DB, org.id);
+    if (to) {
+      emailed = await sendDailyReportEmail(c.env, {
+        to,
+        orgName: org.name,
+        total,
+        aiInsights: aiInsightsCount,
+        date: new Date().toISOString().slice(0, 10),
+      });
+    }
+  } catch (err) {
+    console.error(`Report email failed for org ${org.id}: ${err instanceof Error ? err.message : err}`);
+  }
+
+  let webhookDelivered = false;
+  try {
+    if (org.report_webhook_url) {
+      const { sendReportWebhook } = await import("./webhook.js");
+      webhookDelivered = await sendReportWebhook(org.report_webhook_url, {
+        orgId: org.id,
+        orgName: org.name,
+        date: new Date().toISOString().slice(0, 10),
+        total,
+        aiInsights: aiInsightsCount,
+        byActor: byActor.results,
+        repeatOffenders: repeatOffenders.results,
+      });
+    }
+  } catch (err) {
+    console.error(`Report webhook failed for org ${org.id}: ${err instanceof Error ? err.message : err}`);
+  }
+
+  const parts = ["Report refreshed."];
+  if (emailed) parts.push("Emailed.");
+  if (webhookDelivered) parts.push("Webhook delivered.");
+  return c.json({ ok: true, emailed, webhook: webhookDelivered, message: parts.join(" ") });
 });
 
 // ── Waitlist (free-launch mode: premium is coming soon, no payments yet) ──
@@ -1213,37 +1359,76 @@ async function scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext)
   const orgs = (await d1.prepare("SELECT id, name FROM orgs").all()) as unknown as { results: { id: number; name: string }[] };
 
   for (const org of orgs.results) {
-    const since = Date.now() - 24 * 3600 * 1000; // last 24h
-    const totalRow = (await d1.prepare("SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?").bind(org.id, since).first()) as { c: number };
-    const total = totalRow?.c ?? 0;
+    try {
+      const since = Date.now() - 24 * 3600 * 1000; // last 24h
+      const totalRow = (await d1.prepare("SELECT COUNT(*) AS c FROM violations WHERE org_id = ? AND created_at >= ?").bind(org.id, since).first()) as { c: number };
+      const total = totalRow?.c ?? 0;
 
-    const byActor = (await d1.prepare("SELECT COALESCE(actor,'agent') AS actor, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY COALESCE(actor,'agent')").bind(org.id, since).all()) as unknown as { results: { actor: string; count: number }[] };
+      const byActor = (await d1.prepare("SELECT COALESCE(actor,'agent') AS actor, COUNT(*) AS count FROM violations WHERE org_id = ? AND created_at >= ? GROUP BY COALESCE(actor,'agent')").bind(org.id, since).all()) as unknown as { results: { actor: string; count: number }[] };
 
-    const repeatOffenders = (await d1.prepare(
-      `SELECT COALESCE(rule_id,'(unknown)') AS rule_id, COALESCE(repo,'(unknown)') AS repo, COUNT(*) AS count
-       FROM violations WHERE org_id = ? AND created_at >= ?
-       GROUP BY rule_id, repo HAVING count > 1 ORDER BY count DESC LIMIT 5`,
-    ).bind(org.id, since).all()) as unknown as { results: { rule_id: string; repo: string; count: number }[] };
+      const repeatOffenders = (await d1.prepare(
+        `SELECT COALESCE(rule_id,'(unknown)') AS rule_id, COALESCE(repo,'(unknown)') AS repo, COUNT(*) AS count
+         FROM violations WHERE org_id = ? AND created_at >= ?
+         GROUP BY rule_id, repo HAVING count > 1 ORDER BY count DESC LIMIT 5`,
+      ).bind(org.id, since).all()) as unknown as { results: { rule_id: string; repo: string; count: number }[] };
 
-    const aiInsightsRow = await d1
-      .prepare("SELECT COUNT(*) AS c FROM ai_insights WHERE org_id = ? AND created_at >= ?")
-      .bind(org.id, since)
-      .first<{ c: number }>();
-    const aiInsightsCount = aiInsightsRow?.c ?? 0;
+      const aiInsightsRow = await d1
+        .prepare("SELECT COUNT(*) AS c FROM ai_insights WHERE org_id = ? AND created_at >= ?")
+        .bind(org.id, since)
+        .first<{ c: number }>();
+      const aiInsightsCount = aiInsightsRow?.c ?? 0;
 
-    // Store the report in KV for the dashboard to read
-    const report = {
-      generatedAt: Date.now(),
-      period: "24h",
-      total,
-      byActor: byActor.results,
-      repeatOffenders: repeatOffenders.results,
-      aiInsights: aiInsightsCount,
-    };
-    await env.POLICYCTL_CACHE.put(`report:daily:org:${org.id}`, JSON.stringify(report), { expirationTtl: 86400 * 7 });
-    await archiveDailyReport(env, org.id, report);
+      // Store the report in KV for the dashboard to read
+      const report = {
+        generatedAt: Date.now(),
+        period: "24h",
+        total,
+        byActor: byActor.results,
+        repeatOffenders: repeatOffenders.results,
+        aiInsights: aiInsightsCount,
+      };
+      await env.POLICYCTL_CACHE.put(`report:daily:org:${org.id}`, JSON.stringify(report), { expirationTtl: 86400 * 7 });
+      await archiveDailyReport(env, org.id, report);
 
-    console.log(`[cron] Daily report for org ${org.id} (${org.name}): ${total} violations, ${repeatOffenders.results.length} repeat offenders, ${aiInsightsCount} AI insights`);
+      try {
+        const { sendDailyReportEmail, getOrgOwnerEmail } = await import("./email.js");
+        const to = await getOrgOwnerEmail(d1, org.id);
+        if (to) {
+          await sendDailyReportEmail(env, {
+            to,
+            orgName: org.name,
+            total,
+            aiInsights: aiInsightsCount,
+            date: new Date().toISOString().slice(0, 10),
+          });
+        }
+      } catch (err) {
+        console.error(`[cron] Report email failed for org ${org.id}: ${err instanceof Error ? err.message : err}`);
+      }
+
+      // Per-org incoming webhook (Slack/Discord)
+      try {
+        const webhookUrl = (await d1.prepare("SELECT report_webhook_url FROM orgs WHERE id = ?").bind(org.id).first<{ report_webhook_url: string | null }>())?.report_webhook_url;
+        if (webhookUrl) {
+          const { sendReportWebhook } = await import("./webhook.js");
+          await sendReportWebhook(webhookUrl, {
+            orgId: org.id,
+            orgName: org.name,
+            date: new Date().toISOString().slice(0, 10),
+            total,
+            aiInsights: aiInsightsCount,
+            byActor: byActor.results,
+            repeatOffenders: repeatOffenders.results,
+          });
+        }
+      } catch (err) {
+        console.error(`[cron] Report webhook failed for org ${org.id}: ${err instanceof Error ? err.message : err}`);
+      }
+
+      console.log(`[cron] Daily report for org ${org.id} (${org.name}): ${total} violations, ${repeatOffenders.results.length} repeat offenders, ${aiInsightsCount} AI insights`);
+    } catch (err) {
+      console.error(`[cron] Daily report failed for org ${org.id}: ${err instanceof Error ? err.message : err}`);
+    }
   }
 }
 

@@ -53,8 +53,10 @@ jobs:
           command: deploy
           secrets: |
             TURNSTILE_SECRET_SITE
+            RESEND_API_KEY
         env:
           TURNSTILE_SECRET_SITE: ${{ secrets.TURNSTILE_SECRET_SITE }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       - name: Apply D1 migrations
         working-directory: packages/server
         run: npx wrangler d1 migrations apply policyctl --remote

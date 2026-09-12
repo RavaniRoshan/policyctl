@@ -47,7 +47,13 @@ export interface Env {
 
   // ── Waitlist (free-launch mode) ──
   // Signups persist in D1 (see migrations/0011_waitlist.sql) and are listed
-  // via GET /api/waitlist. No email integration (deliberate; CRM later).
+  // via GET /api/waitlist.
+
+  // ── Email (Resend for daily compliance reports) ──
+  /** Resend API key (set via: wrangler secret put RESEND_API_KEY). */
+  RESEND_API_KEY?: string;
+  /** Verified sender, e.g. "policyctl <reports@policyctl.dev>". */
+  REPORT_FROM_EMAIL?: string;
 
   // ── AI ──
   /** AI Gateway id for cached/logged inference. Falls back to direct Workers AI. */
@@ -96,6 +102,8 @@ export interface Org {
   plan: string | null;
   /** SHA-256 hash of the control-plane API key (null if none generated). */
   api_key_hash: string | null;
+  /** Per-org incoming webhook URL for daily compliance reports (null = disabled). */
+  report_webhook_url: string | null;
 }
 
 export interface Subscription {

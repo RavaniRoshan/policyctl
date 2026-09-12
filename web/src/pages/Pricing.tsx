@@ -10,7 +10,7 @@ const CLOUD_FEATURES = [
   "Violation audit feed + daily reports",
   "AI rule authoring + analyzer",
   "CSV export + live sessions",
-  "Early access as soon as premium launches",
+  "Waitlist members get early access",
 ];
 
 const FREE_FEATURES = [
@@ -28,10 +28,10 @@ export function Pricing() {
       <MarketingNav />
       <main id="main-content" className="mx-auto max-w-[1112px] px-16 pt-64 pb-96">
         <p className="pcl-section__badge">Pricing</p>
-        <h1 className="pcl-section__title mt-12">Free locally. $5 a seat in the cloud.</h1>
+        <h1 className="pcl-section__title mt-12">Free CLI. Cloud waitlist open.</h1>
         <p className="pcl-section__subtitle mt-12 max-w-xl">
-          The CLI is free forever. Cloud adds team sync, audit, and AI — billed per seat
-          (owner, admin, member; viewers are always free).
+          The CLI is free forever. Cloud adds team sync, audit, and AI — join the
+          waitlist, no payment today.
         </p>
 
         <div className="mt-48 grid gap-16 md:grid-cols-2">
@@ -57,13 +57,13 @@ export function Pricing() {
           <section className="pcl-card pcl-card--floating p-32" aria-label="Cloud plan">
             <div className="flex items-center justify-between">
               <h2 className="text-title-h3">Cloud</h2>
-              <span className="pcl-badge pcl-badge--heat">Coming soon</span>
+              <span className="pcl-badge pcl-badge--heat">Waitlist open</span>
             </div>
             <p className="mt-8 text-body-large">
-              <span className="font-semibold">$5</span>
-              <span className="text-black-alpha-56"> / seat / month</span>
+              <span className="font-semibold">Waitlist</span>
+              <span className="text-black-alpha-56"> / early access</span>
             </p>
-            <p className="text-body-small text-black-alpha-56">or $50 / seat / year (2 months free)</p>
+            <p className="text-body-small text-black-alpha-56">Pricing at launch — no charge today</p>
             <ul className="mt-24 space-y-12 text-body-medium">
               {CLOUD_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-8">

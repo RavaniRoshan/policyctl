@@ -17,13 +17,13 @@ import {
   List,
   X,
   Warning,
-  CaretDown,
 } from "@phosphor-icons/react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { useOrgs, useCurrentOrgId, useSetCurrentOrgId, __isDemoMode } from "@/lib/hooks";
+import { __isDemoMode } from "@/lib/hooks";
 import { PolicyctlMark } from "@/components/brand/PolicyctlMark";
 import { CommandMenu, COMMAND_MENU_EVENT } from "@/components/dashboard/CommandMenu";
+import { OrgSwitcher } from "@/components/dashboard/OrgSwitcher";
 
 const TITLES: Record<string, string> = {
   "/dashboard": "Overview",
@@ -118,13 +118,6 @@ function Header({ title }: { title: string }) {
   const { pathname } = useLocation();
   const [menu, setMenu] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [orgMenu, setOrgMenu] = useState(false);
-  const { data: orgsData } = useOrgs();
-  const currentOrgId = useCurrentOrgId();
-  const setCurrentOrgId = useSetCurrentOrgId();
-
-  const orgs = orgsData?.orgs ?? [];
-  const currentOrg = orgs.find((o) => o.id === currentOrgId);
 
   const openPalette = () => window.dispatchEvent(new Event(COMMAND_MENU_EVENT));
 
@@ -151,42 +144,7 @@ function Header({ title }: { title: string }) {
         <h1 className="text-title-h5 tracking-tight">{title}</h1>
 
         <div className="ml-auto flex items-center gap-4">
-          <div className="relative hidden sm:block">
-            <button
-              onClick={() => setOrgMenu((m) => !m)}
-              className="inline-flex h-32 max-w-[200px] items-center gap-6 rounded-md border border-border-faint px-10 text-body-small hover:bg-black-alpha-4"
-              aria-haspopup="menu"
-              aria-expanded={orgMenu}
-              aria-label="Switch organization"
-            >
-              <Buildings className="size-4 shrink-0" aria-hidden />
-              <span className="truncate">{currentOrg?.name ?? "My org"}</span>
-              <CaretDown className="size-3 shrink-0" aria-hidden />
-            </button>
-            {orgMenu && (
-              <div role="menu" className="absolute right-0 top-40 z-50 w-240 rounded-md border border-border-faint bg-surface p-8 shadow-lg">
-                <div className="px-8 py-4 font-mono text-mono-x-small uppercase text-black-alpha-32">
-                  Organizations
-                </div>
-                {orgs.map((o) => (
-                  <button
-                    key={o.id}
-                    role="menuitem"
-                    onClick={() => {
-                      setCurrentOrgId(o.id);
-                      setOrgMenu(false);
-                    }}
-                    className={`flex w-full items-center justify-between rounded px-8 py-8 text-left text-body-small ${
-                      o.id === currentOrgId ? "text-heat-ink" : "hover:bg-black-alpha-4"
-                    }`}
-                  >
-                    <span className="truncate">{o.name}</span>
-                    {o.id === currentOrgId && <span aria-hidden>●</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <OrgSwitcher className="hidden sm:block" />
 
           <button
             className="hidden h-32 items-center gap-8 rounded-md border border-border-faint px-10 font-mono text-mono-small text-black-alpha-64 transition-colors hover:text-accent-black md:inline-flex"
@@ -239,6 +197,9 @@ function Header({ title }: { title: string }) {
 
       {mobileOpen && (
         <nav aria-label="Dashboard" className="space-y-2 border-t border-border-faint p-8 lg:hidden">
+          <div className="px-8 pb-4">
+            <OrgSwitcher className="sm:hidden" />
+          </div>
           {ITEMS.map(({ to, label, icon: Icon, end }) => {
             const active = end ? pathname === to : pathname.startsWith(to);
             return (

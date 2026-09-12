@@ -37,6 +37,7 @@ const ORG_ROW = {
   price_id: null,
   plan: "growth",
   api_key_hash: null,
+  report_webhook_url: null,
 };
 
 describe("org resolution and roles", () => {

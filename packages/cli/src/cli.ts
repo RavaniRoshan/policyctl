@@ -96,6 +96,7 @@ program
   .command("login")
   .description("Authenticate with the hosted control plane via Auth0 device flow.")
   .option("--server <url>", "control-plane URL (or POLICYCTL_SERVER)")
+  .option("--api-key <key>", "control-plane API key (pc_live_*) for headless/CI use")
   .action(loginCommand);
 
 program

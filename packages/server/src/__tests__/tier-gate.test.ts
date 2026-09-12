@@ -59,6 +59,7 @@ function orgRow(status: string) {
     price_id: null,
     plan: status === "free" ? "free" : "growth",
     api_key_hash: null,
+    report_webhook_url: null,
   };
 }
 

@@ -27,11 +27,17 @@ export function Reports() {
   const handleResend = async () => {
     try {
       const result = await resendMutation.mutateAsync();
-      push({ title: "Report refreshed", description: result.message ?? "Report regenerated." });
+      const parts = ["Report refreshed."];
+      if (result.emailed) parts.push("Emailed.");
+      if (result.webhook) parts.push("Webhook delivered.");
+      push({
+        title: parts[0],
+        description: parts.length > 1 ? parts.slice(1).join(" ") : undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["dailyReport"] });
       refetch();
     } catch (e: any) {
-      push({ title: "Failed to refresh report", description: e?.message ?? "Try again." });
+      push({ title: "Failed to regenerate report", description: e?.message ?? "Try again." });
     }
   };
 
@@ -201,7 +207,7 @@ export function Reports() {
               aria-label="Regenerate the latest report"
             >
               <Envelope className="size-3 mr-4" aria-hidden />{" "}
-              {resendMutation.isPending ? "Refreshing…" : "Refresh report"}
+              {resendMutation.isPending ? "Regenerating…" : "Regenerate"}
             </Button>
           </div>
           {archives && archives.configured && archives.archives.length > 0 && (

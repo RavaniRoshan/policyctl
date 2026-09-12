@@ -7,11 +7,16 @@ import { Callout } from "@/components/ui/callout";
 import { CurvyRect, useToast } from "@policyctl/design-system";
 import { MonoAnnotation } from "@/components/shared/EmptyState";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
-import { useBilling, useWaitlist } from "@/lib/hooks";
+import { Link } from "react-router-dom";
+import { useBilling, useWaitlist, useOrgs, useCurrentOrgId, useWebhookEvents } from "@/lib/hooks";
 import { api } from "@/lib/api";
 
 export function Billing() {
-  const { data: billing, isLoading, error, refetch } = useBilling();
+  const currentOrgId = useCurrentOrgId();
+  const { data: orgsData } = useOrgs();
+  const currentOrg = orgsData?.orgs?.find((o) => o.id === currentOrgId);
+  const { data: billing, isLoading, error, refetch } = useBilling(currentOrgId);
+  const { data: webhookData } = useWebhookEvents();
   const { data: waitlist } = useWaitlist();
   const { push } = useToast();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -45,7 +50,7 @@ export function Billing() {
   return (
     <div className="space-y-24">
       <div className="-mt-1 flex items-center justify-between border-b border-border-faint pb-12">
-        <MonoAnnotation>[ billing ]</MonoAnnotation>
+        <MonoAnnotation>[ billing{currentOrg ? ` / ${currentOrg.name}` : ""} ]</MonoAnnotation>
         <Button variant="secondary" size="sm" onClick={() => refetch()} disabled={isLoading}>
           Refresh
         </Button>
@@ -83,7 +88,7 @@ export function Billing() {
                 {isPaid || isTrial ? "Control plane" : "Free CLI"}
               </div>
               <div className="mt-8 text-[28px] font-medium leading-tight sm:text-title-h3">
-                {isPaid || isTrial ? "$5 / seat / month" : "$0 / forever"}
+                {isPaid ? "$5 / seat / month" : isTrial ? "Trial — pricing at launch" : "$0 / forever"}
               </div>
               {isTrial && daysRemaining !== null && (
                 <div className="mt-8 flex items-center gap-8 text-body-medium">
@@ -129,6 +134,11 @@ export function Billing() {
                 label="Seats"
                 value={`${billing?.seat_count ?? 0} billable member${(billing?.seat_count ?? 0) === 1 ? "" : "s"}`}
               />
+              <div className="sm:col-span-2">
+                <Link to="/dashboard/team" className="text-body-small text-heat-ink underline">
+                  Manage team seats →
+                </Link>
+              </div>
               <PlanRow
                 label="Next billing"
                 value={formatDate(billing?.subscription?.current_period_end)}
@@ -151,17 +161,13 @@ export function Billing() {
             <p className="mb-24 text-body-medium leading-26 text-black-alpha-64">
               Your free CLI works locally and never expires. The cloud control plane
               adds shared policy versioning, an audit feed, daily compliance reports,
-              CSV exports, and AI rule authoring — premium is coming soon.
+              CSV exports, and AI rule authoring — join the waitlist, no charge today.
             </p>
 
             <div className="mb-24 flex items-center gap-16">
               <div className="text-center">
-                <div className="text-title-h4">$5</div>
-                <div className="font-mono text-mono-x-small text-black-alpha-32">per seat / month</div>
-              </div>
-              <div className="text-center">
-                <div className="text-title-h4">$50</div>
-                <div className="font-mono text-mono-x-small text-black-alpha-32">per seat / year (save 2 months)</div>
+                <div className="text-title-h4">Waitlist</div>
+                <div className="font-mono text-mono-x-small text-black-alpha-32">early access — pricing at launch</div>
               </div>
             </div>
 
@@ -184,7 +190,7 @@ export function Billing() {
               </li>
               <li className="flex gap-8">
                 <Check className="size-4 shrink-0 text-heat-100" aria-hidden />
-                Premium coming soon — waitlist members get early access
+                Waitlist members get early access
               </li>
             </ul>
 
@@ -205,6 +211,27 @@ export function Billing() {
               Update payment method
             </button>
           </Callout>
+        )}
+
+        {(isPaid || isTrial) && webhookData && webhookData.events.length > 0 && (
+          <Card className="p-24 lg:p-32">
+            <CurvyRect sides="allSides" />
+            <h2 className="text-label-x-large mb-16">Webhook events · last {webhookData.events.length}</h2>
+            <ul className="space-y-8">
+              {webhookData.events.slice(0, 20).map((e) => (
+                <li
+                  key={e.id}
+                  className="flex items-center justify-between gap-12 rounded-md border border-border-faint px-12 py-8"
+                >
+                  <span className="truncate font-mono text-mono-small">{e.type}</span>
+                  <span className="shrink-0 font-mono text-mono-x-small text-black-alpha-64">
+                    {e.status}
+                    {e.error ? ` · ${e.error.slice(0, 60)}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
         )}
 
         {waitlist && waitlist.total > 0 && (

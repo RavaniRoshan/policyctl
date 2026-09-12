@@ -57,6 +57,12 @@ AUTH0_CLI_CLIENT_ID = "ck4caiYUKTVPVuqnHXbkf8NxFFAVn1qA"
 # Comma-separated list of origins allowed to call the Worker API.
 ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:4173,https://policyctl-web.pages.dev"
 
+# ── Email (Resend for daily compliance reports) ──
+# TEST MODE: onboarding@resend.dev only delivers to the Resend account inbox.
+# After buying + verifying a domain, flip to e.g. "policyctl <reports@policyctl.dev>".
+# Secret: wrangler secret put RESEND_API_KEY
+REPORT_FROM_EMAIL = "onboarding@resend.dev"
+
 # ── Stripe (set secrets via: wrangler secret put) ──
 # STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are set via `wrangler secret put`
 # and are NOT committed to source control.

@@ -60,17 +60,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export { request };
 
+function withOrg(path: string, orgId?: string): string {
+  if (!orgId) return path;
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path}${sep}org=${encodeURIComponent(orgId)}`;
+}
+
 export const api = {
   me: () => request<Session | null>("/api/me"),
-  analytics: () => request<Analytics>("/api/analytics"),
-  violations: () => request<Violation[]>("/api/violations"),
+  analytics: (orgId?: string) => request<Analytics>(withOrg("/api/analytics", orgId)),
+  violations: (orgId?: string) => request<Violation[]>(withOrg("/api/violations", orgId)),
   violation: (id: string) => request<Violation & { diff?: string }>(`/api/violations/${id}`),
   dismissViolation: (id: string, reason: string) =>
     request<{ ok: boolean }>("/api/violations/" + id + "/dismiss", {
       method: "POST",
       body: JSON.stringify({ reason }),
     }),
-  policyVersions: () => request<PolicyVersion[]>("/api/policy/versions"),
+  policyVersions: (orgId?: string) => request<PolicyVersion[]>(withOrg("/api/policy/versions", orgId)),
   publishPolicy: (yaml: string, note?: string) =>
     request<{ ok: boolean; version: number; id: string }>("/api/policy", {
       method: "POST",
@@ -80,24 +86,35 @@ export const api = {
     request<{ ok: boolean }>("/api/policy/versions/" + id + "/rollback", {
       method: "POST",
     }),
-  dailyReport: () => request<{ report: DailyReport | null; message?: string }>("/api/report/daily"),
+  dailyReport: (orgId?: string) =>
+    request<{ report: DailyReport | null; message?: string }>(withOrg("/api/report/daily", orgId)),
   reportArchives: () => request<{ archives: string[]; configured: boolean }>("/api/report/daily/archives"),
-  resendReport: () => request<{ ok: boolean; message?: string }>("/api/report/daily/resend", { method: "POST" }),
+  resendReport: () => request<{ ok: boolean; message?: string; emailed?: boolean; webhook?: boolean }>("/api/report/daily/resend", { method: "POST" }),
+  notifications: (orgId: string) =>
+    request<{ webhook_url: string | null }>(`/api/orgs/${orgId}/notifications`),
+  updateNotifications: (orgId: string, webhookUrl: string | null) =>
+    request<{ ok: boolean; webhook_url: string | null }>(`/api/orgs/${orgId}/notifications`, {
+      method: "PUT",
+      body: JSON.stringify({ webhook_url: webhookUrl }),
+    }),
   orgs: () => request<{ orgs: Org[] }>("/api/orgs"),
   createOrg: (name: string) => request<{ org: Org }>("/api/orgs", { method: "POST", body: JSON.stringify({ name }) }),
-  members: (orgId: string) => request<OrgMember[]>(`/api/orgs/${orgId}/members`),
+  members: async (orgId: string): Promise<OrgMember[]> => {
+    const res = await request<{ members: OrgMember[] } | OrgMember[]>(`/api/orgs/${orgId}/members`);
+    return Array.isArray(res) ? res : res.members;
+  },
   inviteMember: (orgId: string, email: string, role: Role) =>
-    request<{ ok: boolean }>("/api/orgs/" + orgId + "/members", {
+    request<{ ok: boolean; seats?: number }>("/api/orgs/" + orgId + "/members", {
       method: "POST",
       body: JSON.stringify({ email, role }),
     }),
   updateMember: (orgId: string, userId: string, role: Role) =>
-    request<{ ok: boolean }>("/api/orgs/" + orgId + "/members/" + userId, {
+    request<{ ok: boolean; seats?: number }>("/api/orgs/" + orgId + "/members/" + userId, {
       method: "PATCH",
       body: JSON.stringify({ role }),
     }),
   removeMember: (orgId: string, userId: string) =>
-    request<{ ok: boolean }>("/api/orgs/" + orgId + "/members/" + userId, {
+    request<{ ok: boolean; seats?: number }>("/api/orgs/" + orgId + "/members/" + userId, {
       method: "DELETE",
     }),
   aiAnalyze: (diff: string, opts?: { policy?: string; repo?: string }) =>
@@ -110,7 +127,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ intent }),
     }),
-  billingStatus: () => request<BillingStatus>("/api/billing/status"),
+  billingStatus: (orgId?: string) => request<BillingStatus>(withOrg("/api/billing/status", orgId)),
+  webhookEvents: () =>
+    request<{ events: { id: number; stripe_event_id: string; type: string; org_id: number | null; status: string; error: string | null; created_at: string }[] }>(
+      "/api/billing/webhook-events",
+    ),
   billingCheckout: (plan: "growth" | "pro" = "growth", interval?: "annual" | "monthly") =>
     request<CheckoutSession>("/api/billing/checkout", {
       method: "POST",

@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/navigation-menu";
 
 const GITHUB = "https://github.com/RavaniRoshan/policyctl";
-const GITHUB_DISPLAY_METRIC = "1.4K";
 
 const PRODUCTS = [
   {
@@ -105,15 +104,13 @@ export function MarketingNav() {
       <div className="w-full bg-background-base pt-8 pb-4">
         <div className="pcl-container">
           <div className="w-full bg-heat-100 text-accent-white py-8 px-16 rounded-10 flex items-center justify-center gap-8 text-label-small sm:text-label-medium font-medium shadow-2xs">
-            <span className="hidden sm:inline">
-              Introducing the policyctl Cloud runtime, built for supercharging coding agents.
-            </span>
-            <span className="sm:hidden">policyctl Cloud runtime for coding agents.</span>
+            <span className="hidden sm:inline">Free CLI available now — Cloud waitlist open.</span>
+            <span className="sm:hidden">Free CLI + Cloud waitlist.</span>
             <Link
               to="/pricing"
               className="underline font-semibold hover:opacity-90 inline-flex items-center gap-4 shrink-0"
             >
-              Read the announcement →
+              Join waitlist →
             </Link>
           </div>
         </div>
@@ -306,9 +303,6 @@ export function MarketingNav() {
                 aria-label="GitHub repository"
               >
                 <GithubLogo weight="fill" className="size-20" />
-                <span className="font-mono text-mono-small text-black-alpha-72 group-hover:text-accent-black">
-                  {GITHUB_DISPLAY_METRIC}
-                </span>
               </a>
 
               {/* Auth-aware Action Buttons */}
@@ -404,7 +398,7 @@ export function MarketingNav() {
                 className="px-8 py-6 text-label-medium text-accent-black hover:text-heat-100 flex items-center gap-8"
               >
                 <GithubLogo weight="fill" className="size-18" />
-                <span>GitHub ({GITHUB_DISPLAY_METRIC})</span>
+                <span>GitHub</span>
               </a>
               {isAuthenticated ? (
                 <Link

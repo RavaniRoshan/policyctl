@@ -22,7 +22,9 @@ export interface HostConfig {
   email?: string;
   /** Current org id. */
   orgId?: string;
-  /** Legacy magic-link token (kept for backward compat during migration; removed in next major). */
+  /** Control-plane API key (pc_live_*) for headless/CI use. */
+  apiKey?: string;
+  /** Legacy magic-link token (deprecated; use Auth0 login or --api-key). */
   token?: string;
 }
 
@@ -140,16 +142,19 @@ export async function getBearerToken(): Promise<string | null> {
 
 /**
  * Resolve the bearer token for cloud calls: a fresh Auth0 token (refreshing
- * silently when expired), falling back to the legacy magic-link token.
- * Throws AuthError when logged out.
+ * silently when expired), then control-plane API key, then legacy token
+ * (deprecated). Throws AuthError when logged out.
  */
 export async function getCloudToken(): Promise<string> {
   const cfg = loadConfig();
   const access = cfg.accessToken;
   const fresh = access ? await getBearerToken().catch(() => access) : null;
-  const token = fresh ?? cfg.token ?? null;
+  const token = fresh ?? cfg.apiKey ?? cfg.token ?? null;
   if (!token) {
-    throw new AuthError("not logged in — run `policyctl login`");
+    throw new AuthError("not logged in — run `policyctl login` or `policyctl login --api-key`");
+  }
+  if (!fresh && !cfg.apiKey && cfg.token) {
+    console.error("policyctl: legacy token deprecated — run `policyctl login` or `policyctl login --api-key`");
   }
   return token;
 }
@@ -191,7 +196,7 @@ export async function requirePaidPlan(override?: string): Promise<void> {
   const status = (await res.json()) as { is_paid: boolean; is_trial: boolean };
   if (!status.is_paid && !status.is_trial) {
     throw new AuthError(
-      "control plane subscription required. Visit /dashboard/billing to start a 14-day free trial.",
+      "control plane subscription required. Visit /dashboard/billing to join the waitlist.",
     );
   }
 }

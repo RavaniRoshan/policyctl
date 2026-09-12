@@ -288,10 +288,10 @@ function TrialBanner() {
       <p className="mb-16 text-body-medium leading-26 text-black-alpha-64">
         {isTrial
           ? "You're on a free trial. Add a payment method to continue after your trial ends."
-          : "Start a 14-day free trial to unlock AI rule authoring, shared policy versioning, and the audit dashboard."}
+          : "Join the waitlist to unlock AI rule authoring, shared policy versioning, and the audit dashboard."}
       </p>
       <Link to="/dashboard/billing">
-        <Button trailingIcon>{isTrial ? "Manage billing" : "Start free trial"}</Button>
+        <Button trailingIcon>{isTrial ? "Manage billing" : "Join waitlist"}</Button>
       </Link>
     </Card>
   );

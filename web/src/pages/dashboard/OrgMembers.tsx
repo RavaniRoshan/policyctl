@@ -8,7 +8,8 @@ import {
   Users,
   Warning,
 } from "@phosphor-icons/react";
-import { useOrgMembers, useInviteMember, useUpdateMember, useRemoveMember } from "@/lib/hooks";
+import { Link } from "react-router-dom";
+import { useOrgMembers, useInviteMember, useUpdateMember, useRemoveMember, useBilling } from "@/lib/hooks";
 import { useCurrentOrgId } from "@/lib/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,12 @@ import type { Role } from "@policyctl/types";
 
 const ROLES: Role[] = ["owner", "admin", "member", "viewer"];
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function OrgMembers() {
   const currentOrgId = useCurrentOrgId();
   const { data: members, isLoading, error, refetch } = useOrgMembers(currentOrgId);
+  const { data: billing } = useBilling(currentOrgId);
   const queryClient = useQueryClient();
   const { push } = useToast();
 
@@ -34,28 +38,41 @@ export function OrgMembers() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<Role>("member");
+  const [inviteError, setInviteError] = useState<string | null>(null);
   const [removeConfirm, setRemoveConfirm] = useState<OrgMember | null>(null);
 
-  const seatCount = useMemo(
+  const clientSeats = useMemo(
     () => members?.filter((m) => m.is_billable).length ?? 0,
     [members],
   );
+  const seatCount = billing?.seat_count ?? clientSeats;
   const totalMembers = members?.length ?? 0;
   const pendingCount = useMemo(
     () => members?.filter((m) => !m.accepted_at).length ?? 0,
     [members],
   );
+  const ownerCount = useMemo(
+    () => members?.filter((m) => m.role === "owner").length ?? 0,
+    [members],
+  );
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["orgMembers", currentOrgId] });
+    queryClient.invalidateQueries({ queryKey: ["billing"] });
     refetch();
   };
 
   const handleInvite = async () => {
-    if (!inviteEmail.trim() || !currentOrgId) return;
+    const email = inviteEmail.trim();
+    if (!email || !currentOrgId) return;
+    if (!EMAIL_RE.test(email)) {
+      setInviteError("Enter a valid email");
+      return;
+    }
+    setInviteError(null);
     try {
-      await inviteMut.mutateAsync({ orgId: currentOrgId, email: inviteEmail.trim(), role: inviteRole });
-      push({ title: "Invite sent", description: `Invited ${inviteEmail} as ${inviteRole}` });
+      await inviteMut.mutateAsync({ orgId: currentOrgId, email, role: inviteRole });
+      push({ title: "Invite sent", description: `Invited ${email} as ${inviteRole}` });
       setInviteOpen(false);
       setInviteEmail("");
       setInviteRole("member");
@@ -67,6 +84,10 @@ export function OrgMembers() {
 
   const handleRoleChange = async (member: OrgMember, role: Role) => {
     if (!currentOrgId) return;
+    if (member.role === "owner" && role !== "owner" && ownerCount <= 1) {
+      push({ title: "Cannot demote last owner", description: "Assign another owner first." });
+      return;
+    }
     try {
       await updateMut.mutateAsync({ orgId: currentOrgId, userId: member.id, role });
       push({ title: "Role updated", description: `${member.email} is now ${role}` });
@@ -78,6 +99,10 @@ export function OrgMembers() {
 
   const handleRemove = async () => {
     if (!removeConfirm || !currentOrgId) return;
+    if (removeConfirm.role === "owner" && ownerCount <= 1) {
+      push({ title: "Cannot remove last owner", description: "Assign another owner first." });
+      return;
+    }
     try {
       await removeMut.mutateAsync({ orgId: currentOrgId, userId: removeConfirm.id });
       push({ title: "Member removed", description: removeConfirm.email });
@@ -111,6 +136,12 @@ export function OrgMembers() {
         <SeatStat label="Total members" value={totalMembers} icon={<ShieldCheck className="size-4 text-heat-100" aria-hidden />} />
         <SeatStat label="Pending invites" value={pendingCount} icon={<Envelope className="size-4 text-heat-100" aria-hidden />} />
       </div>
+      <p className="text-body-small text-black-alpha-56">
+        Each owner, admin, or member occupies a paid seat.{" "}
+        <Link to="/dashboard/billing" className="text-heat-ink underline">
+          Manage billing
+        </Link>
+      </p>
 
       {isLoading ? (
         <div className="space-y-8">
@@ -209,8 +240,14 @@ export function OrgMembers() {
           onChange={(e) => setInviteEmail(e.target.value)}
           placeholder="teammate@company.com"
           autoComplete="email"
+          aria-invalid={inviteError ? "true" : undefined}
           className="mt-8 h-44 w-full rounded-md border border-border-faint bg-surface px-12 text-body-medium outline-none placeholder:text-black-alpha-32 focus:border-heat-100"
         />
+        {inviteError && (
+          <p role="alert" className="mt-8 text-mono-small text-danger">
+            {inviteError}
+          </p>
+        )}
         <label htmlFor="invite-role" className="mt-16 block text-label-small">
           Role
         </label>

@@ -9,7 +9,7 @@ export interface LogoutOptions {
 export async function logoutCommand(opts: LogoutOptions): Promise<void> {
   const cfg = loadConfig();
 
-  if (!cfg.accessToken && !cfg.token) {
+  if (!cfg.accessToken && !cfg.token && !cfg.apiKey) {
     console.log(c.muted("policyctl: you are not logged in."));
     return;
   }
@@ -21,6 +21,7 @@ export async function logoutCommand(opts: LogoutOptions): Promise<void> {
     refreshToken: undefined,
     accessTokenExpiresAt: undefined,
     token: undefined,
+    apiKey: undefined,
     email: undefined,
     orgId: undefined,
   };

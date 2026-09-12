@@ -107,6 +107,16 @@ export interface CheckoutSession {
   url: string;
 }
 
+export interface WebhookEvent {
+  id: number;
+  stripe_event_id: string;
+  type: string;
+  org_id: number | null;
+  status: "received" | "failed" | "skipped";
+  error: string | null;
+  created_at: string;
+}
+
 // ── Violations ───────────────────────────────────────────────────────────────
 
 export interface ReportResult {

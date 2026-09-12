@@ -35,6 +35,7 @@ import {
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { Footer } from "@/components/layout/Footer";
 import { useTheme } from "@/lib/theme";
+import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Badge } from "@/components/ui/badge";
@@ -224,7 +225,7 @@ function Hero() {
               <span className="size-6 rounded-full bg-heat-100 animate-pulse" />
               <span>Provider-agnostic policy runtime</span>
               <span className="text-black-alpha-32">|</span>
-              <span className="text-heat-100 font-semibold">v0.1</span>
+              <span className="text-heat-100 font-semibold">v0.1.7</span>
             </div>
           </motion.div>
 
@@ -809,10 +810,9 @@ function BuiltForTrust() {
               Evaluations are pure deterministic assertions and pattern matches. No probabilistic LLM in the validation loop.
             </p>
 
-            {/* 4 Metric Tiles with CountUp */}
+            {/* 3 Metric Tiles with CountUp */}
             <div className="grid grid-cols-2 gap-10">
               {[
-                { value: 1200000, suffix: "+", label: "Evaluations / day", sub: "Production volume" },
                 { value: 12, suffix: "ms", label: "Median runtime", sub: "Zero dev friction" },
                 { value: 0, suffix: " bytes", label: "Telemetry emitted", sub: "Complete privacy" },
                 { value: 100, suffix: "%", label: "Local-first", sub: "Zero cloud lock-in" },
@@ -886,7 +886,7 @@ function BuiltForTrust() {
               </div>
               <div className="h-4" />
               <div className="text-black-alpha-72 flex items-center gap-6">
-                <span className="text-heat-100 font-bold">✓</span> 117 tests pass (unit + integration)
+                <span className="text-heat-100 font-bold">✓</span> tests pass in CI (unit + integration)
               </div>
               <div className="text-black-alpha-72 flex items-center gap-6">
                 <span className="text-heat-100 font-bold">✓</span> 0 network calls emitted
@@ -1113,184 +1113,23 @@ function UseCases() {
   );
 }
 
-const TESTIMONIALS_ROW_1 = [
-  {
-    name: "Elena Rostova",
-    handle: "@erostova",
-    team: "Staff Platform Eng · Stripe",
-    tag: "CI GATE",
-    runtime: "Claude Code · GitHub Actions",
-    quote:
-      "policyctl replaced 4 vendor-specific hook scripts with one .policyctl.yml. The CI gate caught an unverified AWS key before Claude could commit it to main.",
-    initials: "ER",
-  },
-  {
-    name: "Marcus Chen",
-    handle: "@marcusdev",
-    team: "Lead Infra Architect · Monorepo",
-    tag: "<8ms EVAL",
-    runtime: "Cursor · Local-First",
-    quote:
-      "The tool-call interception happens in under 8ms. Claude Code and Cursor feel completely native, but our blast-radius limits are now deterministically enforced.",
-    initials: "MC",
-  },
-  {
-    name: "Sarah Jenkins",
-    handle: "@sjenkins_dev",
-    team: "Head of AppSec · Fintech",
-    tag: "ZERO DRIFT",
-    runtime: "Docker · CI Runner",
-    quote:
-      "Local-first with zero telemetry was non-negotiable for our SOC2 audit. We vendored the static binary into our runners and stopped worrying about AI drift.",
-    initials: "SJ",
-  },
-  {
-    name: "Tariq Al-Mansoor",
-    handle: "@tariq_m",
-    team: "Principal Engineer · Cloud Infra",
-    tag: "DB SAFETY",
-    runtime: "OpenAI Codex · Claude",
-    quote:
-      "We encoded 'migration files must come from our CLI generator' into 4 lines of YAML. Claude stopped hallucinating manual SQL files on day one.",
-    initials: "TA",
-  },
-];
-
-const TESTIMONIALS_ROW_2 = [
-  {
-    name: "Kim Sato",
-    handle: "@kimsato",
-    team: "DevOps Lead · SaaS Runner",
-    tag: "STATIC BINARY",
-    runtime: "GitLab CI · Linux",
-    quote:
-      "The CLI is just a single static binary. No Node daemon in CI, no memory overhead. It just runs policyctl check and fails PRs with an exact AST diff.",
-    initials: "KS",
-  },
-  {
-    name: "Alex Rivera",
-    handle: "@arivera_ai",
-    team: "Founder · Agentic Labs",
-    tag: "DETERMINISTIC",
-    runtime: "Claude Code · Cursor",
-    quote:
-      "Prompting rules in CLAUDE.md works until it doesn't. Deterministic AST assertions are the only way to let coding agents run autonomously without fear.",
-    initials: "AR",
-  },
-  {
-    name: "Devin Vance",
-    handle: "@devin_v",
-    team: "Tech Lead · Enterprise DevTools",
-    tag: "AUDIT FEED",
-    runtime: "Cloud Feed · 18 Repos",
-    quote:
-      "The audit feed shows exactly which tool call an agent executed and which rule passed or blocked it. Compliance finally has real evidence to verify.",
-    initials: "DV",
-  },
-  {
-    name: "Priya Sharma",
-    handle: "@priyasharma",
-    team: "Staff Security Eng · HealthTech",
-    tag: "PROTECTED PATHS",
-    runtime: "Claude · Windsurf",
-    quote:
-      "We locked our /auth and /billing directories. Even if an engineer prompts Cursor to refactor payment logic, policyctl blocks the write instantly.",
-    initials: "PS",
-  },
-];
-
 function CommunityMarquee() {
   return (
     <div className="pb-64 lg:pb-88">
-      {/* Technical Trust Strip */}
+      {/* Technical Trust Strip — real-only, no synthetic social proof */}
       <div className="pcl-container mb-24">
         <div className="flex flex-wrap items-center justify-center gap-12 lg:gap-24 text-mono-x-small font-mono text-black-alpha-64 uppercase py-8 px-16 rounded-lg bg-surface border border-border-faint select-none">
           <span className="flex items-center gap-6">
             <span className="size-6 rounded-full bg-heat-100" />
-            <span>1,400+ REPOS AUDITED</span>
+            <span>MIT LICENSED</span>
           </span>
           <span className="text-black-alpha-24 hidden sm:inline">|</span>
           <span>0.0% RUNTIME TELEMETRY</span>
           <span className="text-black-alpha-24 hidden sm:inline">|</span>
           <span>100% DETERMINISTIC</span>
           <span className="text-black-alpha-24 hidden sm:inline">|</span>
-          <span>MIT LICENSED</span>
+          <span>LOCAL-FIRST</span>
         </div>
-      </div>
-
-      {/* Feathered Dual Marquee Tracks */}
-      <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <Marquee duration={55_000}>
-          {TESTIMONIALS_ROW_1.map((t) => (
-            <TestimonialCard key={t.handle} {...t} />
-          ))}
-        </Marquee>
-        <div className="h-16" />
-        <Marquee duration={55_000} reverse>
-          {TESTIMONIALS_ROW_2.map((t) => (
-            <TestimonialCard key={t.handle} {...t} />
-          ))}
-        </Marquee>
-      </div>
-    </div>
-  );
-}
-
-function TestimonialCard({
-  name,
-  handle,
-  team,
-  quote,
-  tag,
-  runtime,
-  initials,
-}: {
-  name: string;
-  handle: string;
-  team: string;
-  quote: string;
-  tag: string;
-  runtime: string;
-  initials: string;
-}) {
-  return (
-    <div className="w-[320px] sm:w-[360px] lg:w-[400px] shrink-0 mr-16 rounded-xl border border-border-faint bg-surface hover:border-heat-100/50 hover:shadow-hero-card transition-all duration-200 group relative flex flex-col justify-between p-16 lg:p-20">
-      <CurvyRect sides="allSides" />
-
-      <div>
-        {/* Card Header */}
-        <div className="flex items-center justify-between gap-12 pb-12 mb-12 border-b border-border-faint">
-          <div className="flex items-center gap-10 min-w-0">
-            <span className="size-36 rounded-full bg-heat-4 border border-heat-12 flex items-center justify-center font-mono text-mono-small font-bold text-heat-100 shrink-0">
-              {initials}
-            </span>
-            <div className="min-w-0">
-              <div className="text-label-medium text-accent-black font-semibold truncate">
-                {name}
-              </div>
-              <div className="text-mono-x-small font-mono text-black-alpha-64 truncate">
-                {team}
-              </div>
-            </div>
-          </div>
-          <span className="px-6 py-2 rounded bg-heat-4 border border-heat-12 text-heat-100 text-mono-x-small font-mono font-medium shrink-0">
-            [ {tag} ]
-          </span>
-        </div>
-
-        {/* Quote Content */}
-        <p className="text-body-medium text-accent-black leading-relaxed font-normal min-h-[64px] flex items-center">
-          &ldquo;{quote}&rdquo;
-        </p>
-      </div>
-
-      {/* Card Technical Footer */}
-      <div className="mt-14 pt-10 border-t border-border-faint flex items-center justify-between text-mono-x-small font-mono text-black-alpha-40">
-        <div className="flex items-center gap-6 text-black-alpha-64 truncate">
-          <span className="size-5 rounded-full bg-heat-100 shrink-0" />
-          <span className="truncate">{runtime}</span>
-        </div>
-        <span className="text-black-alpha-40 shrink-0 ml-8">[ VERIFIED ]</span>
       </div>
     </div>
   );
@@ -1304,10 +1143,10 @@ function Pricing() {
         <Reveal className="text-center mb-40">
           <span className="pcl-section__badge">Pricing</span>
           <h2 className="pcl-section__title">
-            Free CLI. <span className="text-heat-100">Paid control plane.</span>
+            Free CLI. <span className="text-heat-100">Cloud waitlist.</span>
           </h2>
           <p className="pcl-section__subtitle">
-            Start free. Upgrade when your team needs shared policy versioning and an audit feed.
+            Start free. Join the waitlist for shared policy versioning and an audit feed.
           </p>
         </Reveal>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 -mt-1 items-stretch">
@@ -1362,16 +1201,16 @@ function Pricing() {
                 <div className="flex items-center justify-between pb-12 mb-16 border-b border-border-faint text-mono-x-small font-mono text-black-alpha-40 uppercase">
                   <span>[ TIER 02 // GOVERNANCE ]</span>
                   <span className="px-8 py-2 rounded bg-heat-4 border border-heat-12 text-heat-100 font-semibold">
-                    14-DAY TRIAL
+                    WAITLIST OPEN
                   </span>
                 </div>
                 <h3 className="text-title-h4 text-accent-black font-semibold">Control plane</h3>
                 <div className="mt-8 text-title-h2 text-accent-black font-bold">
-                  $5
-                  <span className="text-body-large text-black-alpha-64 ml-8 font-normal">/ seat / month</span>
+                  Waitlist
+                  <span className="text-body-large text-black-alpha-64 ml-8 font-normal">/ early access</span>
                 </div>
                 <p className="mt-6 text-body-small text-black-alpha-56 font-mono">
-                  Annual: $50 / seat / year (2 months free).
+                  Pricing at launch — no charge today.
                 </p>
                 <ul className="mt-24 space-y-12 text-body-large text-black-alpha-72">
                   <li className="flex gap-10 items-start">
@@ -1393,11 +1232,7 @@ function Pricing() {
                 </ul>
               </div>
               <div className="mt-32 pt-16 border-t border-border-faint">
-                <Link to="/signup?plan=trial" className="block">
-                  <Button className="w-full justify-center" trailingIcon>
-                    Start free trial
-                  </Button>
-                </Link>
+                <WaitlistForm source="landing-pricing" compact />
               </div>
             </div>
           </div>
@@ -1451,7 +1286,7 @@ const FAQS = [
       },
       {
         q: "Is the paid Cloud tier required to use policyctl?",
-        a: "No. The CLI is completely free, open-source, and fully functional standalone. The Cloud plan ($5/seat/mo) is an optional control plane for teams needing shared policy versioning, cross-repo audit feeds, CSV compliance exports, and AI-assisted rule authoring.",
+        a: "No. The CLI is completely free, open-source, and fully functional standalone. The Cloud plan is an optional control plane (pricing at launch — currently waitlist only, no charge) for teams needing shared policy versioning, cross-repo audit feeds, CSV compliance exports, and AI-assisted rule authoring.",
       },
     ],
   },
@@ -1661,7 +1496,7 @@ function CTA() {
                 to="/signup"
                 className="group relative inline-flex items-center gap-10 rounded-lg bg-heat-100 hover:bg-heat-90 text-accent-white px-24 py-12 text-label-medium font-medium transition-all duration-150 active:scale-[0.98] shadow-sm cursor-pointer"
               >
-                <span>Start free trial</span>
+                <span>Get started free</span>
                 <span className="size-20 rounded-md bg-white/20 flex items-center justify-center transition-transform duration-150 group-hover:translate-x-1">
                   <ArrowRight className="size-12" weight="bold" />
                 </span>

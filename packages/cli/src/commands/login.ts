@@ -5,6 +5,7 @@ import { AuthError } from "../lib/errors.js";
 
 export interface LoginOptions {
   server?: string;
+  apiKey?: string;
 }
 
 /** Result of the Auth0 device authorization start request. */
@@ -48,6 +49,20 @@ const POLL_STATES = {
 
 export async function loginCommand(opts: LoginOptions): Promise<void> {
   const server = serverUrl(opts.server);
+
+  if (opts.apiKey) {
+    const key = opts.apiKey.trim();
+    if (!key.startsWith("pc_live_")) {
+      console.error("policyctl: --api-key must start with pc_live_");
+      process.exit(3);
+    }
+    const cfg = loadConfig();
+    cfg.server = server;
+    cfg.apiKey = key;
+    saveConfig(cfg);
+    console.log(panel("logged in", [`  ${c.success("✓")} API key saved`, "", hint(["Run `policyctl whoami` to verify your identity"]) ]));
+    return;
+  }
 
   // Step 1: Fetch Auth0 config from the server (or use stored config).
   let auth0Config: { domain: string; clientId: string; audience: string };

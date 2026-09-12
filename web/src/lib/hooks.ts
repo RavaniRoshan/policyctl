@@ -37,34 +37,34 @@ async function fetchData<T>(real: () => Promise<T>, demo: () => T): Promise<T> {
   return real();
 }
 
-export function useAnalytics() {
+export function useAnalytics(orgId?: string) {
   return useQuery({
-    queryKey: ["analytics"],
-    queryFn: () => fetchData(() => api.analytics(), () => DEMO_ANALYTICS),
+    queryKey: ["analytics", orgId ?? null],
+    queryFn: () => fetchData(() => api.analytics(orgId), () => DEMO_ANALYTICS),
     staleTime: 30_000,
   });
 }
 
-export function useViolations() {
+export function useViolations(orgId?: string) {
   return useQuery({
-    queryKey: ["violations"],
-    queryFn: () => fetchData(() => api.violations(), () => DEMO_VIOLATIONS),
+    queryKey: ["violations", orgId ?? null],
+    queryFn: () => fetchData(() => api.violations(orgId), () => DEMO_VIOLATIONS),
     staleTime: 30_000,
   });
 }
 
-export function usePolicyVersions() {
+export function usePolicyVersions(orgId?: string) {
   return useQuery({
-    queryKey: ["policyVersions"],
-    queryFn: () => fetchData(() => api.policyVersions(), () => DEMO_POLICIES),
+    queryKey: ["policyVersions", orgId ?? null],
+    queryFn: () => fetchData(() => api.policyVersions(orgId), () => DEMO_POLICIES),
     staleTime: 60_000,
   });
 }
 
-export function useDailyReport() {
+export function useDailyReport(orgId?: string) {
   return useQuery({
-    queryKey: ["dailyReport"],
-    queryFn: () => fetchData(() => api.dailyReport(), () => ({ report: DEMO_DAILY_REPORT })),
+    queryKey: ["dailyReport", orgId ?? null],
+    queryFn: () => fetchData(() => api.dailyReport(orgId), () => ({ report: DEMO_DAILY_REPORT })),
     staleTime: 60_000,
   });
 }
@@ -97,24 +97,48 @@ export function useOrgs() {
   });
 }
 
+const CURRENT_ORG_KEY = "policyctl-current-org";
+
+function readStoredOrg(): string | null {
+  try {
+    return localStorage.getItem(CURRENT_ORG_KEY);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Shared current-org selection: the header switcher writes it, Team and
- * Settings read it. Falls back to the first org until the user picks one.
+ * Settings read it. Persisted to localStorage, validated against the org
+ * list, falls back to the first org.
  */
 export function useCurrentOrgId(): string | undefined {
   const { data: orgsData } = useOrgs();
   const { data: stored } = useQuery<string | null>({
     queryKey: ["currentOrgId"],
-    queryFn: () => null,
+    queryFn: () => readStoredOrg(),
     staleTime: Infinity,
     gcTime: Infinity,
   });
-  return stored ?? orgsData?.orgs?.[0]?.id;
+  const orgs = orgsData?.orgs ?? [];
+  if (stored && orgs.some((o) => o.id === stored)) return stored;
+  return orgs[0]?.id;
 }
 
 export function useSetCurrentOrgId() {
   const queryClient = useQueryClient();
-  return (orgId: string) => queryClient.setQueryData(["currentOrgId"], orgId);
+  return (orgId: string) => {
+    try {
+      localStorage.setItem(CURRENT_ORG_KEY, orgId);
+    } catch {
+      /* storage unavailable — in-memory only */
+    }
+    queryClient.setQueryData(["currentOrgId"], orgId);
+    queryClient.invalidateQueries({ queryKey: ["orgMembers"] });
+    queryClient.invalidateQueries({ queryKey: ["billing"] });
+    queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    queryClient.invalidateQueries({ queryKey: ["violations"] });
+  };
 }
 
 /** Premium waitlist (owner/admin only; 403 otherwise → caller hides the card). */
@@ -127,23 +151,32 @@ export function useWaitlist() {
   });
 }
 
-export function useBilling() {
+export function useBilling(orgId?: string) {
   return useQuery({
-    queryKey: ["billing"],
-    queryFn: () => fetchData(() => api.billingStatus(), () => demoBillingStatus()),
+    queryKey: ["billing", orgId ?? null],
+    queryFn: () => fetchData(() => api.billingStatus(orgId), () => demoBillingStatus()),
     staleTime: 60_000,
   });
 }
 
+export function useWebhookEvents() {
+  return useQuery({
+    queryKey: ["webhookEvents"],
+    queryFn: () => api.webhookEvents(),
+    staleTime: 60_000,
+    retry: false,
+  });
+}
+
 /**
- * Demo billing tier for QA: `?demo_tier=free|trial|paid` (default: trial).
- * Lets developers exercise the paywall, trial banner, and paid states locally.
+ * Demo billing tier for QA: `?demo_tier=free|trial|paid` (default: free).
+ * Free-first for Product Hunt: screenshots show waitlist, not trial.
  */
 type DemoTier = "free" | "trial" | "paid";
 
 function demoTier(): DemoTier {
   const t = new URLSearchParams(window.location.search).get("demo_tier");
-  return t === "free" || t === "paid" ? t : "trial";
+  return t === "trial" || t === "paid" ? t : "free";
 }
 
 function demoBillingStatus(): BillingStatus {
@@ -257,6 +290,27 @@ export function useResendReport() {
   });
 }
 
+// ── Org notifications ────────────────────────────────────────────────────────
+
+export function useNotifications(orgId: string | undefined) {
+  return useQuery({
+    queryKey: ["notifications", orgId],
+    queryFn: () => api.notifications(orgId!),
+    enabled: !!orgId,
+    staleTime: 60_000,
+  });
+}
+
+export function useUpdateNotifications(orgId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (webhookUrl: string | null) => api.updateNotifications(orgId!, webhookUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", orgId] });
+    },
+  });
+}
+
 // ── Org members ──────────────────────────────────────────────────────────────
 
 export function useOrgMembers(orgId: string | undefined) {
@@ -269,23 +323,41 @@ export function useOrgMembers(orgId: string | undefined) {
 }
 
 export function useInviteMember() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ orgId, email, role }: { orgId: string; email: string; role: Role }) =>
       api.inviteMember(orgId, email, role),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["orgMembers", vars.orgId] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+      queryClient.invalidateQueries({ queryKey: ["orgs"] });
+    },
   });
 }
 
 export function useUpdateMember() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ orgId, userId, role }: { orgId: string; userId: string; role: Role }) =>
       api.updateMember(orgId, userId, role),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["orgMembers", vars.orgId] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+      queryClient.invalidateQueries({ queryKey: ["orgs"] });
+    },
   });
 }
 
 export function useRemoveMember() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ orgId, userId }: { orgId: string; userId: string }) =>
       api.removeMember(orgId, userId),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["orgMembers", vars.orgId] });
+      queryClient.invalidateQueries({ queryKey: ["billing"] });
+      queryClient.invalidateQueries({ queryKey: ["orgs"] });
+    },
   });
 }
 

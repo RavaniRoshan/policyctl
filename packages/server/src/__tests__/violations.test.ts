@@ -51,6 +51,7 @@ function createMockOrg(id = 1): Org {
     price_id: null,
     plan: "free",
     api_key_hash: null,
+    report_webhook_url: null,
   };
 }
 

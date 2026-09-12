@@ -230,7 +230,7 @@ export async function getPrimaryOrg(db: D1Database, userId: number): Promise<Org
     .prepare(
       `SELECT o.id, o.name, o.current_version, o.stripe_customer_id, o.stripe_sub_id,
               o.subscription_status, o.subscription_tier, o.seat_count, o.trial_ends_at,
-              o.current_period_end, o.price_id, o.plan
+              o.current_period_end, o.price_id, o.plan, o.report_webhook_url
        FROM orgs o
        JOIN org_members m ON m.org_id = o.id
        WHERE m.user_id = ?
@@ -271,7 +271,7 @@ export async function listOrgs(db: D1Database, userId: number): Promise<Org[]> {
     .prepare(
       `SELECT o.id, o.name, o.current_version, o.stripe_customer_id, o.stripe_sub_id,
               o.subscription_status, o.subscription_tier, o.seat_count, o.trial_ends_at,
-              o.current_period_end, o.price_id, o.plan
+              o.current_period_end, o.price_id, o.plan, o.report_webhook_url
        FROM orgs o
        JOIN org_members m ON m.org_id = o.id
        WHERE m.user_id = ? ORDER BY o.id ASC`,
@@ -297,7 +297,7 @@ export async function resolveOrg(
     .prepare(
       `SELECT id, name, current_version, stripe_customer_id, stripe_sub_id,
               subscription_status, subscription_tier, seat_count, trial_ends_at,
-              current_period_end, price_id, plan
+              current_period_end, price_id, plan, report_webhook_url
        FROM orgs WHERE id = ?`,
     )
     .bind(requested)
@@ -317,7 +317,7 @@ export async function createOrg(db: D1Database, userId: number, name: string): P
     .prepare("INSERT INTO org_members (org_id, user_id, role, created_at) VALUES (?, ?, ?, ?)")
     .bind(orgId, userId, "owner", ts)
     .run();
-  return { id: orgId, name, current_version: null, stripe_customer_id: null, stripe_sub_id: null, subscription_status: "free", subscription_tier: "free", seat_count: 1, trial_ends_at: null, current_period_end: null, price_id: null, plan: "free", api_key_hash: null };
+  return { id: orgId, name, current_version: null, stripe_customer_id: null, stripe_sub_id: null, subscription_status: "free", subscription_tier: "free", seat_count: 1, trial_ends_at: null, current_period_end: null, price_id: null, plan: "free", api_key_hash: null, report_webhook_url: null };
 }
 
 export async function addMember(
@@ -793,6 +793,82 @@ export async function updateSubscriptionStatus(db: D1Database, stripeSubId: stri
     .run();
 }
 
+// ── Webhook events (observability + idempotency) ─────────────────────────
+
+export type WebhookEventStatus = "received" | "failed" | "skipped";
+
+/** Insert once per Stripe event id; returns false when already seen. */
+export async function insertWebhookEvent(
+  db: D1Database,
+  data: { stripe_event_id: string; type: string; org_id?: number | null },
+): Promise<boolean> {
+  try {
+    await db
+      .prepare(
+        `INSERT INTO webhook_events (stripe_event_id, type, org_id, status, created_at)
+         VALUES (?, ?, ?, 'received', ?)`,
+      )
+      .bind(data.stripe_event_id, data.type, data.org_id ?? null, now())
+      .run();
+    return true;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/UNIQUE|already exists|duplicate/i.test(msg)) return false;
+    throw err;
+  }
+}
+
+export async function updateWebhookEvent(
+  db: D1Database,
+  stripeEventId: string,
+  status: WebhookEventStatus,
+  error?: string | null,
+): Promise<void> {
+  await db
+    .prepare("UPDATE webhook_events SET status = ?, error = ? WHERE stripe_event_id = ?")
+    .bind(status, error ?? null, stripeEventId)
+    .run();
+}
+
+export async function listWebhookEvents(
+  db: D1Database,
+  limit = 50,
+): Promise<{ id: number; stripe_event_id: string; type: string; org_id: number | null; status: string; error: string | null; created_at: number }[]> {
+  const rows = (await db
+    .prepare(
+      `SELECT id, stripe_event_id, type, org_id, status, error, created_at
+       FROM webhook_events ORDER BY id DESC LIMIT ?`,
+    )
+    .bind(limit)
+    .all()) as unknown as {
+    results: { id: number; stripe_event_id: string; type: string; org_id: number | null; status: string; error: string | null; created_at: number }[];
+  };
+  return rows.results;
+}
+
+// ── Org notifications (report webhook URL) ─────────────────────────────
+
+/** Get the report webhook URL for an org (null when disabled). */
+export async function getOrgReportWebhook(db: D1Database, orgId: number): Promise<string | null> {
+  const row = (await db
+    .prepare("SELECT report_webhook_url FROM orgs WHERE id = ?")
+    .bind(orgId)
+    .first<{ report_webhook_url: string | null }>()) as { report_webhook_url: string | null } | null;
+  return row?.report_webhook_url ?? null;
+}
+
+/** Set (or clear) the report webhook URL for an org. */
+export async function setOrgReportWebhook(
+  db: D1Database,
+  orgId: number,
+  url: string | null,
+): Promise<void> {
+  await db
+    .prepare("UPDATE orgs SET report_webhook_url = ? WHERE id = ?")
+    .bind(url, orgId)
+    .run();
+}
+
 /** Count billable seats (non-viewer members) for an org. */
 export async function getSeatCount(db: D1Database, orgId: number): Promise<number> {
   const row = (await db
@@ -815,7 +891,7 @@ export async function getOrgSubscription(db: D1Database, orgId: number): Promise
       .prepare(
         `SELECT id, name, current_version, stripe_customer_id, stripe_sub_id,
                 subscription_status, subscription_tier, seat_count, trial_ends_at,
-                current_period_end, price_id, plan, api_key_hash
+                current_period_end, price_id, plan, api_key_hash, report_webhook_url
          FROM orgs WHERE id = ?`,
       )
       .bind(orgId)

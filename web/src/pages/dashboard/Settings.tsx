@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeSlash, SignOut, Copy, Check, Trash, Key } from "@phosphor-icons/react";
+import { Eye, EyeSlash, SignOut, Copy, Check, Trash, Key, Bell } from "@phosphor-icons/react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CodeBlock } from "@/components/ui/code-block";
 import { CurvyRect, Modal, useToast } from "@policyctl/design-system";
 import { useAuth } from "@/lib/auth";
-import { useBilling, useGenerateApiKey, useDeleteOrg, useOrgs, useCurrentOrgId } from "@/lib/hooks";
+import { useBilling, useGenerateApiKey, useDeleteOrg, useOrgs, useCurrentOrgId, useNotifications, useUpdateNotifications } from "@/lib/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { MonoAnnotation } from "@/components/shared/EmptyState";
 
@@ -34,6 +34,26 @@ export function Settings() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const hasApiKey = billing.data?.has_api_key ?? false;
+
+  // Notifications (webhook URL)
+  const notifications = useNotifications(currentOrgId);
+  const updateNotifications = useUpdateNotifications(currentOrgId);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookSaved, setWebhookSaved] = useState(false);
+  const webhookInitial = notifications.data?.webhook_url ?? "";
+  const webhookChanged = webhookUrl !== webhookInitial;
+
+  const saveWebhook = async () => {
+    const url = webhookUrl.trim() || null;
+    try {
+      await updateNotifications.mutateAsync(url);
+      setWebhookSaved(true);
+      setTimeout(() => setWebhookSaved(false), 2000);
+      push({ title: url ? "Webhook saved" : "Webhook removed", description: url ? "Daily reports will be posted to this URL." : "Webhook delivery disabled." });
+    } catch (e: any) {
+      push({ title: "Failed to save webhook", description: e?.message ?? "Try again." });
+    }
+  };
 
   const generateNewKey = async () => {
     try {
@@ -135,7 +155,7 @@ export function Settings() {
             <p className="mb-8 text-body-small text-black-alpha-56">
               Save this key now — it won&apos;t be shown again.
             </p>
-            <CodeBlock code={`policyctl login`} lang="bash" title="cli" />
+            <CodeBlock code={`policyctl login --api-key ${generatedKey}`} lang="bash" title="cli" />
           </div>
         )}
         {!generatedKey && hasApiKey && (
@@ -143,6 +163,46 @@ export function Settings() {
             A key is already active. Click &quot;Regenerate&quot; to rotate it.
           </p>
         )}
+      </Card>
+
+      <Card className="p-24 lg:p-32">
+        <CurvyRect sides="allSides" />
+        <h2 className="text-label-x-large">Notifications</h2>
+        <p className="mt-8 text-body-medium leading-22 text-black-alpha-64">
+          Get daily compliance reports delivered to Slack, Discord, or any
+          incoming webhook endpoint.
+        </p>
+        <div className="mt-16 space-y-12">
+          <Input
+            id="webhook-url"
+            placeholder="https://hooks.slack.com/services/..."
+            value={webhookUrl}
+            onChange={(e) => { setWebhookUrl(e.target.value); setWebhookSaved(false); }}
+            onFocus={() => { if (!webhookUrl && notifications.data?.webhook_url) setWebhookUrl(notifications.data.webhook_url); }}
+            aria-label="Incoming webhook URL"
+          />
+          <div className="flex items-center gap-8">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={saveWebhook}
+              disabled={!webhookChanged || updateNotifications.isPending}
+            >
+              {webhookSaved ? <Check className="size-3 mr-4" aria-hidden /> : null}
+              {updateNotifications.isPending ? "Saving…" : webhookSaved ? "Saved" : "Save"}
+            </Button>
+            {notifications.data?.webhook_url && (
+              <span className="font-mono text-mono-x-small text-black-alpha-48">
+                Active — reports posted daily
+              </span>
+            )}
+          </div>
+        </div>
+        <p className="mt-12 text-body-small leading-22 text-black-alpha-48">
+          Paste a Slack, Discord, or generic incoming webhook URL. We POST a
+          formatted summary after each daily cron run and on-demand regeneration.
+          Leave empty to disable.
+        </p>
       </Card>
 
       <Card className="p-24 lg:p-32">

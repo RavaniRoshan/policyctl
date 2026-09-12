@@ -74,7 +74,7 @@ export function Footer() {
                 to="/signup"
                 className="inline-flex items-center justify-center px-16 py-8 rounded-md bg-accent-black text-accent-white font-mono text-mono-x-small uppercase tracking-wider hover:bg-black-alpha-88 transition-colors no-underline"
               >
-                Start free trial →
+                Get started free →
               </Link>
               <Link
                 to="/docs"
