@@ -3,6 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Check } from "@phosphor-icons/react";
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { Footer } from "@/components/layout/Footer";
+import { PHLaunchBanner } from "@/components/launch/PHLaunchBanner";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 
 const CLOUD_FEATURES = [
@@ -26,12 +27,16 @@ export function Pricing() {
   return (
     <div className="min-h-screen bg-background-base text-accent-black">
       <MarketingNav />
+      <PHLaunchBanner />
       <main id="main-content" className="mx-auto max-w-[1112px] px-16 pt-64 pb-96">
         <p className="pcl-section__badge">Pricing</p>
         <h1 className="pcl-section__title mt-12">Free CLI. Cloud waitlist open.</h1>
         <p className="pcl-section__subtitle mt-12 max-w-xl">
           The CLI is free forever. Cloud adds team sync, audit, and AI — join the
           waitlist, no payment today.
+        </p>
+        <p className="mt-12 text-mono-small text-heat-100">
+          Product Hunt launch week — no credit card, no payment details asked, ever during sign-up.
         </p>
 
         <div className="mt-48 grid gap-16 md:grid-cols-2">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Section,
@@ -34,6 +34,7 @@ import {
 } from "@phosphor-icons/react";
 import { MarketingNav } from "@/components/layout/MarketingNav";
 import { Footer } from "@/components/layout/Footer";
+import { PHLaunchBanner } from "@/components/launch/PHLaunchBanner";
 import { useTheme } from "@/lib/theme";
 import { WaitlistForm } from "@/components/ui/waitlist-form";
 import { Button } from "@/components/ui/button";
@@ -57,8 +58,10 @@ export function Landing() {
         aria-hidden="true"
       />
       <MarketingNav />
+      <PHLaunchBanner />
       <main id="main-content" tabIndex={-1} className="focus:outline-none">
       <Hero />
+      <PHVisitorLine />
       <TrustedBy />
       <Section
         index={1}
@@ -1533,5 +1536,31 @@ function CTA() {
         </div>
       </div>
     </section>
+  );
+}
+
+function PHVisitorLine() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setShow(params.get("utm_source") === "producthunt");
+  }, []);
+
+  if (!show) return null;
+
+  return (
+    <p className="pcl-container mt-16 text-mono-small text-black-alpha-64">
+      Launched today on Product Hunt —{" "}
+      <a
+        href="https://www.producthunt.com/posts/policyctl?utm_source=site&utm_campaign=ph-launch"
+        target="_blank"
+        rel="noreferrer"
+        className="text-heat-100 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-heat-100"
+      >
+        thanks for checking us out
+      </a>
+      .
+    </p>
   );
 }

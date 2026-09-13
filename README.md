@@ -35,7 +35,24 @@
 </p>
 
 ---
- <a href="https://www.producthunt.com/products/policyctl?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-policyctl" target="_blank" rel="noopener noreferrer"><img alt="policyctl - Provider-agnostic policy runtime for coding agents | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1241351&amp;theme=light&amp;t=1788532069958"></a>
+
+## 🚀 Launched on Product Hunt — Sep 13, 2026
+
+<p>
+  <a href="https://www.producthunt.com/posts/policyctl?utm_source=github-readme&utm_campaign=ph-launch" target="_blank" rel="noopener noreferrer"><strong>Upvote policyctl on Product Hunt →</strong></a>
+</p>
+<p>
+  <a href="https://www.producthunt.com/products/policyctl?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-policyctl" target="_blank" rel="noopener noreferrer"><img alt="policyctl - Provider-agnostic policy runtime for coding agents | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1241351&amp;theme=light&amp;t=1788532069958"></a>
+</p>
+
+One YAML file enforces deterministic rules across Claude Code, Codex, Cursor, and CI. Free, MIT-licensed, local-first. Try it in 30 seconds:
+
+```bash
+npx @policyctl/cli init
+```
+
+If it saves you from one bad agent commit today, an upvote on the post above helps an indie open-source launch a lot. Thank you. 🙏
+
 ---
 
 ## Overview
