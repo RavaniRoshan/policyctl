@@ -1,27 +1,31 @@
-# Launch-day hourly playbook — policyctl (Sep 13, 2026)
+# Launch-day hourly playbook — policyctl (Sep 12, 2026 Pacific)
 
-PH day ends **11:59pm PT**. The US evening is the highest-traffic window — the launch is won or lost there.
+> ## ⚠️ TIMELINE CORRECTION — READ FIRST
+>
+> The PH day ends **11:59pm PT tonight** — at the time this playbook was finalized, that is **~3 hours away** (it's ~9pm PT). The launch went live ~11:45am PT today.
+>
+> That means: the "final evening push" section below is **now**. Everything else collapses into a 3-hour sprint, in this exact priority order:
+>
+> 1. **DM blast — largest batch you can personally send right now** (template A, warmest 30–50 contacts). DMs convert 20–40%; this is the single highest-yield action available. Keep sending until 11:30pm PT.
+> 2. **Maker comments #1 + #5 on the PH post** (launch story now, final-hours at ~11:15pm PT).
+> 3. **X momentum post** — "Final 3 hours of Product Hunt day — we're at #N, every upvote counts" + link. Pin + reply to your earlier thread.
+> 4. **ONE Reddit post now** (r/ClaudeAI from docs/launch/reddit.md) — a thread can rank within 2–3h; skip the other two subs until tomorrow.
+> 5. Reply to every PH comment as they land — fast maker replies in the final hours count heavily.
+>
+> **What NOT to do in the last 3 hours:** Show HN (Saturday-night HN traction is dead; post it **Sunday 8–10am ET** instead — see below), LinkedIn (post tomorrow morning), the other two Reddit posts (tomorrow, staggered).
+>
+> When the day closes at midnight PT, the launch isn't over: Show HN Sunday morning, LinkedIn, remaining Reddit posts, and a dev.to article this week are what convert the launch into lasting GitHub stars/npm installs/trial signups. Those are where the compounding value is.
+
+PH day ends **11:59pm PT** (already covered above). The remaining schedule below is the original full-day plan — use it as the post-day / compounding playbook.
 
 Legend: **[Y]** = you (accounts, DMs, PH replies — can't be delegated) · **[A]** = agent (drafting, code, monitoring) · **[D]** = do together
 
 ---
 
-## First 90 minutes (now)
+## Show HN — do NOT post tonight
 
-- [Y] Open PH post analytics — write down current upvote count + position (baseline)
-- [A] Ship: PH banner on site, README launch section, deploy to prod (done in Phase A)
-- [Y] Reply to every existing PH comment — maker badge visible, fast replies
-- [Y] Post X thread (docs/launch/x-thread.md) + pin
-- [Y] First DM wave — 20 warmest contacts (docs/launch/linkin-dms.md, template A)
-- [D] Verify site: banner live on https://policyctl-web.pages.dev, PH badge in README renders
-
-## Hours 1–4 — US morning ramp
-
-- [Y] Post Show HN 8–10am ET (docs/launch/show-hn.md) — then answer every comment for 3h, <10min per reply
-- [Y] Post 1: r/ClaudeAI (docs/launch/reddit.md)
-- [Y] DM wave 2 — 20 more, hourly
-- [Y] Maker comment #1 launch story on PH (docs/launch/maker-comments.md)
-- [A] On call: drafting replies, technical answers, more content on request
+- Post **Sunday 8–10am ET** from the show-hn.md file — not Saturday night, when HN traffic is at its weekly low and a cold start can doom the thread.
+- Keep the "ask me anything about the matcher design" closer — HN rewards maker engagement, and the AST matcher is the conversation starter.
 
 ## Hours 4–12 — US afternoon
 

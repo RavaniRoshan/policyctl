@@ -36,7 +36,7 @@
 
 ---
 
-## 🚀 Launched on Product Hunt — Sep 13, 2026
+## 🚀 Launched on Product Hunt — live now
 
 <p>
   <a href="https://www.producthunt.com/posts/policyctl?utm_source=github-readme&utm_campaign=ph-launch" target="_blank" rel="noopener noreferrer"><strong>Upvote policyctl on Product Hunt →</strong></a>
